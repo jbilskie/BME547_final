@@ -3,6 +3,5 @@ pytest-pep8
 scipy
 numpy
 flask
-tkinter
 requests
 sendgrid==5.6.0
