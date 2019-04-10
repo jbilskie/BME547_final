@@ -1,0 +1,7 @@
+pytest
+pytest-pep8
+scipy
+numpy
+flask
+requests
+sendgrid==5.6.0
