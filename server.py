@@ -40,12 +40,34 @@ def process_new_user(user_info):
     Returns:
         status (dict): status message and status code
     """
-    status = {"code": 200,
-              "msg": "Request was successful"}
-
     # Validate user info
+    status = validate_user(user_info["username"])
 
     # Add user to database
+
+    return status
+
+
+def validate_user(username):
+    """ Validate a user's username
+
+    This function ensures that the user enters an allowable
+    username. Here, usernames are allowed if they are non-empty.
+    The function then returns the appropriate status code and
+    message
+
+    Args:
+        username (str): user identifier
+
+    Returns:
+        status (dict): status message and status code
+    """
+    if len(username) == 0:
+        status = {"code": 400,
+                  "msg": "Username cannot be empty."}
+    else:
+        status = {"code": 200,
+                  "msg": "Request was successful"}
 
     return status
 

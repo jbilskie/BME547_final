@@ -33,4 +33,4 @@ def add_new_user(username):
 
 
 if __name__ == "__main__":
-    add_new_user("user1")
+    add_new_user("")
