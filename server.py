@@ -43,9 +43,30 @@ def process_new_user(user_info):
     # Validate user info
     status = validate_user(user_info["username"])
 
-    # Add user to database
+    # Add user to database if valid request
+    if status == 200:
+        register_new_user(user_info["username"])
 
     return status
+
+
+def register_new_user(username):
+    """ Register new user to database
+
+    This function takes a user's username and registers them
+    to the MongoDB database.
+
+    Args:
+        username (str): user identifier
+
+    Returns:
+        none
+    """
+    # Create user object
+
+    # Save user
+
+    return
 
 
 def validate_user(username):
