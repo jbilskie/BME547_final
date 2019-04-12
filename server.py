@@ -23,7 +23,31 @@ def new_user():
     """
     in_data = request.get_json()
 
-    return jsonify(in_data)
+    status = process_new_user(in_data)
+
+    return status["msg"], status["code"]
+
+
+def process_new_user(user_info):
+    """ Processes request to add new user
+
+    This function processes the request to add a new user
+    to the database.
+
+    Args:
+        user_info (dict): dictionary with user info
+
+    Returns:
+        status (dict): status message and status code
+    """
+    status = {"code": 200,
+              "msg": "Request was successful"}
+
+    # Validate user info
+
+    # Add user to database
+
+    return status
 
 
 if __name__ == '__main__':

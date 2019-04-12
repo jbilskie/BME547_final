@@ -26,8 +26,8 @@ def add_new_user(username):
 
     r = requests.post(url + "new_user", json=user)
 
-    print("Returned {}".format(r.text))
-    print("Status {}".format(r.status_code))
+    print("Returned: {}".format(r.text))
+    print("Status: {}".format(r.status_code))
 
     return
 
