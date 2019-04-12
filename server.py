@@ -3,6 +3,7 @@
 # Last Modified: 4/12/19
 
 from flask import Flask, jsonify, request
+from user import User
 
 app = Flask(__name__)
 
@@ -63,8 +64,10 @@ def register_new_user(username):
         none
     """
     # Create user object
+    user = User(username=username)
 
     # Save user
+    user.save()
 
     return
 
