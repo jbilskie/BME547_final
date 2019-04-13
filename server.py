@@ -264,6 +264,7 @@ def run_image_processing(orig_img, proc_step):
         proc_img (np.array): processed image as RGB intensities
     """
     from skimage.exposure import equalize_hist
+    from skimage.exposure import rescale_intensity
 
     if proc_step == "Histogram Equalization":
         # Preallocate
@@ -272,6 +273,10 @@ def run_image_processing(orig_img, proc_step):
         # Apply histogram equalization to all channels
         for i in range(0, (np.shape(orig_img))[-1]):
             proc_img[:, :, i] = equalize_hist(orig_img[:, :, i])
+
+    elif proc_step == "Contrast Stretching":
+        p2, p98 = np.percentile(orig_img, (2, 98))
+        proc_img = rescale_intensity(orig_img, in_range=(p2, p98))
 
     return proc_img
 
