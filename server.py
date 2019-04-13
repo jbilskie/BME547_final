@@ -133,8 +133,7 @@ def process_image_upload(img_info):
     Returns:
         status (dict): status message and status code
     """
-    status = {"code": 200,
-              "msg": "Request was successful"}
+    from datetime import datetime
 
     # Validate user info
     status = validate_input("username", img_info["username"])
@@ -149,6 +148,10 @@ def process_image_upload(img_info):
         return status
 
     # Calculate image size
+    img_info["size"] = 1  # hard coded for now, CHANGE LATER
+
+    # Get time stamp
+    img_info["timestamp"] = datetime.now()
 
     # Upload image to database if valid request
 
