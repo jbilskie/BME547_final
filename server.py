@@ -206,11 +206,40 @@ def process_image():
     """
     in_data = request.get_json()
 
-    # CHANGE
-    status = {"msg": "Successful",
-              "code": 200}
+    status = process_process_image(in_data)
 
     return status["msg"], status["code"]
+
+
+def process_process_image(img_info):
+    """ Processes request to process image
+
+    This function processes the request to process an image. The
+    function returns a status code and message to indicate
+    whether the request was successful.
+
+    Args:
+        img_info (dict): dictionary with image metadata including
+        the username, filename, image, and processing step to run
+
+    Returns:
+        status (dict): status message and status code        
+    """
+    # Validate user info
+    status = validate_input("username", img_info["username"])
+    if status["code"] != 200:
+        return status
+
+    # Validate filename
+    status = validate_input("filename", img_info["filename"])
+    if status["code"] != 200:
+        return status
+
+    # Process image
+
+    # Upload processed image
+
+    return status
 
 
 if __name__ == '__main__':
