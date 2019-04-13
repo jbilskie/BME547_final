@@ -45,24 +45,26 @@ def upload_image(username, filename):
     Returns:
         none
     """
+    from image import read_img_as_b64
+
     # Read in image as b64
-    b64_img = "replace this string"
+    b64_string = read_img_as_b64(filename)
 
     # Format into dictionary
     img_info = {"username": username,
                 "filename": filename,
-                "image": b64_img}
+                "image": b64_string}
 
-    print("Asking server to upload image")
+    # print("Asking server to upload image")
 
-    r = requests.post(url + "image_upload", json=img_info)
+    # r = requests.post(url + "image_upload", json=img_info)
 
-    print("Returned: {}".format(r.text))
-    print("Status: {}".format(r.status_code))
+    # print("Returned: {}".format(r.text))
+    # print("Status: {}".format(r.status_code))
 
     return
 
 
 if __name__ == "__main__":
-    add_new_user("user1")
-    upload_image("user1", "file.png")
+    # add_new_user("user1")
+    upload_image("user1", "structure.jpg")
