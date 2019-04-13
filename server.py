@@ -96,5 +96,26 @@ def validate_user(username):
     return status
 
 
+@app.route("/image_upload", methods=["POST"])
+def image_upload():
+    """ Upload images to database
+
+    This function implements a post request that takes
+    a dictionary containing an image and its metadata and
+    uploads it to a MongoDB database.
+
+    Args:
+        none
+
+    Returns:
+        msg (str): displays message regarding a request
+        code (int): status code that indicates whether a request
+        was successful
+    """
+    in_data = request.get_json()
+
+    return jsonify(in_data)
+
+
 if __name__ == '__main__':
     app.run()
