@@ -137,8 +137,16 @@ def process_image_upload(img_info):
               "msg": "Request was successful"}
 
     # Validate user info
+    status = validate_input("username", img_info["username"])
+
+    # If status code indicates failure, exit from function
+    if status["code"] != 200:
+        return status
 
     # Validate filename
+    status = validate_input("filename", img_info["filename"])
+    if status["code"] != 200:
+        return status
 
     # Calculate image size
 
