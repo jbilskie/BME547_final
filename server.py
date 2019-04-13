@@ -114,7 +114,36 @@ def image_upload():
     """
     in_data = request.get_json()
 
-    return jsonify(in_data)
+    status = process_image_upload(in_data)
+
+    return status["msg"], status["code"]
+
+
+def process_image_upload(img_info):
+    """ Processes request to upload images
+
+    This function processes the request to upload new images to
+    the database.
+
+    Args:
+        img_info (dict): dictionary with image metadata including
+        the username, filename, and image itself
+
+    Returns:
+        status (dict): status message and status code
+    """
+    status = {"code": 200,
+              "msg": "Request was successful"}
+
+    # Validate user info
+
+    # Validate filename
+
+    # Calculate image size
+
+    # Upload image to database if valid request
+
+    return status
 
 
 if __name__ == '__main__':

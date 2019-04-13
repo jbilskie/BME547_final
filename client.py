@@ -54,7 +54,7 @@ def upload_image(username, filename):
                 "image": b64_img}
 
     print("Asking server to upload image")
-    
+
     r = requests.post(url + "image_upload", json=img_info)
 
     print("Returned: {}".format(r.text))
