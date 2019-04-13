@@ -64,5 +64,5 @@ def upload_image(username, filename):
 
 
 if __name__ == "__main__":
-    add_new_user("user1")
-    upload_image("user1", "file.png")
+    add_new_user("")
+    # upload_image("user1", "file.png")
