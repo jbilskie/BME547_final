@@ -226,6 +226,7 @@ def process_process_image(img_info):
     Returns:
         status (dict): status message and status code
     """
+    from datetime import datetime
     from image import b64_to_image
 
     # Validate user info
@@ -242,7 +243,18 @@ def process_process_image(img_info):
     orig_img = b64_to_image(img_info["image"])
 
     # Process image
-    proc_img = run_image_processing(orig_img, img_info["proc_step"])
+    t1 = datetime.now()
+    img_info["image"] = run_image_processing(orig_img, img_info["proc_step"])
+    t2 = datetime.now()
+
+    # Processing time
+    img_info["proc_time"] = t2-t1
+
+    # Calculate image size
+    img_info["size"] = 1  # hard coded for now, CHANGE LATER
+
+    # Get time stamp
+    img_info["timestamp"] = datetime.now()
 
     # Upload processed image
 
