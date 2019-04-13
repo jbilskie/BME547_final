@@ -1,6 +1,6 @@
 # client.py
 # Author: Kevin Chu
-# Last Modified: 4/12/19
+# Last Modified: 4/13/19
 
 import requests
 
@@ -64,5 +64,5 @@ def upload_image(username, filename):
 
 
 if __name__ == "__main__":
-    # add_new_user("user1")
+    add_new_user("user1")
     upload_image("user1", "file.png")

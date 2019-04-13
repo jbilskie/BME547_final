@@ -1,9 +1,10 @@
 # server.py
 # Author: Kevin Chu
-# Last Modified: 4/12/19
+# Last Modified: 4/13/19
 
 from flask import Flask, jsonify, request
 from user import User
+from pymodm import connect, MongoModel, fields
 
 app = Flask(__name__)
 
@@ -22,6 +23,7 @@ def new_user():
     Returns:
         out_data (string): status message and status code
     """
+    print("Inside of new_user")
     in_data = request.get_json()
 
     status = process_new_user(in_data)
@@ -41,11 +43,12 @@ def process_new_user(user_info):
     Returns:
         status (dict): status message and status code
     """
+    print("Inside of process_new_user")
     # Validate user info
     status = validate_input("username", user_info["username"])
 
     # Add user to database if valid request
-    if status == 200:
+    if status["code"] == 200:
         register_new_user(user_info["username"])
 
     return status
@@ -63,10 +66,12 @@ def register_new_user(username):
     Returns:
         none
     """
+    print("Inside of register_new_user")
     # Create user object
     user = User(username=username)
 
     # Save user
+    print("Saving user")
     user.save()
 
     return
@@ -154,8 +159,34 @@ def process_image_upload(img_info):
     img_info["timestamp"] = datetime.now()
 
     # Upload image to database if valid request
+    upload_image(img_info)
 
     return status
+
+
+def upload_image(img_info):
+    """ Uploads image to database
+
+    This function takes an image and its metadata and uploads
+    it to the MongoDB database. The image is linked to the user
+    that uploaded it.
+
+    Args:
+        img_info (dict): dictionary with image metadata including
+        the username, filename, size, time stamp, and image itself
+
+    Returns:
+        none
+    """
+    # Retrieve user from database (assumes they exist - CHANGE)
+    user = User.objects.raw({"_id": img_info["username"]}).first()
+
+    # Add image info
+    user.orig_img.append(img_info)
+
+    user.save()
+
+    return
 
 
 if __name__ == '__main__':
