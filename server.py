@@ -223,7 +223,7 @@ def process_process_image(img_info):
         the username, filename, image, and processing step to run
 
     Returns:
-        status (dict): status message and status code        
+        status (dict): status message and status code
     """
     # Validate user info
     status = validate_input("username", img_info["username"])
