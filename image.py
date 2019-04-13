@@ -45,6 +45,7 @@ def b64_to_image(b64_string):
     """
     img_bytes = base64.b64decode(b64_string)
     img_buf = io.BytesIO(img_bytes)
+    print(type(img_buf))
     img = mpimg.imread(img_buf, format='JPG')
 
     return img

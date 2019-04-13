@@ -189,5 +189,29 @@ def upload_image(img_info):
     return
 
 
+@app.route("/process_image", methods=["POST"])
+def process_image():
+    """ Process and upload image to database
+
+    This implements the post request to process an image and store
+    the processed image on the MongoDB database.
+
+    Args:
+        none
+
+    Returns:
+        msg (str): displays message regarding a request
+        code (int): status code that indicates whether a request
+        was successful
+    """
+    in_data = request.get_json()
+
+    # CHANGE
+    status = {"msg": "Successful",
+              "code": 200}
+
+    return status["msg"], status["code"]
+
+
 if __name__ == '__main__':
     app.run()
