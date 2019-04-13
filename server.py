@@ -4,6 +4,7 @@
 
 from flask import Flask, jsonify, request
 from user import User
+import numpy as np
 from pymodm import connect, MongoModel, fields
 
 app = Flask(__name__)
@@ -225,6 +226,8 @@ def process_process_image(img_info):
     Returns:
         status (dict): status message and status code
     """
+    from image import b64_to_image
+
     # Validate user info
     status = validate_input("username", img_info["username"])
     if status["code"] != 200:
@@ -235,11 +238,42 @@ def process_process_image(img_info):
     if status["code"] != 200:
         return status
 
+    # Decode b64
+    orig_img = b64_to_image(img_info["image"])
+
     # Process image
+    proc_img = run_image_processing(orig_img, img_info["proc_step"])
 
     # Upload processed image
 
     return status
+
+
+def run_image_processing(orig_img, proc_step):
+    """ Performs processing on uploaded image
+
+    This function takes an image and performs processing.
+    The image can be processed using histogram equalization,
+    contrast stretching, log compression, or reverse video.
+
+    Args:
+        orig_img (np.array): unprocessed image as RGB intensities
+        proc_step (str): type of processing to apply to image
+
+    Returns:
+        proc_img (np.array): processed image as RGB intensities
+    """
+    from skimage.exposure import equalize_hist
+
+    if proc_step == "Histogram Equalization":
+        # Preallocate
+        proc_img = np.zeros(np.shape(orig_img))
+
+        # Apply histogram equalization to all channels
+        for i in range(0, (np.shape(orig_img))[-1]):
+            proc_img[:, :, i] = equalize_hist(orig_img[:, :, i])
+
+    return proc_img
 
 
 if __name__ == '__main__':
