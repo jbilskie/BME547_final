@@ -46,6 +46,7 @@ def upload_image(username, filename):
         none
     """
     from image import read_img_as_b64
+    from image import b64_to_image
 
     # Read in image as b64
     b64_string = read_img_as_b64(filename)
