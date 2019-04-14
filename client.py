@@ -1,6 +1,6 @@
 # client.py
 # Author: Kevin Chu
-# Last Modified: 4/13/19
+# Last Modified: 4/14/19
 
 import requests
 
@@ -46,10 +46,12 @@ def upload_image(username, filename):
         none
     """
     from image import read_img_as_b64
-    from image import b64_to_image
+    from image import save_b64_img
 
     # Read in image as b64
     b64_string = read_img_as_b64(filename)
+
+    save_b64_img(b64_string, "new-img.jpg")
 
     # Format into dictionary
     img_info = {"username": username,
@@ -81,7 +83,7 @@ def process_image(username, filename, proc_step):
     Returns:
         none
     """
-    from image import read_img_as_b64
+    from image import b64_to_image
 
     # Read in image as b64
     b64_string = read_img_as_b64(filename)
@@ -92,14 +94,14 @@ def process_image(username, filename, proc_step):
                 "image": b64_string,
                 "proc_step": proc_step}
 
-    print("Asking server to process image")
+    # print("Asking server to process image")
 
-    r = requests.post(url + "process_image", json=img_info)
+    # r = requests.post(url + "process_image", json=img_info)
 
-    print("Returned: {}".format(r.text))
-    print("Status: {}".format(r.status_code))
+    # print("Returned: {}".format(r.text))
+    # print("Status: {}".format(r.status_code))
 
-    return
+    # return
 
 
 if __name__ == "__main__":

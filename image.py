@@ -1,6 +1,6 @@
 # image.py
 # Author: Kevin Chu
-# Last Modified: 4/13/19
+# Last Modified: 4/14/19
 
 import base64
 import io
@@ -26,6 +26,23 @@ def read_img_as_b64(file_path):
         b64_bytes = base64.b64encode(img_file.read())
     b64_string = str(b64_bytes, encoding='utf-8')
     return b64_string
+
+
+def save_b64_img(b64_string, file_path):
+    """ Saves image file
+
+    This function reads in a base64 string and decodes so that
+    it can be saved.
+
+    Args:
+        b64_string (str): image represented as a string
+        file_path (str): path of save file
+    """
+    img_bytes = base64.b64decode(b64_string)
+    with open(file_path, "wb") as out_file:
+        out_file.write(img_bytes)
+
+    return
 
 
 def b64_to_image(b64_string):
