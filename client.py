@@ -3,6 +3,7 @@
 # Last Modified: 4/14/19
 
 import requests
+from image import read_img_as_b64
 
 url = "http://127.0.0.1:5000/"
 
@@ -96,7 +97,7 @@ def process_image(username, filename, proc_step):
 
     # print("Asking server to process image")
 
-    # r = requests.post(url + "process_image", json=img_info)
+    r = requests.post(url + "process_image", json=img_info)
 
     # print("Returned: {}".format(r.text))
     # print("Status: {}".format(r.status_code))
