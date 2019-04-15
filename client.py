@@ -83,7 +83,7 @@ def process_image(username, filename, proc_step):
     Returns:
         none
     """
-    from image import b64_to_image
+    from image import read_img_as_b64
 
     # Read in image as b64
     b64_string = read_img_as_b64(filename)
@@ -94,14 +94,14 @@ def process_image(username, filename, proc_step):
                 "image": b64_string,
                 "proc_step": proc_step}
 
-    # print("Asking server to process image")
+    print("Asking server to process image")
 
-    # r = requests.post(url + "process_image", json=img_info)
+    r = requests.post(url + "process_image", json=img_info)
 
-    # print("Returned: {}".format(r.text))
-    # print("Status: {}".format(r.status_code))
+    print("Returned: {}".format(r.text))
+    print("Status: {}".format(r.status_code))
 
-    # return
+    return
 
 
 if __name__ == "__main__":
