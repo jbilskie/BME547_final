@@ -318,8 +318,6 @@ def run_image_processing(orig_img, proc_step):
     elif proc_step == "Reverse Video":
         proc_img = invert(orig_img)
 
-    print(orig_img)
-    print(proc_img)
     return proc_img
 
 
@@ -344,6 +342,10 @@ def equalize_histogram(orig_img):
     # Apply histogram equalization to all channels
     for i in range(0, (np.shape(orig_img))[-1]):
         proc_img[:, :, i] = equalize_hist(orig_img[:, :, i])
+
+    # equalize_hist outputs np.array with floats in range [0-1]
+    # Cast this to uint8 in range [0-255]
+    proc_img = np.uint8(proc_img * 255)
 
     return proc_img
 
