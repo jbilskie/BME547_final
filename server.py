@@ -304,6 +304,7 @@ def run_image_processing(orig_img, proc_step):
         proc_img (np.array): processed image as RGB intensities
     """
     from skimage.exposure import adjust_log
+    from skimage.util import invert
 
     if proc_step == "Histogram Equalization":
         proc_img = equalize_histogram(orig_img)
@@ -314,6 +315,11 @@ def run_image_processing(orig_img, proc_step):
     elif proc_step == "Log Compression":
         proc_img = adjust_log(orig_img)
 
+    elif proc_step == "Reverse Video":
+        proc_img = invert(orig_img)
+
+    print(orig_img)
+    print(proc_img)
     return proc_img
 
 
