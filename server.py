@@ -1,6 +1,6 @@
 # server.py
 # Author: Kevin Chu
-# Last Modified: 4/13/19
+# Last Modified: 4/16/19
 
 from flask import Flask, jsonify, request
 from user import User
@@ -228,6 +228,7 @@ def process_process_image(img_info):
     """
     from datetime import datetime
     from image import b64_to_image
+    from image import image_to_b64
 
     # Validate user info
     status = validate_input("username", img_info["username"])
@@ -244,8 +245,11 @@ def process_process_image(img_info):
 
     # Process image
     t1 = datetime.now()
-    img_info["image"] = run_image_processing(orig_img, img_info["proc_step"])
+    proc_img = run_image_processing(orig_img, img_info["proc_step"])
     t2 = datetime.now()
+
+    # Store processed image
+    img_info["image"] = image_to_b64(proc_img)
 
     # Processing time
     img_info["proc_time"] = t2-t1
@@ -257,6 +261,7 @@ def process_process_image(img_info):
     img_info["timestamp"] = datetime.now()
 
     # Upload processed image
+    # upload_image(img_info)
 
     return status
 
