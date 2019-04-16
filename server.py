@@ -154,15 +154,39 @@ def process_image_upload(img_info):
         return status
 
     # Calculate image size
-    img_info["size"] = 1  # hard coded for now, CHANGE LATER
+    img_info["size"] = get_img_size(img_info["image"])
 
     # Get time stamp
     img_info["timestamp"] = datetime.now()
 
     # Upload image to database if valid request
-    upload_image(img_info)
+    # upload_image(img_info)
 
     return status
+
+
+def get_img_size(b64_string):
+    """ Obtain the size of the image in pixels
+
+    This function takes an image represented as a base 64 string
+    and converts it into an np.array. The np.array is then used
+    to determine the size of the image in pixels.
+
+    Args:
+        b64_string (str): image represented as base 64 string
+
+    Returns:
+        sz (tuple): dimensions of image expressed as (width x height)
+    """
+    from image import b64_to_image
+
+    img = b64_to_image(b64_string)
+
+    # Only interested in width and height, not color channels
+    sz = (np.shape(img))[0:2]
+    print(sz)
+
+    return sz
 
 
 def upload_image(img_info):
@@ -255,7 +279,7 @@ def process_process_image(img_info):
     img_info["proc_time"] = t2-t1
 
     # Calculate image size
-    img_info["size"] = 1  # hard coded for now, CHANGE LATER
+    img_info["size"] = get_img_size(img_info["image"])
 
     # Get time stamp
     img_info["timestamp"] = datetime.now()

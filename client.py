@@ -58,12 +58,12 @@ def upload_image(username, filename):
                 "filename": filename,
                 "image": b64_string}
 
-    # print("Asking server to upload image")
+    print("Asking server to upload image")
 
-    # r = requests.post(url + "image_upload", json=img_info)
+    r = requests.post(url + "image_upload", json=img_info)
 
-    # print("Returned: {}".format(r.text))
-    # print("Status: {}".format(r.status_code))
+    print("Returned: {}".format(r.text))
+    print("Status: {}".format(r.status_code))
 
     return
 
@@ -106,5 +106,5 @@ def process_image(username, filename, proc_step):
 
 if __name__ == "__main__":
     # add_new_user("user1")
-    # upload_image("user1", "structure.jpg")
-    process_image("user1", "structure.jpg", "Contrast Stretching")
+    upload_image("user1", "structure.jpg")
+    # process_image("user1", "structure.jpg", "Contrast Stretching")
