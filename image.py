@@ -65,3 +65,27 @@ def b64_to_image(b64_string):
     img = mpimg.imread(img_buf, format='JPG')
 
     return img
+
+
+def image_to_b64(img):
+    """ Convert np.array image to b64 string
+
+    This function uses the skimage.io.imsave function to convert
+    an np.array image into a b64 string. The image is saved in
+    a BytesIO buffer, which is then encoded in base 64 and then
+    converted into a string.
+
+    Args:
+        img (np.array): image represented as np.array
+
+    Returns:
+        b64_string (string): image represented as base64 string
+    """
+    from skimage.io import imsave
+
+    f = io.BytesIO()
+    imsave(f, img, plugin='pil')
+    y = base64.b64encode(f.getvalue())
+    b64_string = str(y, encoding='utf-8')
+
+    return b64_string
