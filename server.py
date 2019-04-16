@@ -1,9 +1,10 @@
 # server.py
 # Author: Kevin Chu
-# Last Modified: 4/13/19
+# Last Modified: 4/16/19
 
 from flask import Flask, jsonify, request
 from user import User
+import numpy as np
 from pymodm import connect, MongoModel, fields
 
 app = Flask(__name__)
@@ -153,15 +154,38 @@ def process_image_upload(img_info):
         return status
 
     # Calculate image size
-    img_info["size"] = 1  # hard coded for now, CHANGE LATER
+    img_info["size"] = get_img_size(img_info["image"])
 
     # Get time stamp
     img_info["timestamp"] = datetime.now()
 
     # Upload image to database if valid request
-    upload_image(img_info)
+    # upload_image(img_info)
 
     return status
+
+
+def get_img_size(b64_string):
+    """ Obtain the size of the image in pixels
+
+    This function takes an image represented as a base 64 string
+    and converts it into an np.array. The np.array is then used
+    to determine the size of the image in pixels.
+
+    Args:
+        b64_string (str): image represented as base 64 string
+
+    Returns:
+        sz (tuple): dimensions of image expressed as (width x height)
+    """
+    from image import b64_to_image
+
+    img = b64_to_image(b64_string)
+
+    # Only interested in width and height, not color channels
+    sz = (np.shape(img))[0:2]
+
+    return sz
 
 
 def upload_image(img_info):
@@ -187,6 +211,156 @@ def upload_image(img_info):
     user.save()
 
     return
+
+
+@app.route("/process_image", methods=["POST"])
+def process_image():
+    """ Process and upload image to database
+
+    This implements the post request to process an image and store
+    the processed image on the MongoDB database.
+
+    Args:
+        none
+
+    Returns:
+        msg (str): displays message regarding a request
+        code (int): status code that indicates whether a request
+        was successful
+    """
+    in_data = request.get_json()
+
+    status = process_process_image(in_data)
+
+    return status["msg"], status["code"]
+
+
+def process_process_image(img_info):
+    """ Processes request to process image
+
+    This function processes the request to process an image. The
+    function returns a status code and message to indicate
+    whether the request was successful.
+
+    Args:
+        img_info (dict): dictionary with image metadata including
+        the username, filename, image, and processing step to run
+
+    Returns:
+        status (dict): status message and status code
+    """
+    from datetime import datetime
+    from image import b64_to_image
+    from image import image_to_b64
+
+    # Validate user info
+    status = validate_input("username", img_info["username"])
+    if status["code"] != 200:
+        return status
+
+    # Validate filename
+    status = validate_input("filename", img_info["filename"])
+    if status["code"] != 200:
+        return status
+
+    # Decode b64
+    orig_img = b64_to_image(img_info["image"])
+
+    # Process image
+    t1 = datetime.now()
+    proc_img = run_image_processing(orig_img, img_info["proc_step"])
+    t2 = datetime.now()
+
+    # Store processed image
+    img_info["image"] = image_to_b64(proc_img)
+
+    # Processing time
+    img_info["proc_time"] = t2-t1
+
+    # Calculate image size
+    img_info["size"] = get_img_size(img_info["image"])
+
+    # Get time stamp
+    img_info["timestamp"] = datetime.now()
+
+    # Upload processed image
+    # upload_image(img_info)
+
+    return status
+
+
+def run_image_processing(orig_img, proc_step):
+    """ Performs processing on uploaded image
+
+    This function takes an image and performs processing.
+    The image can be processed using histogram equalization,
+    contrast stretching, log compression, or reverse video.
+
+    Args:
+        orig_img (np.array): unprocessed image as RGB intensities
+        proc_step (str): type of processing to apply to image
+
+    Returns:
+        proc_img (np.array): processed image as RGB intensities
+    """
+    from skimage.exposure import adjust_log
+
+    if proc_step == "Histogram Equalization":
+        proc_img = equalize_histogram(orig_img)
+
+    elif proc_step == "Contrast Stretching":
+        proc_img = stretch_contrast(orig_img)
+
+    elif proc_step == "Log Compression":
+        proc_img = adjust_log(orig_img)
+
+    return proc_img
+
+
+def equalize_histogram(orig_img):
+    """ Performs histogram equalization on uploaded image
+
+    This function uses the skimage.exposure.equalize_hist to
+    equalize the histogram of the uploaded image. The function
+    then returns the processed image as an np.array.
+
+    Args:
+        orig_img (np.array): original, raw image
+
+    Returns:
+        proc_img (np.array): processed image
+    """
+    from skimage.exposure import equalize_hist
+
+    # Preallocate
+    proc_img = np.zeros(np.shape(orig_img))
+
+    # Apply histogram equalization to all channels
+    for i in range(0, (np.shape(orig_img))[-1]):
+        proc_img[:, :, i] = equalize_hist(orig_img[:, :, i])
+
+    return proc_img
+
+
+def stretch_contrast(orig_img):
+    """ Performs contrast stretching on uploaded image
+
+    This function uses the skimage.exposure.rescale_intensity
+    function to stretch the contrast of the uploaded image. The
+    function then returns the processed image an an np.array.
+
+    Args:
+        orig_img (np.array): original, raw image
+
+    Returns:
+        proc_img (np.array): processed image
+    """
+    from skimage.exposure import rescale_intensity
+
+    p2, p98 = np.percentile(orig_img, (2, 98))
+    proc_img = rescale_intensity(orig_img, in_range=(p2, p98))
+
+    return proc_img
 
 
 if __name__ == '__main__':

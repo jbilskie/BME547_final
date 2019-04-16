@@ -1,6 +1,6 @@
 # client.py
 # Author: Kevin Chu
-# Last Modified: 4/13/19
+# Last Modified: 4/16/19
 
 import requests
 
@@ -45,13 +45,18 @@ def upload_image(username, filename):
     Returns:
         none
     """
+    from image import read_img_as_b64
+    from image import save_b64_img
+
     # Read in image as b64
-    b64_img = "replace this string"
+    b64_string = read_img_as_b64(filename)
+
+    save_b64_img(b64_string, "new-img.jpg")
 
     # Format into dictionary
     img_info = {"username": username,
                 "filename": filename,
-                "image": b64_img}
+                "image": b64_string}
 
     print("Asking server to upload image")
 
@@ -63,6 +68,43 @@ def upload_image(username, filename):
     return
 
 
+def process_image(username, filename, proc_step):
+    """ Process image
+
+    This function takes an image and sends it to the server as a
+    string. The server then processes the image with the user-
+    selected processing step.
+
+    Args:
+        username (str): user identifier
+        filename (str): contains directory and filename
+        proc_step (str): processing step to run
+
+    Returns:
+        none
+    """
+    from image import read_img_as_b64
+
+    # Read in image as b64
+    b64_string = read_img_as_b64(filename)
+
+    # Format into dictionary
+    img_info = {"username": username,
+                "filename": filename,
+                "image": b64_string,
+                "proc_step": proc_step}
+
+    print("Asking server to process image")
+
+    r = requests.post(url + "process_image", json=img_info)
+
+    print("Returned: {}".format(r.text))
+    print("Status: {}".format(r.status_code))
+
+    return
+
+
 if __name__ == "__main__":
-    add_new_user("user1")
-    upload_image("user1", "file.png")
+    # add_new_user("user1")
+    # upload_image("user1", "structure.jpg")
+    process_image("user1", "structure.jpg", "Contrast Stretching")
