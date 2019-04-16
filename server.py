@@ -280,17 +280,11 @@ def run_image_processing(orig_img, proc_step):
     Returns:
         proc_img (np.array): processed image as RGB intensities
     """
-    from skimage.exposure import equalize_hist
     from skimage.exposure import rescale_intensity
     from skimage.exposure import adjust_log
 
     if proc_step == "Histogram Equalization":
-        # Preallocate
-        proc_img = np.zeros(np.shape(orig_img))
-
-        # Apply histogram equalization to all channels
-        for i in range(0, (np.shape(orig_img))[-1]):
-            proc_img[:, :, i] = equalize_hist(orig_img[:, :, i])
+        proc_img = equalize_histogram(orig_img)
 
     elif proc_step == "Contrast Stretching":
         p2, p98 = np.percentile(orig_img, (2, 98))
@@ -298,6 +292,31 @@ def run_image_processing(orig_img, proc_step):
 
     elif proc_step == "Log Compression":
         proc_img = adjust_log(orig_img)
+
+    return proc_img
+
+
+def equalize_histogram(orig_img):
+    """ Performs histogram equalization on uploaded image
+
+    This function uses the skimage.exposure.equalize_hist to
+    equalize the histogram of the uploaded image. The function
+    then returns the processed image as an np.array.
+
+    Args:
+        orig_img (np.array): original, raw image
+
+    Returns:
+        proc_img (np.array): processed image
+    """
+    from skimage.exposure import equalize_hist
+
+    # Preallocate
+    proc_img = np.zeros(np.shape(orig_img))
+
+    # Apply histogram equalization to all channels
+    for i in range(0, (np.shape(orig_img))[-1]):
+        proc_img[:, :, i] = equalize_hist(orig_img[:, :, i])
 
     return proc_img
 

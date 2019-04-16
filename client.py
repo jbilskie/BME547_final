@@ -107,4 +107,4 @@ def process_image(username, filename, proc_step):
 if __name__ == "__main__":
     # add_new_user("user1")
     # upload_image("user1", "structure.jpg")
-    process_image("user1", "structure.jpg", "Log Compression")
+    process_image("user1", "structure.jpg", "Histogram Equalization")
