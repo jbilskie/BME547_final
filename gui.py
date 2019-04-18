@@ -1,9 +1,11 @@
 from tkinter import *
 from tkinter import ttk
+import numpy as np
 import re
 from PIL import ImageTk, Image
 import zipfile
 import requests
+import os
 
 url = "http://127.0.0.1:5000/"
 
@@ -40,7 +42,7 @@ def image_window():
         print("\tContrast Stretching: {}".format(entered_2))
         print("\tLog Compression: {}".format(entered_3))
         print("\tReverse Video: {}".format(entered_4))
-        # upload_to_server(img_paths, proc_steps)
+        upload_to_server(img_paths, proc_steps)
 
     # Main window
     root = Tk()
@@ -141,19 +143,81 @@ def unzip(filename):
 
     Returns:
         imgs (list): list containing image data
+        success (bool): whether zip was successfully extracted
     """
+    from image import image_to_b64
     imgs = []
+    success = True
     zip_files = zipfile.ZipFile(filename, "r")
     filenames = zip_files.namelist()
     for i in range(len(filenames)):
         file = filenames[i]
         # Ignores garbage files in Mac
         if not re.search('._', file):
-            with zip_files.open(file) as new_img:
-                im = Image.open(new_img)
-                imgs.append(im.load())
+            try:
+                with zip_files.open(file) as img_file:
+                    img_obj = Image.open(img_file)
+                    img_np = np.array(img_obj)
+                    new_img = image_to_b64(img_np)
+                    imgs.append(new_img)
+            except:
+                success = False
     zip_files.close()
-    return imgs
+    return imgs, success
+
+
+def get_img_data(img_paths):
+    """Gets image data
+
+    Upload: Extracts image data from image paths to upload to server. Unzips
+    images if necessary.
+    Download: Unzips downloaded files.
+
+    Args:
+        img_paths (list): list of image paths to process
+
+    Returns:
+        images (list): list of image data
+        is_zip (list): whether index of list contains data from unzipped file
+        (and therefore potentially multiple images)
+        success (list): list of booleans denoting successful processing for
+        each image path entered
+    """
+    from image import image_to_b64
+    images = []
+    success = [True for i in img_paths]
+    is_zip = [(re.search('.zip', i) or re.search('.ZIP', i)) for i in
+              img_paths]
+    for i in range(len(img_paths)):
+        exists = os.path.isfile(img_paths[i])
+        if exists:
+            # Append unzipped images one by one
+            if is_zip[i]:
+                unzipped_images, success[i] = unzip(img_paths[i])
+                for j in unzipped_images:
+                    images.append(j)
+            # Append non-zipped images normally
+            else:
+                img_obj = Image.open(img_paths[i])
+                img_np = np.array(img_obj)
+                new_img = image_to_b64(img_np)
+                images.append(new_img)
+        else:
+            images.append([])
+            success[i] = False
+    return images, is_zip, success
+
+
+def upload_to_server(img_paths, proc_steps):
+    """Posts image to server
+
+    Args:
+        img_paths (list): list of images to process
+        proc_steps (list):
+    Returns:
+        tbd
+    """
+    images, is_zip, success = get_img_data(img_paths)
 
 
 if __name__ == "__main__":
