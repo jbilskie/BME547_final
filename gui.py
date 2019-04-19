@@ -36,11 +36,15 @@ def editing_window():
         entered_3 = log_comp.get()
         entered_4 = rev_vid.get()
         proc_steps = [entered_1, entered_2, entered_3, entered_4]
-        images, success = get_img_data(img_paths)
+        orig_images, success = get_img_data(img_paths)
         img_window = Toplevel(root)
         img_window.title("Image Viewer")
-        display_images(img_window, images)
-        upload_to_server(user, images, success, proc_steps)
+        upload_success = upload_to_server(user, orig_images,
+                                          success, proc_steps)
+        success_label = ttk.Label(root, text=upload_success)
+        success_label.grid(column=1, row=9, sticky=W)
+        proc_images = []
+        display_images(img_window, orig_images, proc_images)
         return
 
     # Main window
@@ -217,26 +221,34 @@ def upload_to_server(user, images, success, proc_steps):
         success (list): whether images were successfully obtained
         proc_steps (list): image processing steps to take
     Returns:
-        none
+        upload_success (str): message to print below upload button
     """
     from image import image_to_b64
     from client import process_image
     imgs_for_upload = []
     for img in images:
         imgs_for_upload.append(image_to_b64(img))
-        print("Success")
-# process_image(user, imgs_for_upload, proc_steps)
-    return
+
+    # status = process_image(user, imgs_for_upload, proc_steps)
+    status = 0
+    if status == 200:
+        upload_success = "Successfully uploaded"
+    elif status == 400:
+        upload_success = "One or more fields missing"
+    else:
+        upload_success = "Upload failed"
+    return upload_success
 
 
-def display_images(img_window, images):
+def display_images(img_window, orig_images, proc_images):
     """Display images in GUI window
 
     Converts image arrays to TK objects and displays them in the window
 
     Args:
         img_window (Tk window): image display window
-        images (list): list of np array images
+        orig_images (list): list of uploaded np array images
+        proc_images (list): list of images downloaded from server
 
     Returns:
         none
@@ -246,16 +258,16 @@ def display_images(img_window, images):
     new_label = ttk.Label(img_window, text='Processed Images')
     new_label.grid(column=1, row=0, sticky=N)
 
-    orig_img_frame = ttk.Frame(img_window, width = 300)
+    orig_img_frame = ttk.Frame(img_window, width=300)
     orig_img_frame.grid(column=0, row=1)
-    new_img_frame = ttk.Frame(img_window, width = 300)
+    new_img_frame = ttk.Frame(img_window, width=300)
     new_img_frame.grid(column=1, row=1)
 
     tk_images = []
     img_label = []
     new_w = 300
     img_row = 0
-    for i in images:
+    for i in orig_images:
         img_to_show = Image.fromarray(i)
         h = img_to_show.height
         w = img_to_show.width
