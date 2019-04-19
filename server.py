@@ -1,6 +1,6 @@
 # server.py
 # Author: Kevin Chu
-# Last Modified: 4/16/19
+# Last Modified: 4/19/19
 
 from flask import Flask, jsonify, request
 from user import User
@@ -156,6 +156,11 @@ def process_image_upload(img_info):
     if status["code"] != 200:
         return status
 
+    # Validate image
+    status = validate_input("image", img_info["image"])
+    if status["code"] != 200:
+        return status
+
     # Calculate image size
     img_info["size"] = get_img_size(img_info["image"])
 
@@ -263,6 +268,11 @@ def process_process_image(img_info):
 
     # Validate filename
     status = validate_input("filename", img_info["filename"])
+    if status["code"] != 200:
+        return status
+
+    # Validate image
+    status = validate_input("image", img_info["image"])
     if status["code"] != 200:
         return status
 
