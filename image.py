@@ -7,6 +7,9 @@ import io
 from matplotlib import pyplot as plt
 import matplotlib.image as mpimg
 import numpy as np
+import zipfile
+import re
+from PIL import Image
 
 
 def read_img_as_b64(file_path):
@@ -89,3 +92,35 @@ def image_to_b64(img):
     b64_string = str(y, encoding='utf-8')
 
     return b64_string
+
+
+def unzip(filename):
+    """Unzips file at requested path
+
+    Returns unzipped file (as numpy array) and success boolean
+
+    Args:
+        filename (string): image path to unzip
+
+    Returns:
+        imgs (list): list containing image data
+        success (bool): whether zip was successfully extracted
+    """
+    imgs = []
+    success = True
+    zip_files = zipfile.ZipFile(filename, "r")
+    filenames = zip_files.namelist()
+    for i in range(len(filenames)):
+        file = filenames[i]
+        # Ignores garbage files in Mac
+        if not re.search('._', file):
+            try:
+                with zip_files.open(file) as img_file:
+                    img_obj = Image.open(img_file)
+                    img_np = np.array(img_obj)
+                    imgs.append(img_np)
+                    img_obj.close()
+            except:
+                success = False
+    zip_files.close()
+    return imgs, success

@@ -1,9 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 import numpy as np
-import re
 from PIL import ImageTk, Image
-import zipfile
 import requests
 import os
 
@@ -137,39 +135,6 @@ def process_img_paths(input):
     return paths
 
 
-def unzip(filename):
-    """Unzips file at requested path
-
-    Returns unzipped file (as numpy array) and success boolean
-
-    Args:
-        filename (string): image path to unzip
-
-    Returns:
-        imgs (list): list containing image data
-        success (bool): whether zip was successfully extracted
-    """
-    from image import image_to_b64
-    imgs = []
-    success = True
-    zip_files = zipfile.ZipFile(filename, "r")
-    filenames = zip_files.namelist()
-    for i in range(len(filenames)):
-        file = filenames[i]
-        # Ignores garbage files in Mac
-        if not re.search('._', file):
-            try:
-                with zip_files.open(file) as img_file:
-                    img_obj = Image.open(img_file)
-                    img_np = np.array(img_obj)
-                    imgs.append(img_np)
-                    img_obj.close()
-            except:
-                success = False
-    zip_files.close()
-    return imgs, success
-
-
 def get_img_data(img_paths):
     """Gets image data
 
@@ -185,7 +150,7 @@ def get_img_data(img_paths):
         success (list): list of booleans denoting successful processing for
         each image path entered
     """
-    from image import image_to_b64
+    from image import image_to_b64, unzip
     images = []
     success = [True for i in img_paths]
     is_zip = [(re.search('.zip', i) or re.search('.ZIP', i)) for i in
