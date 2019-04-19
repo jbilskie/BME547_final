@@ -267,8 +267,18 @@ def process_process_image(img_info):
     orig_img = b64_to_image(img_info["image"])
 
     # Process image
+    proc_list = ["Histogram Equalization", "Contrast Stretching",
+                 "Log Compression", "Reverse Video"]
+
+    proc_img = orig_img
+
     t1 = datetime.now()
-    proc_img = run_image_processing(orig_img, img_info["proc_step"])
+
+    # Apply (possibly multiple) processing steps
+    for i in range(0, len(proc_list)):
+        if (img_info["proc_steps"])[i] is True:
+            proc_img = run_image_processing(proc_img, proc_list[i])
+
     t2 = datetime.now()
 
     # Store processed image
