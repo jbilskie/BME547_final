@@ -9,8 +9,8 @@ from pymodm import connect, MongoModel, fields
 import logging
 
 app = Flask(__name__)
-connect("mongodb+srv://jmb221:bme547@bme547-kcuog.mongodb.net\
-        /BME547?retryWrites=true")
+db = "mongodb+srv://jmb221:bme547@bme547-kcuog.mongodb.net"
+connect(db + "/BME547?retryWrites=true")
 
 
 @app.route("/new_user", methods=["POST"])
@@ -146,7 +146,6 @@ def process_image_upload(img_info):
     from datetime import datetime
     logging.info("Starting process for uploading {} to user {}"
                  .format(img_info["filename"], img_info["username"]))
-
 
     keys = ["username", "filename", "image"]
 

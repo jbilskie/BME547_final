@@ -152,7 +152,7 @@ def process_image(username, filename, path, proc_step):
     img_info = {"username": username,
                 "filename": filename,
                 "image": b64_string,
-                "proc_steps": proc_steps}
+                "proc_step": proc_step}
 
     print("Asking server to process image")
 
