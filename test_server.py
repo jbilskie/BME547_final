@@ -21,10 +21,11 @@ def test_process_new_user(input, exp):
     string for username even if nothing was inputted.
 
     Args:
-        input ():
+        input (dict): tested username
+        exp (dict): tested status message
 
     Returns:
-        exp ():
+        none
     """
     if exp["code"] == 200:
         exp["msg"] = "Request was successful"
