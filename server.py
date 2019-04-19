@@ -244,7 +244,7 @@ def process_process_image(img_info):
 
     Args:
         img_info (dict): dictionary with image metadata including
-        the username, filename, image, and processing step to run
+        the username, filename, image, and processing steps to run
 
     Returns:
         status (dict): status message and status code
