@@ -1,6 +1,6 @@
 # client.py
 # Author: Kevin Chu
-# Last Modified: 4/16/19
+# Last Modified: 4/19/19
 
 import requests
 from pymodm import connect, MongoModel, fields
@@ -29,6 +29,30 @@ def add_new_user(username):
 
     print("Returned: {}".format(r.text))
     print("Status: {}".format(r.status_code))
+
+    return
+
+
+
+def upload_images(username, file_list, path):
+    """ Uploads multiple images to the database
+
+    This function takes a list of images and uploads them
+    one by one to the database.
+
+    Args:
+        username (str): user identifier
+        file_list (list): list of file paths
+        path (str): path to images being uploaded
+
+    Returns:
+        none
+    """
+    if len(file_list) == 0:
+        print("No files were selected.")
+    else:
+        for filename in file_list:
+            upload_iamge(username, filename, path)
 
     return
 
@@ -113,7 +137,9 @@ def process_image(username, filename, path, proc_step):
         username (str): user identifier
         filename (str): name of file
         path (str): path to image being uploaded
-        proc_step (str): processing step to run
+        proc_step (str): type of image being asked for such as
+        "Original", "Histogram Equalization", "Contrast Stretching",
+        "Log Compression", "Reverse Video"
 
     Returns:
         none
@@ -127,7 +153,7 @@ def process_image(username, filename, path, proc_step):
     img_info = {"username": username,
                 "filename": filename,
                 "image": b64_string,
-                "proc_step": proc_step}
+                "proc_steps": proc_steps}
 
     print("Asking server to process image")
 

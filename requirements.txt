@@ -10,3 +10,4 @@ flask
 pymodm
 requests
 scikit-image
+Pillow

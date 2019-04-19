@@ -1,6 +1,6 @@
 # server.py
 # Author: Kevin Chu
-# Last Modified: 4/16/19
+# Last Modified: 4/19/19
 
 from flask import Flask, jsonify, request
 from user import User
@@ -11,6 +11,9 @@ import logging
 app = Flask(__name__)
 connect("mongodb+srv://jmb221:bme547@bme547-kcuog.mongodb.net\
         /BME547?retryWrites=true")
+
+connect("mongodb+srv://jmb221:bme547@bme547-kcuog.mongodb.net/"
+        "test?retryWrites=true")
 
 
 @app.route("/new_user", methods=["POST"])
@@ -147,17 +150,17 @@ def process_image_upload(img_info):
     logging.info("Starting process for uploading {} to user {}"
                  .format(img_info["filename"], img_info["username"]))
 
-    # Validate user info
-    logging.info("Checking that username is valid")
-    status = validate_input("username", img_info["username"])
-    if status["code"] != 200:
-        return status
 
-    # Validate filename
-    logging.info("Checking that filename is valid")
-    status = validate_input("filename", img_info["filename"])
-    if status["code"] != 200:
-        return status
+    keys = ["username", "filename", "image"]
+
+    # Input data validation
+    for key in keys:
+        # Make sure keys are non-empty
+        status = validate_input(key, img_info[key])
+
+        # If status code indicates failure, exit from function
+        if status["code"] != 200:
+            return status
 
     # Calculate image size
     img_info["size"] = get_img_size(img_info["image"])
@@ -261,7 +264,7 @@ def process_process_image(img_info):
 
     Args:
         img_info (dict): dictionary with image metadata including
-        the username, filename, image, and processing step to run
+        the username, filename, image, and processing steps to run
 
     Returns:
         status (dict): status message and status code
@@ -273,17 +276,16 @@ def process_process_image(img_info):
     logging.info("Starting process for processing {} to user {}"
                  .format(img_info["filename"], img_info["username"]))
 
-    # Validate user info
-    logging.info("Checking that username is valid")
-    status = validate_input("username", img_info["username"])
-    if status["code"] != 200:
-        return status
+    keys = ["username", "filename", "image"]
 
-    # Validate filename
-    logging.info("Checking that filename is valid")
-    status = validate_input("filename", img_info["filename"])
-    if status["code"] != 200:
-        return status
+    # Input data validation
+    for key in keys:
+        # Make sure keys are non-empty
+        status = validate_input(key, img_info[key])
+
+        # If status code indicates failure, exit from function
+        if status["code"] != 200:
+            return status
 
     # Decode b64
     orig_img = b64_to_image(img_info["image"])
