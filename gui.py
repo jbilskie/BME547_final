@@ -186,8 +186,6 @@ def get_img_data(img_paths):
         else:
             images.append('')
             success[i] = False
-    print("Image successfully extracted?")
-    print(success)
     return images, success
 
 
@@ -293,7 +291,8 @@ def display_images(run, root, img_paths, orig_images, proc_images):
                 h = img_to_show.height
                 w = img_to_show.width
                 new_h = round(h*new_w/w)
-                img_to_show = img_to_show.resize((new_w, new_h), Image.ANTIALIAS)
+                img_to_show = img_to_show.resize((new_w, new_h),
+                                                 Image.ANTIALIAS)
                 tk_images.append(ImageTk.PhotoImage(img_to_show))
                 img_label.append(Label(orig_img_frame, image=tk_images[-1]))
                 img_label[-1].img = tk_images[-1]
