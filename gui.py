@@ -42,7 +42,7 @@ def image_window():
         print("\tContrast Stretching: {}".format(entered_2))
         print("\tLog Compression: {}".format(entered_3))
         print("\tReverse Video: {}".format(entered_4))
-        upload_to_server(img_paths, proc_steps)
+        upload_to_server(user, img_paths, proc_steps)
 
     # Main window
     root = Tk()
@@ -134,9 +134,9 @@ def process_img_paths(input):
 
 
 def unzip(filename):
-    """Searches for '.zip' extension
-
-    Returns Boolean value based on whether input string contains zip
+    """Unzips file at requested path
+    
+    Returns unzipped file (as numpy array) and success boolean
 
     Args:
         filename (string): image path to unzip
@@ -158,8 +158,8 @@ def unzip(filename):
                 with zip_files.open(file) as img_file:
                     img_obj = Image.open(img_file)
                     img_np = np.array(img_obj)
-                    new_img = image_to_b64(img_np)
-                    imgs.append(new_img)
+                    imgs.append(img_np)
+                    img_obj.close()
             except:
                 success = False
     zip_files.close()
@@ -169,17 +169,15 @@ def unzip(filename):
 def get_img_data(img_paths):
     """Gets image data
 
-    Upload: Extracts image data from image paths to upload to server. Unzips
-    images if necessary.
+    Upload: Extracts data from image paths to upload to server as numpy
+    arrays (later converted to strings). Unzips images if necessary.
     Download: Unzips downloaded files.
 
     Args:
         img_paths (list): list of image paths to process
 
     Returns:
-        images (list): list of image data
-        is_zip (list): whether index of list contains data from unzipped file
-        (and therefore potentially multiple images)
+        images (list): list of numpy arrays containing image data
         success (list): list of booleans denoting successful processing for
         each image path entered
     """
@@ -200,24 +198,34 @@ def get_img_data(img_paths):
             else:
                 img_obj = Image.open(img_paths[i])
                 img_np = np.array(img_obj)
-                new_img = image_to_b64(img_np)
-                images.append(new_img)
+                images.append(img_np)
+                img_obj.close()
         else:
             images.append([])
             success[i] = False
-    return images, is_zip, success
+    return images, success
 
 
-def upload_to_server(img_paths, proc_steps):
+def upload_to_server(user, img_paths, proc_steps):
     """Posts image to server
 
+    Converts image objects to b64 strings and posts them to server
+
     Args:
+        user (string): inputted username
         img_paths (list): list of images to process
         proc_steps (list):
     Returns:
         tbd
     """
-    images, is_zip, success = get_img_data(img_paths)
+    from image import image_to_b64
+    from client import process_image
+    images, success = get_img_data(img_paths)
+    imgs_for_upload = []
+    for img in images:
+        imgs_for_upload.append(image_to_b64(img))
+        print("Success")
+# process_image(user, imgs_for_upload, proc_steps)
 
 
 if __name__ == "__main__":
