@@ -254,7 +254,6 @@ def display_images(img_window, img_paths, orig_images, proc_images):
                 next_label.grid(column=0, row=1, ipadx=0.35*img_width,
                                 ipady=0.35*img_width, sticky=E)
 
-
     def show_prev(orig_img_frame, new_img_frame, img_label, img_width):
         global index
         if index > 0:
@@ -267,7 +266,7 @@ def display_images(img_window, img_paths, orig_images, proc_images):
             else:
                 next_label.grid(column=0, row=1, ipadx=0.35*img_width,
                                 ipady=0.35*img_width, sticky=E)
-    
+
     orig_label = ttk.Label(img_window, text='Original Images')
     orig_label.grid(column=0, row=0, columnspan=2, sticky=N)
     new_label = ttk.Label(img_window, text='Processed Images')
@@ -315,7 +314,6 @@ def display_images(img_window, img_paths, orig_images, proc_images):
                                                     img_label, img_width),
                           width=4)
     prev_btn.grid(column=0, row=3, sticky=W)
-
 
 
 if __name__ == "__main__":
