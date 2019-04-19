@@ -10,6 +10,7 @@ from pymodm import connect, MongoModel, fields
 app = Flask(__name__)
 
 
+connect("mongodb+srv://jmb221:bme547@bme547-kcuog.mongodb.net/test?retryWrites=true")
 @app.route("/new_user", methods=["POST"])
 def new_user():
     """ Register new user in the server
