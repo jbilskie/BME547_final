@@ -21,7 +21,7 @@ def test_process_new_user(input, exp):
     string for username even if nothing was inputted.
 
     Args:
-        input (dict): tested username
+        input (dict): test input username
         exp (dict): tested status message
 
     Returns:
@@ -32,4 +32,34 @@ def test_process_new_user(input, exp):
     elif exp["code"] == 400:
         exp["msg"] = "Field username cannot be empty."
     status = process_new_user(input)
+    assert status == exp
+
+
+@pytest.mark.parametrize("input, exp", [(("username", ""),
+                                         {"code": 400}),
+                                        (("filename", ""),
+                                         {"code": 400}),
+                                        (("username", "student"),
+                                         {"code": 200}),
+                                        (("filename", "a.jpg"),
+                                         {"code": 200})])
+def test_validate_new_input(input, exp):
+    """Tests validate_new_input
+
+    Tests whether a dictionary value is non-empty. Original
+    function assumes the second argument is a string based on
+    GUI input handling.
+
+    Args:
+        input (list): test inputs
+        exp (dict): tested status message
+
+    Returns:
+        none
+    """
+    if exp["code"] == 200:
+        exp["msg"] = "Request was successful"
+    elif exp["code"] == 400:
+        exp["msg"] = "Field {} cannot be empty.".format(input[0])
+    status = validate_input(input[0], input[1])
     assert status == exp
