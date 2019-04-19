@@ -8,3 +8,5 @@ scipy
 sendgrid
 flask
 pymodm
+requests
+scikit-image

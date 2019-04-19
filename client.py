@@ -3,6 +3,7 @@
 # Last Modified: 4/16/19
 
 import requests
+from pymodm import connect, MongoModel, fields
 
 url = "http://127.0.0.1:5000/"
 
@@ -32,7 +33,7 @@ def add_new_user(username):
     return
 
 
-def upload_image(username, filename):
+def upload_image(username, filename, path):
     """ Upload an image to the database
 
     This function takes an image filename, reads in the image
@@ -40,7 +41,8 @@ def upload_image(username, filename):
 
     Args:
         username (str): user identifier
-        filename (str): contains directory and filename
+        filename (str): name of file
+        path (str): path to image being uploaded
 
     Returns:
         none
@@ -49,9 +51,7 @@ def upload_image(username, filename):
     from image import save_b64_img
 
     # Read in image as b64
-    b64_string = read_img_as_b64(filename)
-
-    save_b64_img(b64_string, "new-img.jpg")
+    b64_string = read_img_as_b64(path)
 
     # Format into dictionary
     img_info = {"username": username,
@@ -68,7 +68,41 @@ def upload_image(username, filename):
     return
 
 
-def process_image(username, filename, proc_step):
+def download_image(username, filename, path, proc_step):
+    """ Download an image from the database
+
+    This function takes an image filename, finds the image in the
+    database then displays it.
+
+    Args:
+        username (str): user identifier
+        filename (str): name of file
+        path (str): path to where image should be downloaded
+        proc_step (str): type of image being asked for such as
+        "Original", "Histogram Equalization", "Contrast Stretching",
+        "Log Compression", "Reverse Video"
+
+    Returns:
+        none
+    """
+    from image import save_b64_img
+    import json
+
+    print("Asking server to download image")
+
+    r = requests.get(url + "image_download/" + username + "/" +
+                     filename + "/" + proc_step)
+    results = json.loads(r.text)
+    img_info = results[0]
+    msg = results[1]
+    save_b64_img(img_info["image"], path+filename+"download.jpg")
+    print("Returned: {}".format(msg))
+    print("Status: {}".format(r.status_code))
+
+    return
+
+
+def process_image(username, filename, path, proc_step):
     """ Process image
 
     This function takes an image and sends it to the server as a
@@ -77,7 +111,8 @@ def process_image(username, filename, proc_step):
 
     Args:
         username (str): user identifier
-        filename (str): contains directory and filename
+        filename (str): name of file
+        path (str): path to image being uploaded
         proc_step (str): processing step to run
 
     Returns:
@@ -86,7 +121,7 @@ def process_image(username, filename, proc_step):
     from image import read_img_as_b64
 
     # Read in image as b64
-    b64_string = read_img_as_b64(filename)
+    b64_string = read_img_as_b64(path)
 
     # Format into dictionary
     img_info = {"username": username,
@@ -105,6 +140,17 @@ def process_image(username, filename, proc_step):
 
 
 if __name__ == "__main__":
-    # add_new_user("user1")
-    # upload_image("user1", "structure.jpg")
-    process_image("user1", "structure.jpg", "Histogram Equalization")
+    add_new_user("user1")
+    add_new_user("user2")
+    upload_image("user1", "puppy1", "Pictures/Original/puppy1.jpg")
+    upload_image("user2", "puppy2", "Pictures/Original/puppy2.jpg")
+    process_image("user1", "puppy1", "Pictures/Original/puppy1.jpg",
+                  "Reverse Video")
+    process_image("user2", "puppy3", "Pictures/Original/puppy3.jpg",
+                  "Reverse Video")
+    process_image("user2", "puppy4", "Pictures/Original/puppy4.jpg",
+                  "Histogram Equalization")
+    download_image("user1", "puppy1", "Pictures/Downloaded/",
+                   "Original")
+    download_image("user2", "puppy3", "Pictures/Downloaded/",
+                   "Reverse Video")
