@@ -144,22 +144,16 @@ def process_image_upload(img_info):
     """
     from datetime import datetime
 
-    # Validate user info
-    status = validate_input("username", img_info["username"])
+    keys = ["username", "filename", "image"]
 
-    # If status code indicates failure, exit from function
-    if status["code"] != 200:
-        return status
-
-    # Validate filename
-    status = validate_input("filename", img_info["filename"])
-    if status["code"] != 200:
-        return status
-
-    # Validate image
-    status = validate_input("image", img_info["image"])
-    if status["code"] != 200:
-        return status
+    # Input data validation
+    for key in keys:
+        # Make sure keys are non-empty
+        status = validate_input(key, img_info[key])
+        
+        # If status code indicates failure, exit from function
+        if status["code"] != 200:
+            return status
 
     # Calculate image size
     img_info["size"] = get_img_size(img_info["image"])
