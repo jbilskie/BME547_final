@@ -66,7 +66,8 @@ def b64_to_image(b64_string):
     img_bytes = base64.b64decode(b64_string)
     img_buf = io.BytesIO(img_bytes)
     img = mpimg.imread(img_buf, format='PNG')
-
+    # rgb_im =  Image.convert("RGB")
+    # img = rgb_im.save("downloaded_image"+type_extension, quality=95)
     return img
 
 
