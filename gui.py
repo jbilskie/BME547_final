@@ -314,6 +314,7 @@ def show_next(img_label, img_width, images):
         else:
             next_label.grid(column=0, row=1, ipadx=0.35*img_width,
                             ipady=0.35*img_width, sticky=E)
+    return
 
 
 def show_prev(img_label, img_width, images):
@@ -327,6 +328,7 @@ def show_prev(img_label, img_width, images):
         else:
             next_label.grid(column=0, row=1, ipadx=0.35*img_width,
                             ipady=0.35*img_width, sticky=E)
+    return
 
 
 def display_histograms(root, img_paths, orig_images, proc_images):
@@ -411,6 +413,7 @@ def display_histograms(root, img_paths, orig_images, proc_images):
                                                     image_exists),
                           width=4)
     prev_btn.grid(column=0, row=3, sticky=W)
+    return
 
 
 if __name__ == "__main__":
