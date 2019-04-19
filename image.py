@@ -122,5 +122,8 @@ def unzip(filename):
                     img_obj.close()
             except:
                 success = False
+    # Empty lists are false
+    if not imgs:
+        success = False
     zip_files.close()
     return imgs, success
