@@ -90,7 +90,7 @@ def upload_image(username, filename):
     return
 
 
-def process_image(username, filename, proc_step):
+def process_image(username, filename, proc_steps):
     """ Process image
 
     This function takes an image and sends it to the server as a
@@ -100,7 +100,9 @@ def process_image(username, filename, proc_step):
     Args:
         username (str): user identifier
         filename (str): contains directory and filename
-        proc_step (str): processing step to run
+        proc_steps (list): list of booleans where each element
+        indicates whether a processing step should (True) or should
+        not (False) be run
 
     Returns:
         none
@@ -114,7 +116,7 @@ def process_image(username, filename, proc_step):
     img_info = {"username": username,
                 "filename": filename,
                 "image": b64_string,
-                "proc_step": proc_step}
+                "proc_steps": proc_steps}
 
     print("Asking server to process image")
 
@@ -129,4 +131,4 @@ def process_image(username, filename, proc_step):
 if __name__ == "__main__":
     # add_new_user("user1")
     # upload_image("user1", "structure.jpg")
-    process_image("user1", "structure.jpg", "Histogram Equalization")
+    process_image("user1", "structure.jpg", [True, True, False, False])
