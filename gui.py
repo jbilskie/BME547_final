@@ -10,7 +10,7 @@ import os
 url = "http://127.0.0.1:5000/"
 
 
-def image_window():
+def editing_window():
     def enter_data():
         """Collect inputted data
 
@@ -31,18 +31,15 @@ def image_window():
         for i in img_paths:
             print("\t{}".format(i))
         entered_img_type = img_type.get()
-        print("Requested image type: {}".format(entered_img_type))
         entered_1 = hist_eq.get()
         entered_2 = contr_stretch.get()
         entered_3 = log_comp.get()
         entered_4 = rev_vid.get()
         proc_steps = [entered_1, entered_2, entered_3, entered_4]
-        print("Processing steps:")
-        print("\tHistogram Equalization: {}".format(entered_1))
-        print("\tContrast Stretching: {}".format(entered_2))
-        print("\tLog Compression: {}".format(entered_3))
-        print("\tReverse Video: {}".format(entered_4))
         images, success = get_img_data(img_paths)
+        img_window = Toplevel(root)
+        img_window.title("Image Viewer")
+        display_images(img_window, images)
         upload_to_server(user, images, success, proc_steps)
         return
 
@@ -112,7 +109,8 @@ def image_window():
     upload_btn = ttk.Button(root, text='Upload file', command=enter_data,
                             width=5)
     upload_btn.grid(column=1, row=8, sticky=W)
-
+    global img_row
+    img_row = 9
     # Show GUI window
     root.mainloop()
     return
@@ -231,5 +229,44 @@ def upload_to_server(user, images, success, proc_steps):
     return
 
 
+def display_images(img_window, images):
+    """Display images in GUI window
+
+    Converts image arrays to TK objects and displays them in the window
+
+    Args:
+        img_window (Tk window): image display window
+        images (list): list of np array images
+
+    Returns:
+        none
+    """
+    orig_label = ttk.Label(img_window, text='Original Images')
+    orig_label.grid(column=0, row=0, sticky=N)
+    new_label = ttk.Label(img_window, text='Processed Images')
+    new_label.grid(column=1, row=0, sticky=N)
+
+    orig_img_frame = ttk.Frame(img_window, width = 300)
+    orig_img_frame.grid(column=0, row=1)
+    new_img_frame = ttk.Frame(img_window, width = 300)
+    new_img_frame.grid(column=1, row=1)
+
+    tk_images = []
+    img_label = []
+    new_w = 300
+    img_row = 0
+    for i in images:
+        img_to_show = Image.fromarray(i)
+        h = img_to_show.height
+        w = img_to_show.width
+        new_h = round(h*new_w/w)
+        img_to_show = img_to_show.resize((new_w, new_h), Image.ANTIALIAS)
+        tk_images.append(ImageTk.PhotoImage(img_to_show))
+        img_label.append(Label(orig_img_frame, image=tk_images[-1]))
+        img_label[-1].img = tk_images[-1]
+        img_label[-1].grid(column=0, row=img_row)
+        img_row += 1
+
+
 if __name__ == "__main__":
-    image_window()
+    editing_window()
