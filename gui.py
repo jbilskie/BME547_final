@@ -36,11 +36,12 @@ def editing_window():
         proc_steps = [entered_1, entered_2, entered_3, entered_4]
         orig_images, success = get_img_data(img_paths)
         img_window = Toplevel(root)
+        img_window.config(height=1000, width=1000)
         img_window.title("Image Viewer")
         upload_success = upload_to_server(user, orig_images,
                                           success, proc_steps)
         success_label = ttk.Label(root, text=upload_success)
-        success_label.grid(column=1, row=9, sticky=W)
+        success_label.grid(column=1, row=10, sticky=W)
         proc_images = []
         display_images(img_window, img_paths, orig_images,
                        proc_images)
@@ -60,17 +61,30 @@ def editing_window():
     user_entry = ttk.Entry(root, textvariable=user, width=25)
     user_entry.grid(column=1, row=1, sticky=W)
 
+    instructions = "Separate pathnames with commas."
+    instructions_label = ttk.Label(root, text=instructions)
+    instructions_label.grid(column=0, row=2, columnspan=2, sticky=N)
+
     # Enter image paths
     img_label = ttk.Label(root, text="Image paths:")
-    img_label.grid(column=0, row=2, sticky=E)
+    img_label.grid(column=0, row=3, sticky=E)
     img_path = StringVar()
     img_path_entry = ttk.Entry(root, textvariable=img_path,
                                width=25)
-    img_path_entry.grid(column=1, row=2, sticky=W)
+    img_path_entry.grid(column=1, row=3, sticky=W)
+
+    # Select download image type
+    img_type = StringVar()
+    type_label = ttk.Label(root, text="Download image type:")
+    type_label.grid(column=0, row=4, sticky=E)
+    type_dropdown = ttk.Combobox(root, textvariable=img_type)
+    type_dropdown['values'] = ('JPEG', 'PNG', 'TIFF')
+    type_dropdown.grid(column=1, row=4, sticky=W)
+    type_dropdown.config(state='readonly')
 
     # Check processing steps
     steps_label = ttk.Label(root, text="Processing steps:")
-    steps_label.grid(column=0, row=4, sticky=E)
+    steps_label.grid(column=0, row=5, sticky=E)
 
     hist_eq = BooleanVar()
     hist_eq.set(True)
@@ -81,39 +95,28 @@ def editing_window():
     hist_check = ttk.Checkbutton(root, text='Histogram Equalization',
                                  variable=hist_eq,
                                  onvalue=True, offvalue=False)
-    hist_check.grid(column=1, row=4, sticky=W)
+    hist_check.grid(column=1, row=5, sticky=W)
     contr_check = ttk.Checkbutton(root, text='Contrast Stretching',
                                   variable=contr_stretch,
                                   onvalue=True, offvalue=False)
-    contr_check.grid(column=1, row=5, sticky=W)
+    contr_check.grid(column=1, row=6, sticky=W)
     log_check = ttk.Checkbutton(root, text='Log Compression',
                                 variable=log_comp,
                                 onvalue=True, offvalue=False)
-    log_check.grid(column=1, row=6, sticky=W)
+    log_check.grid(column=1, row=7, sticky=W)
     rev_check = ttk.Checkbutton(root, text='Reverse video',
                                 variable=rev_vid,
                                 onvalue=True, offvalue=False)
-    rev_check.grid(column=1, row=7, sticky=W)
+    rev_check.grid(column=1, row=8, sticky=W)
 
     display_img = StringVar()
     display_check = ttk.Checkbutton(root, text='Display images',
                                     variable=display_img,
                                     onvalue=True, offvalue=False)
 
-    # Select download image type
-    img_type = StringVar()
-    type_label = ttk.Label(root, text="Download image type:")
-    type_label.grid(column=0, row=3, sticky=E)
-    type_dropdown = ttk.Combobox(root, textvariable=img_type)
-    type_dropdown['values'] = ('JPEG', 'PNG', 'TIFF')
-    type_dropdown.grid(column=1, row=3, sticky=W)
-    type_dropdown.config(state='readonly')
-
     upload_btn = ttk.Button(root, text='Upload file', command=enter_data,
                             width=5)
-    upload_btn.grid(column=1, row=8, sticky=W)
-    global img_row
-    img_row = 9
+    upload_btn.grid(column=1, row=9, sticky=W)
     # Show GUI window
     root.mainloop()
     return
@@ -235,19 +238,48 @@ def display_images(img_window, img_paths, orig_images, proc_images):
     Returns:
         none
     """
-    orig_label = ttk.Label(img_window, text='Original Images')
-    orig_label.grid(column=0, row=0, sticky=N)
-    new_label = ttk.Label(img_window, text='Processed Images')
-    new_label.grid(column=1, row=0, sticky=N)
+    global index
+    index = 0
+    img_width = 400
 
-    orig_img_frame = ttk.Frame(img_window, width=300)
-    orig_img_frame.grid(column=0, row=1)
-    new_img_frame = ttk.Frame(img_window, width=300)
-    new_img_frame.grid(column=1, row=1)
+    def show_next(orig_img_frame, new_img_frame, img_label, img_width):
+        global index
+        if index < (len(img_label))-1:
+            img_label[index].grid_forget()
+            index += 1
+            next_label = img_label[index]
+            if tk_images[index] != '':
+                next_label.grid(column=0, row=1, columnspan=2, sticky=E)
+            else:
+                next_label.grid(column=0, row=1, ipadx=0.35*img_width,
+                                ipady=0.35*img_width, sticky=E)
+
+    def show_prev(orig_img_frame, new_img_frame, img_label, img_width):
+        global index
+        if index > 0:
+            img_label[index].grid_forget()
+            index -= 1
+            next_label = img_label[index]
+            if tk_images[index] != '':
+                # next_label.img = tk_images[index]
+                next_label.grid(column=0, row=1, columnspan=2, sticky=E)
+            else:
+                next_label.grid(column=0, row=1, ipadx=0.35*img_width,
+                                ipady=0.35*img_width, sticky=E)
+
+    orig_label = ttk.Label(img_window, text='Original Images')
+    orig_label.grid(column=0, row=0, columnspan=2, sticky=N)
+    new_label = ttk.Label(img_window, text='Processed Images')
+    new_label.grid(column=2, row=0, columnspan=2, sticky=N)
+
+    orig_img_frame = ttk.Frame(img_window, width=img_width, height=500)
+    orig_img_frame.grid(column=0, row=1, columnspan=2)
+    new_img_frame = ttk.Frame(img_window, width=img_width, height=500)
+    new_img_frame.grid(column=2, row=1, columnspan=2)
 
     tk_images = []
     img_label = []
-    new_w = 300
+    new_w = img_width
     img_row = 0
     for i in range(len(orig_images)):
         image_to_load = orig_images[i]
@@ -260,13 +292,28 @@ def display_images(img_window, img_paths, orig_images, proc_images):
             tk_images.append(ImageTk.PhotoImage(img_to_show))
             img_label.append(Label(orig_img_frame, image=tk_images[-1]))
             img_label[-1].img = tk_images[-1]
-            img_label[-1].grid(column=0, row=img_row)
-            img_row += 1
         except:
+            tk_images.append('')
             img_label.append(Label(orig_img_frame, text='Image not found'))
-            img_label[-1].grid(column=0, row=img_row, pady=20)
-            img_label[-1]
-            img_row += 1
+
+    if tk_images[index] == '':
+        img_label[index].grid(column=0, row=1, ipadx=0.35*img_width,
+                              ipady=0.35*img_width, sticky=E)
+    else:
+        img_label[index].grid(column=0, row=1, columnspan=2)
+
+    next_btn = ttk.Button(img_window, text='>>',
+                          command=lambda: show_next(orig_img_frame,
+                                                    new_img_frame,
+                                                    img_label, img_width),
+                          width=4)
+    next_btn.grid(column=1, row=3, sticky=E)
+    prev_btn = ttk.Button(img_window, text='<<',
+                          command=lambda: show_prev(orig_img_frame,
+                                                    new_img_frame,
+                                                    img_label, img_width),
+                          width=4)
+    prev_btn.grid(column=0, row=3, sticky=W)
 
 
 if __name__ == "__main__":
