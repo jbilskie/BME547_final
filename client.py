@@ -1,6 +1,6 @@
 # client.py
 # Author: Kevin Chu
-# Last Modified: 4/18/19
+# Last Modified: 4/19/19
 
 import requests
 
@@ -131,4 +131,4 @@ def process_image(username, filename, proc_steps):
 if __name__ == "__main__":
     # add_new_user("user1")
     # upload_image("user1", "structure.jpg")
-    # process_image("user1", "structure.jpg", [True, True, False, False])
+    process_image("user1", "structure.jpg", [True, True, False, False])

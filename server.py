@@ -150,7 +150,7 @@ def process_image_upload(img_info):
     for key in keys:
         # Make sure keys are non-empty
         status = validate_input(key, img_info[key])
-        
+
         # If status code indicates failure, exit from function
         if status["code"] != 200:
             return status
@@ -255,20 +255,16 @@ def process_process_image(img_info):
     from image import b64_to_image
     from image import image_to_b64
 
-    # Validate user info
-    status = validate_input("username", img_info["username"])
-    if status["code"] != 200:
-        return status
+    keys = ["username", "filename", "image"]
 
-    # Validate filename
-    status = validate_input("filename", img_info["filename"])
-    if status["code"] != 200:
-        return status
+    # Input data validation
+    for key in keys:
+        # Make sure keys are non-empty
+        status = validate_input(key, img_info[key])
 
-    # Validate image
-    status = validate_input("image", img_info["image"])
-    if status["code"] != 200:
-        return status
+        # If status code indicates failure, exit from function
+        if status["code"] != 200:
+            return status
 
     # Decode b64
     orig_img = b64_to_image(img_info["image"])
