@@ -10,7 +10,7 @@ import os
 url = "http://127.0.0.1:5000/"
 
 
-def image_window():
+def editing_window():
     def enter_data():
         """Collect inputted data
 
@@ -31,18 +31,21 @@ def image_window():
         for i in img_paths:
             print("\t{}".format(i))
         entered_img_type = img_type.get()
-        print("Requested image type: {}".format(entered_img_type))
         entered_1 = hist_eq.get()
         entered_2 = contr_stretch.get()
         entered_3 = log_comp.get()
         entered_4 = rev_vid.get()
         proc_steps = [entered_1, entered_2, entered_3, entered_4]
-        print("Processing steps:")
-        print("\tHistogram Equalization: {}".format(entered_1))
-        print("\tContrast Stretching: {}".format(entered_2))
-        print("\tLog Compression: {}".format(entered_3))
-        print("\tReverse Video: {}".format(entered_4))
-        upload_to_server(img_paths, proc_steps)
+        orig_images, success = get_img_data(img_paths)
+        img_window = Toplevel(root)
+        img_window.title("Image Viewer")
+        upload_success = upload_to_server(user, orig_images,
+                                          success, proc_steps)
+        success_label = ttk.Label(root, text=upload_success)
+        success_label.grid(column=1, row=9, sticky=W)
+        proc_images = []
+        display_images(img_window, orig_images, proc_images)
+        return
 
     # Main window
     root = Tk()
@@ -110,7 +113,8 @@ def image_window():
     upload_btn = ttk.Button(root, text='Upload file', command=enter_data,
                             width=5)
     upload_btn.grid(column=1, row=8, sticky=W)
-
+    global img_row
+    img_row = 9
     # Show GUI window
     root.mainloop()
     return
@@ -134,9 +138,9 @@ def process_img_paths(input):
 
 
 def unzip(filename):
-    """Searches for '.zip' extension
+    """Unzips file at requested path
 
-    Returns Boolean value based on whether input string contains zip
+    Returns unzipped file (as numpy array) and success boolean
 
     Args:
         filename (string): image path to unzip
@@ -158,8 +162,8 @@ def unzip(filename):
                 with zip_files.open(file) as img_file:
                     img_obj = Image.open(img_file)
                     img_np = np.array(img_obj)
-                    new_img = image_to_b64(img_np)
-                    imgs.append(new_img)
+                    imgs.append(img_np)
+                    img_obj.close()
             except:
                 success = False
     zip_files.close()
@@ -169,17 +173,15 @@ def unzip(filename):
 def get_img_data(img_paths):
     """Gets image data
 
-    Upload: Extracts image data from image paths to upload to server. Unzips
-    images if necessary.
+    Upload: Extracts data from image paths to upload to server as numpy
+    arrays (later converted to strings). Unzips images if necessary.
     Download: Unzips downloaded files.
 
     Args:
         img_paths (list): list of image paths to process
 
     Returns:
-        images (list): list of image data
-        is_zip (list): whether index of list contains data from unzipped file
-        (and therefore potentially multiple images)
+        images (list): list of numpy arrays containing image data
         success (list): list of booleans denoting successful processing for
         each image path entered
     """
@@ -200,25 +202,83 @@ def get_img_data(img_paths):
             else:
                 img_obj = Image.open(img_paths[i])
                 img_np = np.array(img_obj)
-                new_img = image_to_b64(img_np)
-                images.append(new_img)
+                images.append(img_np)
+                img_obj.close()
         else:
             images.append([])
             success[i] = False
-    return images, is_zip, success
+    return images, success
 
 
-def upload_to_server(img_paths, proc_steps):
+def upload_to_server(user, images, success, proc_steps):
     """Posts image to server
 
+    Converts image objects to b64 strings and posts them to server
+
     Args:
-        img_paths (list): list of images to process
-        proc_steps (list):
+        user (string): inputted username
+        images (list): list of np array images
+        success (list): whether images were successfully obtained
+        proc_steps (list): image processing steps to take
     Returns:
-        tbd
+        upload_success (str): message to print below upload button
     """
-    images, is_zip, success = get_img_data(img_paths)
+    from image import image_to_b64
+    from client import process_image
+    imgs_for_upload = []
+    for img in images:
+        imgs_for_upload.append(image_to_b64(img))
+
+    # status = process_image(user, imgs_for_upload, proc_steps)
+    status = 0
+    if status == 200:
+        upload_success = "Successfully uploaded"
+    elif status == 400:
+        upload_success = "One or more fields missing"
+    else:
+        upload_success = "Upload failed"
+    return upload_success
+
+
+def display_images(img_window, orig_images, proc_images):
+    """Display images in GUI window
+
+    Converts image arrays to TK objects and displays them in the window
+
+    Args:
+        img_window (Tk window): image display window
+        orig_images (list): list of uploaded np array images
+        proc_images (list): list of images downloaded from server
+
+    Returns:
+        none
+    """
+    orig_label = ttk.Label(img_window, text='Original Images')
+    orig_label.grid(column=0, row=0, sticky=N)
+    new_label = ttk.Label(img_window, text='Processed Images')
+    new_label.grid(column=1, row=0, sticky=N)
+
+    orig_img_frame = ttk.Frame(img_window, width=300)
+    orig_img_frame.grid(column=0, row=1)
+    new_img_frame = ttk.Frame(img_window, width=300)
+    new_img_frame.grid(column=1, row=1)
+
+    tk_images = []
+    img_label = []
+    new_w = 300
+    img_row = 0
+    for i in orig_images:
+        img_to_show = Image.fromarray(i)
+        h = img_to_show.height
+        w = img_to_show.width
+        new_h = round(h*new_w/w)
+        img_to_show = img_to_show.resize((new_w, new_h), Image.ANTIALIAS)
+        tk_images.append(ImageTk.PhotoImage(img_to_show))
+        img_label.append(Label(orig_img_frame, image=tk_images[-1]))
+        img_label[-1].img = tk_images[-1]
+        img_label[-1].grid(column=0, row=img_row)
+        img_row += 1
 
 
 if __name__ == "__main__":
-    image_window()
+    editing_window()
