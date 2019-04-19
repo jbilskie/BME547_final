@@ -42,7 +42,8 @@ def editing_window():
         success_label = ttk.Label(root, text=upload_success)
         success_label.grid(column=1, row=9, sticky=W)
         proc_images = []
-        display_images(img_window, orig_images, proc_images)
+        display_images(img_window, img_paths, orig_images,
+                       proc_images)
         return
 
     # Main window
@@ -56,7 +57,7 @@ def editing_window():
     user_label = ttk.Label(root, text="Username:")
     user_label.grid(column=0, row=1, sticky=E)
     user = StringVar()
-    user_entry = ttk.Entry(root, textvariable=user)
+    user_entry = ttk.Entry(root, textvariable=user, width=25)
     user_entry.grid(column=1, row=1, sticky=W)
 
     # Enter image paths
@@ -64,7 +65,7 @@ def editing_window():
     img_label.grid(column=0, row=2, sticky=E)
     img_path = StringVar()
     img_path_entry = ttk.Entry(root, textvariable=img_path,
-                               width=30)
+                               width=25)
     img_path_entry.grid(column=1, row=2, sticky=W)
 
     # Check processing steps
@@ -156,22 +157,34 @@ def get_img_data(img_paths):
     is_zip = [(re.search('.zip', i) or re.search('.ZIP', i)) for i in
               img_paths]
     for i in range(len(img_paths)):
-        exists = os.path.isfile(img_paths[i])
+        curr_path = img_paths[i]
+        exists = os.path.isfile(curr_path)
         if exists:
             # Append unzipped images one by one
             if is_zip[i]:
-                unzipped_images, success[i] = unzip(img_paths[i])
-                for j in unzipped_images:
-                    images.append(j)
+                unzipped_images, success[i] = unzip(curr_path)
+                if success[i]:
+                    for j in unzipped_images:
+                        images.append(j)
+                else:
+                    images.append('')
             # Append non-zipped images normally
-            else:
-                img_obj = Image.open(img_paths[i])
+            elif curr_path.lower().endswith(('.png', '.jpg', 'jpeg',
+                                            '.tiff')):
+                img_obj = Image.open(curr_path)
                 img_np = np.array(img_obj)
                 images.append(img_np)
                 img_obj.close()
+            # Don't send data if file is not an image
+            else:
+                images.append('')
+                success[i] = False
+        # File not found
         else:
-            images.append([])
+            images.append('')
             success[i] = False
+    print("Image successfully extracted?")
+    print(success)
     return images, success
 
 
@@ -185,6 +198,7 @@ def upload_to_server(user, images, success, proc_steps):
         images (list): list of np array images
         success (list): whether images were successfully obtained
         proc_steps (list): image processing steps to take
+
     Returns:
         upload_success (str): message to print below upload button
     """
@@ -192,8 +206,10 @@ def upload_to_server(user, images, success, proc_steps):
     from client import process_image
     imgs_for_upload = []
     for img in images:
-        imgs_for_upload.append(image_to_b64(img))
-
+        try:
+            imgs_for_upload.append(image_to_b64(img))
+        except:
+            imgs_for_upload.append('')
     # status = process_image(user, imgs_for_upload, proc_steps)
     status = 0
     if status == 200:
@@ -205,13 +221,14 @@ def upload_to_server(user, images, success, proc_steps):
     return upload_success
 
 
-def display_images(img_window, orig_images, proc_images):
+def display_images(img_window, img_paths, orig_images, proc_images):
     """Display images in GUI window
 
     Converts image arrays to TK objects and displays them in the window
 
     Args:
         img_window (Tk window): image display window
+        img_paths (list): list of image paths
         orig_images (list): list of uploaded np array images
         proc_images (list): list of images downloaded from server
 
@@ -232,17 +249,24 @@ def display_images(img_window, orig_images, proc_images):
     img_label = []
     new_w = 300
     img_row = 0
-    for i in orig_images:
-        img_to_show = Image.fromarray(i)
-        h = img_to_show.height
-        w = img_to_show.width
-        new_h = round(h*new_w/w)
-        img_to_show = img_to_show.resize((new_w, new_h), Image.ANTIALIAS)
-        tk_images.append(ImageTk.PhotoImage(img_to_show))
-        img_label.append(Label(orig_img_frame, image=tk_images[-1]))
-        img_label[-1].img = tk_images[-1]
-        img_label[-1].grid(column=0, row=img_row)
-        img_row += 1
+    for i in range(len(orig_images)):
+        image_to_load = orig_images[i]
+        try:
+            img_to_show = Image.fromarray(image_to_load)
+            h = img_to_show.height
+            w = img_to_show.width
+            new_h = round(h*new_w/w)
+            img_to_show = img_to_show.resize((new_w, new_h), Image.ANTIALIAS)
+            tk_images.append(ImageTk.PhotoImage(img_to_show))
+            img_label.append(Label(orig_img_frame, image=tk_images[-1]))
+            img_label[-1].img = tk_images[-1]
+            img_label[-1].grid(column=0, row=img_row)
+            img_row += 1
+        except:
+            img_label.append(Label(orig_img_frame, text='Image not found'))
+            img_label[-1].grid(column=0, row=img_row, pady=20)
+            img_label[-1]
+            img_row += 1
 
 
 if __name__ == "__main__":
