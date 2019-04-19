@@ -35,16 +35,21 @@ def editing_window():
         entered_4 = rev_vid.get()
         proc_steps = [entered_1, entered_2, entered_3, entered_4]
         orig_images, success = get_img_data(img_paths)
-        img_window = Toplevel(root)
-        img_window.config(height=1000, width=1000)
-        img_window.title("Image Viewer")
         upload_success = upload_to_server(user, orig_images,
                                           success, proc_steps)
         success_label = ttk.Label(root, text=upload_success)
         success_label.grid(column=1, row=10, sticky=W)
         proc_images = []
-        display_images(img_window, img_paths, orig_images,
-                       proc_images)
+        display_img = BooleanVar()
+        display_check = ttk.Checkbutton(root, text='Display images',
+                                        variable=display_img,
+                                        onvalue=True, offvalue=False,
+                                        command=lambda:
+                                        display_images(display_img.get(),
+                                                       root, img_paths,
+                                                       orig_images,
+                                                       proc_images))
+        display_check.grid(column=0, row=11, sticky=W)
         return
 
     # Main window
@@ -108,11 +113,6 @@ def editing_window():
                                 variable=rev_vid,
                                 onvalue=True, offvalue=False)
     rev_check.grid(column=1, row=8, sticky=W)
-
-    display_img = StringVar()
-    display_check = ttk.Checkbutton(root, text='Display images',
-                                    variable=display_img,
-                                    onvalue=True, offvalue=False)
 
     upload_btn = ttk.Button(root, text='Upload file', command=enter_data,
                             width=5)
@@ -224,13 +224,13 @@ def upload_to_server(user, images, success, proc_steps):
     return upload_success
 
 
-def display_images(img_window, img_paths, orig_images, proc_images):
+def display_images(run, root, img_paths, orig_images, proc_images):
     """Display images in GUI window
 
     Converts image arrays to TK objects and displays them in the window
 
     Args:
-        img_window (Tk window): image display window
+        run (bool): run function or close window
         img_paths (list): list of image paths
         orig_images (list): list of uploaded np array images
         proc_images (list): list of images downloaded from server
@@ -240,7 +240,6 @@ def display_images(img_window, img_paths, orig_images, proc_images):
     """
     global index
     index = 0
-    img_width = 400
 
     def show_next(orig_img_frame, new_img_frame, img_label, img_width):
         global index
@@ -267,53 +266,64 @@ def display_images(img_window, img_paths, orig_images, proc_images):
                 next_label.grid(column=0, row=1, ipadx=0.35*img_width,
                                 ipady=0.35*img_width, sticky=E)
 
-    orig_label = ttk.Label(img_window, text='Original Images')
-    orig_label.grid(column=0, row=0, columnspan=2, sticky=N)
-    new_label = ttk.Label(img_window, text='Processed Images')
-    new_label.grid(column=2, row=0, columnspan=2, sticky=N)
+    if run:
+        img_window = Toplevel(root)
+        img_window.config(height=1000, width=1000)
+        img_window.title("Image Viewer")
+        img_width = 400
 
-    orig_img_frame = ttk.Frame(img_window, width=img_width, height=500)
-    orig_img_frame.grid(column=0, row=1, columnspan=2)
-    new_img_frame = ttk.Frame(img_window, width=img_width, height=500)
-    new_img_frame.grid(column=2, row=1, columnspan=2)
+        orig_label = ttk.Label(img_window, text='Original Images')
+        orig_label.grid(column=0, row=0, columnspan=2, sticky=N)
+        new_label = ttk.Label(img_window, text='Processed Images')
+        new_label.grid(column=2, row=0, columnspan=2, sticky=N)
 
-    tk_images = []
-    img_label = []
-    new_w = img_width
-    img_row = 0
-    for i in range(len(orig_images)):
-        image_to_load = orig_images[i]
-        try:
-            img_to_show = Image.fromarray(image_to_load)
-            h = img_to_show.height
-            w = img_to_show.width
-            new_h = round(h*new_w/w)
-            img_to_show = img_to_show.resize((new_w, new_h), Image.ANTIALIAS)
-            tk_images.append(ImageTk.PhotoImage(img_to_show))
-            img_label.append(Label(orig_img_frame, image=tk_images[-1]))
-            img_label[-1].img = tk_images[-1]
-        except:
-            tk_images.append('')
-            img_label.append(Label(orig_img_frame, text='Image not found'))
+        orig_img_frame = ttk.Frame(img_window, width=img_width, height=500)
+        orig_img_frame.grid(column=0, row=1, columnspan=2)
+        new_img_frame = ttk.Frame(img_window, width=img_width, height=500)
+        new_img_frame.grid(column=2, row=1, columnspan=2)
 
-    if tk_images[index] == '':
-        img_label[index].grid(column=0, row=1, ipadx=0.35*img_width,
-                              ipady=0.35*img_width, sticky=E)
+        tk_images = []
+        img_label = []
+        new_w = img_width
+        img_row = 0
+        for i in range(len(orig_images)):
+            image_to_load = orig_images[i]
+            try:
+                img_to_show = Image.fromarray(image_to_load)
+                h = img_to_show.height
+                w = img_to_show.width
+                new_h = round(h*new_w/w)
+                img_to_show = img_to_show.resize((new_w, new_h), Image.ANTIALIAS)
+                tk_images.append(ImageTk.PhotoImage(img_to_show))
+                img_label.append(Label(orig_img_frame, image=tk_images[-1]))
+                img_label[-1].img = tk_images[-1]
+            except:
+                tk_images.append('')
+                img_label.append(Label(orig_img_frame, text='Image not found'))
+
+        if tk_images[index] == '':
+            img_label[index].grid(column=0, row=1, ipadx=0.35*img_width,
+                                  ipady=0.35*img_width, sticky=E)
+        else:
+            img_label[index].grid(column=0, row=1, columnspan=2)
+
+        next_btn = ttk.Button(img_window, text='>>',
+                              command=lambda: show_next(orig_img_frame,
+                                                        new_img_frame,
+                                                        img_label, img_width),
+                              width=4)
+        next_btn.grid(column=1, row=3, sticky=E)
+        prev_btn = ttk.Button(img_window, text='<<',
+                              command=lambda: show_prev(orig_img_frame,
+                                                        new_img_frame,
+                                                        img_label, img_width),
+                              width=4)
+        prev_btn.grid(column=0, row=3, sticky=W)
+
     else:
-        img_label[index].grid(column=0, row=1, columnspan=2)
-
-    next_btn = ttk.Button(img_window, text='>>',
-                          command=lambda: show_next(orig_img_frame,
-                                                    new_img_frame,
-                                                    img_label, img_width),
-                          width=4)
-    next_btn.grid(column=1, row=3, sticky=E)
-    prev_btn = ttk.Button(img_window, text='<<',
-                          command=lambda: show_prev(orig_img_frame,
-                                                    new_img_frame,
-                                                    img_label, img_width),
-                          width=4)
-    prev_btn.grid(column=0, row=3, sticky=W)
+        for widget in root.winfo_children():
+            if isinstance(widget, Toplevel):
+                widget.destroy()
 
 
 if __name__ == "__main__":
