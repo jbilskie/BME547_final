@@ -4,6 +4,9 @@ import numpy as np
 from PIL import ImageTk, Image
 import requests
 import os
+import matplotlib
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+matplotlib.use("TkAgg")
 
 url = "http://127.0.0.1:5000/"
 
@@ -50,6 +53,7 @@ def editing_window():
                                                        orig_images,
                                                        proc_images))
         display_check.grid(column=0, row=11, sticky=W)
+        display_histograms(root, img_paths, orig_images, proc_images)
         return
 
     # Main window
@@ -229,6 +233,7 @@ def display_images(run, root, img_paths, orig_images, proc_images):
 
     Args:
         run (bool): run function or close window
+        root (Tk window)
         img_paths (list): list of image paths
         orig_images (list): list of uploaded np array images
         proc_images (list): list of images downloaded from server
@@ -238,31 +243,6 @@ def display_images(run, root, img_paths, orig_images, proc_images):
     """
     global index
     index = 0
-
-    def show_next(orig_img_frame, new_img_frame, img_label, img_width):
-        global index
-        if index < (len(img_label))-1:
-            img_label[index].grid_forget()
-            index += 1
-            next_label = img_label[index]
-            if tk_images[index] != '':
-                next_label.grid(column=0, row=1, columnspan=2, sticky=E)
-            else:
-                next_label.grid(column=0, row=1, ipadx=0.35*img_width,
-                                ipady=0.35*img_width, sticky=E)
-
-    def show_prev(orig_img_frame, new_img_frame, img_label, img_width):
-        global index
-        if index > 0:
-            img_label[index].grid_forget()
-            index -= 1
-            next_label = img_label[index]
-            if tk_images[index] != '':
-                # next_label.img = tk_images[index]
-                next_label.grid(column=0, row=1, columnspan=2, sticky=E)
-            else:
-                next_label.grid(column=0, row=1, ipadx=0.35*img_width,
-                                ipady=0.35*img_width, sticky=E)
 
     if run:
         img_window = Toplevel(root)
@@ -307,15 +287,13 @@ def display_images(run, root, img_paths, orig_images, proc_images):
             img_label[index].grid(column=0, row=1, columnspan=2)
 
         next_btn = ttk.Button(img_window, text='>>',
-                              command=lambda: show_next(orig_img_frame,
-                                                        new_img_frame,
-                                                        img_label, img_width),
+                              command=lambda: show_next(img_label, img_width,
+                                                        tk_images),
                               width=4)
         next_btn.grid(column=1, row=3, sticky=E)
         prev_btn = ttk.Button(img_window, text='<<',
-                              command=lambda: show_prev(orig_img_frame,
-                                                        new_img_frame,
-                                                        img_label, img_width),
+                              command=lambda: show_prev(img_label, img_width,
+                                                        tk_images),
                               width=4)
         prev_btn.grid(column=0, row=3, sticky=W)
 
@@ -323,6 +301,116 @@ def display_images(run, root, img_paths, orig_images, proc_images):
         for widget in root.winfo_children():
             if isinstance(widget, Toplevel):
                 widget.destroy()
+
+
+def show_next(img_label, img_width, images):
+    global index
+    if index < (len(img_label))-1:
+        img_label[index].grid_forget()
+        index += 1
+        next_label = img_label[index]
+        if images[index] != '':
+            next_label.grid(column=0, row=1, columnspan=2, sticky=E)
+        else:
+            next_label.grid(column=0, row=1, ipadx=0.35*img_width,
+                            ipady=0.35*img_width, sticky=E)
+
+
+def show_prev(img_label, img_width, images):
+    global index
+    if index > 0:
+        img_label[index].grid_forget()
+        index -= 1
+        next_label = img_label[index]
+        if images[index] != '':
+            next_label.grid(column=0, row=1, columnspan=2, sticky=E)
+        else:
+            next_label.grid(column=0, row=1, ipadx=0.35*img_width,
+                            ipady=0.35*img_width, sticky=E)
+
+
+def display_histograms(root, img_paths, orig_images, proc_images):
+    """Display images in GUI window
+
+    Converts image arrays to TK objects and displays them in the window
+
+    Args:
+        root (Tk window)
+        img_paths (list): list of image paths
+        orig_images (list): list of uploaded np array images
+        proc_images (list): list of images downloaded from server
+
+    Returns:
+        none
+    """
+    from matplotlib import pyplot as plt
+    global index
+    index = 0
+
+    hist_window = Toplevel(root)
+    hist_window.config(height=1000, width=1000)
+    hist_window.title("Histogram Viewer")
+    hist_width = 400
+
+    orig_label = ttk.Label(hist_window, text='Original Image Histograms')
+    orig_label.grid(column=0, row=0, columnspan=2, sticky=N)
+    new_label = ttk.Label(hist_window, text='Processed Image Histograms')
+    new_label.grid(column=2, row=0, columnspan=2, sticky=N)
+
+    orig_hist_frame = ttk.Frame(hist_window, width=hist_width, height=500)
+    orig_hist_frame.grid(column=0, row=1, columnspan=2)
+    new_hist_frame = ttk.Frame(hist_window, width=hist_width, height=500)
+    new_hist_frame.grid(column=2, row=1, columnspan=2)
+
+    hist_plots = []
+    image_exists = []
+    img_label = []
+    for i in range(len(orig_images)):
+        image_to_load = orig_images[i]
+        img_to_show = Image.fromarray(image_to_load)
+        try:
+            out_hist = img_to_show.histogram()
+            r = out_hist[0:256]
+            g = out_hist[256:512]
+            b = out_hist[512:768]
+            plt.figure()
+            hist_fig, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True,
+                                                     sharey=False)
+            hist_canvas = FigureCanvasTkAgg(hist_fig, master=orig_hist_frame)
+            img_label.append(hist_canvas.get_tk_widget())
+            ax1.set_title("Histograms for image {}".format(i+1))
+            ax1.plot(r, 'r')
+            ax2.plot(g, 'g')
+            ax3.plot(b, 'b')
+            plt.xlabel('Intensity')
+            ax1.set_ylabel("# red pixels")
+            ax2.set_ylabel("# green pixels")
+            ax3.set_ylabel("# blue pixels")
+            plt.xlabel("Intensity")
+            plt.tight_layout()
+            print("Axes label set")
+            print("Figure plotted")
+            image_exists.append('True')
+        except:
+            image_exists.append('')
+            img_label.append(Label(orig_hist_frame, text='Image not found'))
+
+    if image_exists[index] == '':
+        img_label[index].grid(column=0, row=1, ipadx=0.35*hist_width,
+                              ipady=0.35*hist_width, sticky=E)
+    else:
+        img_label[index].grid(column=0, row=1, columnspan=2)
+
+    next_btn = ttk.Button(hist_window, text='>>',
+                          command=lambda: show_next(img_label, hist_width,
+                                                    image_exists),
+                          width=4)
+    next_btn.grid(column=1, row=3, sticky=E)
+    prev_btn = ttk.Button(hist_window, text='<<',
+                          command=lambda: show_prev(img_label, hist_width,
+                                                    image_exists),
+                          width=4)
+    prev_btn.grid(column=0, row=3, sticky=W)
 
 
 if __name__ == "__main__":
