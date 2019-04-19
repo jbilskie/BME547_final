@@ -1,6 +1,6 @@
 # client.py
 # Author: Kevin Chu
-# Last Modified: 4/16/19
+# Last Modified: 4/18/19
 
 import requests
 
@@ -28,6 +28,28 @@ def add_new_user(username):
 
     print("Returned: {}".format(r.text))
     print("Status: {}".format(r.status_code))
+
+    return
+
+
+def upload_images(username, file_list):
+    """ Uploads multiple images to the database
+
+    This function takes a list of images and uploads them
+    one by one to the database.
+
+    Args:
+        username (str): user identifier
+        file_list (list): list of file paths
+
+    Returns:
+        none
+    """
+    if len(file_list) == 0:
+        print("No files were selected.")
+    else:
+        for filename in file_list:
+            upload_iamge(username, filename)
 
     return
 
