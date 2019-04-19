@@ -33,7 +33,6 @@ def add_new_user(username):
     return
 
 
-
 def upload_images(username, file_list, path):
     """ Uploads multiple images to the database
 
