@@ -42,7 +42,9 @@ def image_window():
         print("\tContrast Stretching: {}".format(entered_2))
         print("\tLog Compression: {}".format(entered_3))
         print("\tReverse Video: {}".format(entered_4))
-        upload_to_server(user, img_paths, proc_steps)
+        images, success = get_img_data(img_paths)
+        upload_to_server(user, images, success, proc_steps)
+        return
 
     # Main window
     root = Tk()
@@ -135,7 +137,7 @@ def process_img_paths(input):
 
 def unzip(filename):
     """Unzips file at requested path
-    
+
     Returns unzipped file (as numpy array) and success boolean
 
     Args:
@@ -206,26 +208,27 @@ def get_img_data(img_paths):
     return images, success
 
 
-def upload_to_server(user, img_paths, proc_steps):
+def upload_to_server(user, images, success, proc_steps):
     """Posts image to server
 
     Converts image objects to b64 strings and posts them to server
 
     Args:
         user (string): inputted username
-        img_paths (list): list of images to process
-        proc_steps (list):
+        images (list): list of np array images
+        success (list): whether images were successfully obtained
+        proc_steps (list): image processing steps to take
     Returns:
-        tbd
+        none
     """
     from image import image_to_b64
     from client import process_image
-    images, success = get_img_data(img_paths)
     imgs_for_upload = []
     for img in images:
         imgs_for_upload.append(image_to_b64(img))
         print("Success")
 # process_image(user, imgs_for_upload, proc_steps)
+    return
 
 
 if __name__ == "__main__":
