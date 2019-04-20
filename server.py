@@ -1,5 +1,5 @@
 # server.py
-# Author: Kevin Chu
+# Author: Kevin Chu, Jessica Bilskie
 # Last Modified: 4/19/19
 
 from flask import Flask, jsonify, request

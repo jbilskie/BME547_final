@@ -1,5 +1,5 @@
 # image.py
-# Authors: Janet Chen, Kevin Chu
+# Authors: Janet Chen, Kevin Chu, Jessica Bilskie
 # Last Modified: 4/20/19
 
 import base64
@@ -9,7 +9,6 @@ import matplotlib.image as mpimg
 import numpy as np
 import zipfile
 import re
-from PIL import Image
 
 
 def read_img_as_b64(file_path):
@@ -66,8 +65,6 @@ def b64_to_image(b64_string):
     img_bytes = base64.b64decode(b64_string)
     img_buf = io.BytesIO(img_bytes)
     img = mpimg.imread(img_buf, format='PNG')
-    # rgb_im =  Image.convert("RGB")
-    # img = rgb_im.save("downloaded_image"+type_extension, quality=95)
     return img
 
 
