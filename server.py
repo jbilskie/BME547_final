@@ -568,15 +568,18 @@ def exist_input(username, filename, proc_step):
     """
     logging.info("Checking that desired image exists")
 
-    # Retrieve user from database
-    user = User.objects.raw({"_id": username}).first()
-
-    # Find desired image
-    if user is None:
+    # Retrieve user from database, exit if user not found
+    try:
+        user = User.objects.raw({"_id": username}).first()
+    except:
         status = {"code": 404,
                   "msg": "Username not found in database."}
         logging.warning("Username {} not found in database."
                         .format(username))
+
+        return status
+
+    # Find desired image
     else:
         found = False
         if proc_step == "Original":

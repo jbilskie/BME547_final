@@ -67,3 +67,14 @@ def test_validate_new_input(input, exp):
         exp["msg"] = "Field {} cannot be empty.".format(input[0])
     status = validate_input(input[0], input[1])
     assert status == exp
+
+
+@pytest.mark.parametrize("username, filename, proc_step, expected",
+                         [("asdf", "file.jpg", "Original", 404),
+                          ])
+def test_exist_input(username, filename, proc_step, expected):
+    from server import exist_input
+
+    status = exist_input(username, filename, proc_step)
+
+    assert status["code"] == expected
