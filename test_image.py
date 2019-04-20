@@ -38,3 +38,50 @@ def test_read_img_as_b64(file_path, b64_path):
     b64_string = read_img_as_b64(file_path)
 
     assert b64_string == expected
+
+
+@pytest.mark.parametrize("b64_path, file_path, expected_path",
+                         # Test all image formats
+                         [("test_image/test1_b64.txt", "test_image/test_1.jpg",
+                           "test_image/test1.jpg"),
+                          ("test_image/test2_b64.txt", "test_image/test_2.jpg",
+                           "test_image/test2.jpg"),
+                          ("test_image/test3_b64.txt", "test_image/test_3.png",
+                           "test_image/test3.png"),
+                          ("test_image/test4_b64.txt",
+                           "test_image/test_4.tiff",
+                           "test_image/test4.tiff")
+                          ])
+def test_save_b64_img(b64_path, file_path, expected_path):
+    """ Test the save_b64_img function
+
+    This function ensures that the save_b64_img function correctly
+    converts the base64 string into an image. The converted image is
+    compared to the expected image, which is loaded from a text file.
+
+    Args:
+        b64_path (str): path to txt file with expected b64 string
+        file_path (str): path to image file
+        expected_path (str): path to expected image file
+
+    Returns:
+        none
+    """
+    from image import save_b64_img
+    import matplotlib.image as mpimg
+
+    # Read base64 string from text file
+    with open(b64_path, "r") as file_obj:
+        b64_string = file_obj.read()
+
+    # Strip newline
+    b64_string = (b64_string.split("\n"))[0]
+
+    # Save image
+    save_b64_img(b64_string, file_path)
+
+    # Read in saved image and expected image
+    img = mpimg.imread(file_path)
+    expected = mpimg.imread(expected_path)
+
+    assert img == expected
