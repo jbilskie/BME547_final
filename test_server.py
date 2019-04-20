@@ -1,3 +1,7 @@
+# test_server.py
+# Authors: Janet Chen, Kevin Chu
+# Last Modified: 4/20/19
+
 from flask import Flask, jsonify, request
 import numpy as np
 import pytest
