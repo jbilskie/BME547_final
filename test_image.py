@@ -121,3 +121,42 @@ def test_b64_to_image(b64_path, expected_path):
     expected = mpimg.imread(expected_path)
 
     assert img == expected
+
+
+@pytest.mark.parametrize("img_path, b64_path",
+                         [("test_image/test1.jpg", "test_image/test1_b64.txt"),
+                          ("test_image/test2.jpg", "test_image/test2_b64.txt"),
+                          ("test_image/test3.png", "test_image/test3_b64.txt"),
+                          ("test_image/test4.tiff", "test_image/test4_b64.txt")
+                          ])
+def test_image_to_b64(img_path, b64_path):
+    """ Test the image_to_b64 function
+
+    This function ensures that the image_to_b64 function correctly
+    convert an image into a base64 string. The converted string is then
+    compared to the expected string, which is loaded from a txt file.
+
+    Args:
+        img_path (str): path to image
+        b64_path (str): path to expected base64 string
+
+    Returns:
+        none
+    """
+    from image import image_to_b64
+    import matplotlib.image as mpimg
+
+    # Read in image
+    img = mpimg.imread(img_path)
+
+    # Convert
+    b64_string = image_to_b64(img)
+
+    # Read in expected string
+    with open(b64_path, "r") as file_obj:
+        expected = file_obj.read()
+
+    # Strip newline
+    expected = (expected.split("\n"))[0]
+
+    assert b64_string == expected
