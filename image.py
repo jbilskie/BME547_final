@@ -128,3 +128,8 @@ def unzip(filename):
         success = False
     zip_files.close()
     return imgs, success
+
+
+if __name__ == '__main__':
+    a = read_img_as_b64("test_image/test4.tiff")
+    print(a)
