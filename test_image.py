@@ -2,15 +2,16 @@
 # Author: Kevin Chu
 # Last Modified: 4/20/19
 
+import numpy as np
 import pytest
 
 
 @pytest.mark.parametrize("file_path, b64_path",
                          # Test all image formats
-                         [("test_image/test1.jpg", "test_image/test1_b64.txt"),
-                          ("test_image/test2.jpg", "test_image/test2_b64.txt"),
-                          ("test_image/test3.png", "test_image/test3_b64.txt"),
-                          ("test_image/test4.tiff", "test_image/test4_b64.txt")
+                         [("test-image/test1.jpg", "test-image/test1_b64.txt"),
+                          ("test-image/test2.jpg", "test-image/test2_b64.txt"),
+                          ("test-image/test3.png", "test-image/test3_b64.txt"),
+                          ("test-image/test4.tiff", "test-image/test4_b64.txt")
                           ])
 def test_read_img_as_b64(file_path, b64_path):
     """ The the read_img_as_b64 function
@@ -42,15 +43,15 @@ def test_read_img_as_b64(file_path, b64_path):
 
 @pytest.mark.parametrize("b64_path, file_path, expected_path",
                          # Test all image formats
-                         [("test_image/test1_b64.txt", "test_image/test_1.jpg",
-                           "test_image/test1.jpg"),
-                          ("test_image/test2_b64.txt", "test_image/test_2.jpg",
-                           "test_image/test2.jpg"),
-                          ("test_image/test3_b64.txt", "test_image/test_3.png",
-                           "test_image/test3.png"),
-                          ("test_image/test4_b64.txt",
-                           "test_image/test_4.tiff",
-                           "test_image/test4.tiff")
+                         [("test-image/test1_b64.txt", "test-image/test_1.jpg",
+                           "test-image/test1.jpg"),
+                          ("test-image/test2_b64.txt", "test-image/test_2.jpg",
+                           "test-image/test2.jpg"),
+                          ("test-image/test3_b64.txt", "test-image/test_3.png",
+                           "test-image/test3.png"),
+                          ("test-image/test4_b64.txt",
+                           "test-image/test_4.tiff",
+                           "test-image/test4.tiff")
                           ])
 def test_save_b64_img(b64_path, file_path, expected_path):
     """ Test the save_b64_img function
@@ -88,10 +89,10 @@ def test_save_b64_img(b64_path, file_path, expected_path):
 
 
 @pytest.mark.parametrize("b64_path, expected_path",
-                         [("test_image/test1_b64.txt", "test_image/test1.jpg"),
-                          ("test_image/test2_b64.txt", "test_image/test2.jpg"),
-                          ("test_image/test3_b64.txt", "test_image/test3.png"),
-                          ("test_image/test4_b64.txt", "test_image/test4.tiff")
+                         [("test-image/test1_b64.txt", "test-image/test1.jpg"),
+                          ("test-image/test2_b64.txt", "test-image/test2.jpg"),
+                          ("test-image/test3_b64.txt", "test-image/test3.png"),
+                          ("test-image/test4_b64.txt", "test-image/test4.tiff")
                           ])
 def test_b64_to_image(b64_path, expected_path):
     """ Test the b64_to_image function
@@ -124,14 +125,14 @@ def test_b64_to_image(b64_path, expected_path):
 
 
 @pytest.mark.parametrize("img_path, b64_path",
-                         [("test_image/test1.jpg",
-                           "test_image/test1_bytesIO.txt"),
-                          ("test_image/test2.jpg",
-                           "test_image/test2_bytesIO.txt"),
-                          ("test_image/test3.png",
-                           "test_image/test3_bytesIO.txt"),
-                          ("test_image/test4.tiff",
-                           "test_image/test4_bytesIO.txt")
+                         [("test-image/test1.jpg",
+                           "test-image/test1_bytesIO.txt"),
+                          ("test-image/test2.jpg",
+                           "test-image/test2_bytesIO.txt"),
+                          ("test-image/test3.png",
+                           "test-image/test3_bytesIO.txt"),
+                          ("test-image/test4.tiff",
+                           "test-image/test4_bytesIO.txt")
                           ])
 def test_image_to_b64(img_path, b64_path):
     """ Test the image_to_b64 function
@@ -164,3 +165,38 @@ def test_image_to_b64(img_path, b64_path):
     expected = (expected.split("\n"))[0]
 
     assert b64_string == expected
+
+
+@pytest.mark.parametrize("filename, expected",
+                         # Test empty zip file
+                         [("test-image/test-unzip1.zip",
+                           {"imgs": [], "success": False}),
+
+                          # Test zip file with 1 image
+                          # NOTE: May need to change success
+                          ("test-image/test-unzip2.zip",
+                           {"imgs": [np.array([[0]], dtype="uint8")],
+                            "success": False}),
+                          ])
+def test_unzip(filename, expected):
+    """ Test the unzip function
+
+    This function ensures that the unzip function extracts all
+    the images in a zip file.
+
+    Args:
+        filename (str): file path to zip file
+        expected (dict): dictionary with expected image list and
+        success flag
+
+    Returns:
+        none
+    """
+    from image import unzip
+
+    imgs, success = unzip(filename)
+    print(imgs)
+    print(expected["imgs"])
+
+    assert (imgs == expected["imgs"] and
+            success is expected["success"])
