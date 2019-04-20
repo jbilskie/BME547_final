@@ -124,10 +124,14 @@ def test_b64_to_image(b64_path, expected_path):
 
 
 @pytest.mark.parametrize("img_path, b64_path",
-                         [("test_image/test1.jpg", "test_image/test1_b64.txt"),
-                          ("test_image/test2.jpg", "test_image/test2_b64.txt"),
-                          ("test_image/test3.png", "test_image/test3_b64.txt"),
-                          ("test_image/test4.tiff", "test_image/test4_b64.txt")
+                         [("test_image/test1.jpg",
+                           "test_image/test1_bytesIO.txt"),
+                          ("test_image/test2.jpg",
+                           "test_image/test2_bytesIO.txt"),
+                          ("test_image/test3.png",
+                           "test_image/test3_bytesIO.txt"),
+                          ("test_image/test4.tiff",
+                           "test_image/test4_bytesIO.txt")
                           ])
 def test_image_to_b64(img_path, b64_path):
     """ Test the image_to_b64 function
