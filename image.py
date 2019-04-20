@@ -1,6 +1,6 @@
 # image.py
-# Author: Kevin Chu
-# Last Modified: 4/16/19
+# Authors: Janet Chen, Kevin Chu
+# Last Modified: 4/20/19
 
 import base64
 import io
@@ -128,3 +128,8 @@ def unzip(filename):
         success = False
     zip_files.close()
     return imgs, success
+
+
+if __name__ == '__main__':
+    a = read_img_as_b64("test_image/test4.tiff")
+    print(a)
