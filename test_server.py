@@ -3,6 +3,7 @@
 # Last Modified: 4/20/19
 
 from flask import Flask, jsonify, request
+from user import User
 import numpy as np
 import pytest
 from pymodm import connect, MongoModel, fields
@@ -46,6 +47,36 @@ def test_process_new_user(input, exp):
     """
     status = process_new_user(input)
     assert status == exp
+
+
+@pytest.mark.parametrize("input, exp", [("abc", True),
+                                        ("USER", True),
+                                        ("Holla123", True)])
+def test_register_new_user(input, exp):
+    """Tests register_new_user
+
+    Check that a new user is correctly registered to the MongoDB
+    database. Based on GUI code and process_new_user, the input
+    is already a valid string, so we just need to test that the
+    function actually adds a new user to the database.
+
+    Args:
+        input (str): inputted username
+        exp (str): username found in database
+
+    Returns:
+        none
+    """
+    new_user = User(username=input)
+    new_user.save()
+
+    try:
+        user_in_database = User.objects.raw({"_id": input}).first()
+        success = True
+    except:
+        success = False
+    assert success == exp
+    new_user.delete()
 
 
 @pytest.mark.parametrize("input, exp",
@@ -114,9 +145,9 @@ def test_process_image_upload(input, img_exists, exp):
     an image to the database.
 
     Args:
-        input ():
+        input (dict): dictionary containing username and filename
         img_exists (bool): whether image exists
-        exp ():
+        exp (dict): expected status dictionary
     Returns:
         none
     """
