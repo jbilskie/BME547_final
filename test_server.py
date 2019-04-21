@@ -16,20 +16,24 @@ db = "mongodb+srv://jmb221:bme547@bme547-kcuog.mongodb.net"
 database = connect(db + "/BME547?retryWrites=true")
 
 
-@pytest.mark.parametrize("input, exp",
-                         [({"username": ""},
+@pytest.mark.parametrize("input, times, exp",
+                         [({"username": ""}, 1,
                            {"code": 400,
                             "msg": "Field username cannot be empty."
                             }),
-                          ({"username": "rando"},
+                          ({"username": "rando"}, 1,
                            {"code": 200,
                             "msg": "Request was successful"
                             }),
-                          ({"username": "1239"},
+                          ({"username": "1239"}, 1,
                            {"code": 200,
                             "msg": "Request was successful"
+                            }),
+                          ({"username": "abc"}, 2,
+                           {"code": 400,
+                            "msg": "User abc already exists."
                             })])
-def test_process_new_user(input, exp):
+def test_process_new_user(input, times, exp):
     """Tests process_new_user
 
     Tests whether new user request is correctly processed. From
@@ -40,12 +44,21 @@ def test_process_new_user(input, exp):
 
     Args:
         input (dict): test input username
+        times (int): number of times to attempt registering user
         exp (dict): tested status message
 
     Returns:
         none
     """
-    status = process_new_user(input)
+    try:
+        user = User.objects.raw({"_id": input["username"]}).first()
+    except:
+        pass
+    else:
+        user.delete()
+
+    for i in range(times):
+        status = process_new_user(input)
     assert status == exp
 
 

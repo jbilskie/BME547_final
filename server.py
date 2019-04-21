@@ -81,7 +81,7 @@ def check_user_exists(username):
     """
     # Check to see if user exists
     try:
-        user = User.objects.raw({"_id": img_info["username"]}).first()
+        user = User.objects.raw({"_id": username}).first()
 
     # If user doesn't exist, status code indicates success
     except:
