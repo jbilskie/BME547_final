@@ -7,6 +7,10 @@ import numpy as np
 import pytest
 from pymodm import connect, MongoModel, fields
 from server import *
+from user import User
+
+db = "mongodb+srv://jmb221:bme547@bme547-kcuog.mongodb.net"
+database = connect(db + "/BME547?retryWrites=true")
 
 
 @pytest.mark.parametrize("input, exp", [({"username": ""},
@@ -70,11 +74,30 @@ def test_validate_new_input(input, exp):
 
 
 @pytest.mark.parametrize("username, filename, proc_step, expected",
-                         [("asdf", "file.jpg", "Original", 404),
+                         [("asdf", "file.jpg", "Original", 200),
                           ])
 def test_exist_input(username, filename, proc_step, expected):
     from server import exist_input
 
+    # Create dictionary
+    img_info = {"username": username,
+                "filename": filename,
+                "proc_step": proc_step}
+
+    # Create user object
+    user = User(username=username)
+
+    # Add image info
+    (user.orig_img).append(img_info)
+
+    # Save to database
+    user.save()
+
     status = exist_input(username, filename, proc_step)
 
     assert status["code"] == expected
+
+    # Remove user from database
+    user.delete()
+
+    blah = exist_input(username, filename, proc_step)
