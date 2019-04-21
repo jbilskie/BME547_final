@@ -47,12 +47,6 @@ def test_process_new_user(input, exp):
     status = process_new_user(input)
     assert status == exp
 
-"""
-@pytest.mark.parametrize("input, exp", [])
-def test_register_new_user(input, exp):
-    pass
-"""
-
 
 @pytest.mark.parametrize("input, exp",
                          [(("username", ""),
