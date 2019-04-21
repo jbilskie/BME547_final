@@ -190,7 +190,9 @@ def get_img_size(b64_string):
     img = b64_to_image(b64_string)
 
     # Only interested in width and height, not color channels
-    sz = (np.shape(img))[0:2]
+    h = (np.shape(img))[0]
+    w = (np.shape(img))[1]
+    sz = (w, h)
 
     return sz
 

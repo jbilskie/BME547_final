@@ -121,7 +121,8 @@ def test_validate_new_input(input, exp):
                             "msg": "Field filename cannot be empty."
                             }),
                           ({"username": "",
-                            "filename": "orion.jpg"}, True,
+                            "filename": "test_image/orion.jpg"},
+                           True,
                            {"code": 400,
                             "msg": "Field username cannot be empty."
                             }),
@@ -131,7 +132,8 @@ def test_validate_new_input(input, exp):
                             "msg": "Field image cannot be empty."
                             }),
                           ({"username": "user1",
-                            "filename": "orion.jpg"}, True,
+                            "filename": "test_image/blank.png"},
+                           True,
                            {"code": 200,
                             "msg": "Request was successful"})])
 def test_process_image_upload(input, img_exists, exp):
@@ -159,6 +161,35 @@ def test_process_image_upload(input, img_exists, exp):
         input["image"] = ""
     output = process_image_upload(input)
     assert output == exp
+
+
+@pytest.mark.parametrize("input, exp", [("test_image/orion.jpg",
+                                         (1600, 1200)),
+                                        ("test_image/sky.jpg",
+                                         (930, 620)),
+                                        ("test_image/test_1.jpg",
+                                         (1, 1)),
+                                        ("test_image/test_3.png",
+                                         (1, 1)),
+                                        ("test_image/test_4.tiff",
+                                         (1, 1))])
+def test_get_img_size(input, exp):
+    """Tests get_img_size function
+
+    Tests whether image size is correctly calculated from its base64
+    representation. Assumes the function input is in the proper format.
+
+    Args:
+        input (string): input filename
+        exp (tuple): expected image dimensions
+
+    Returns:
+        none
+    """
+    image_array, _ = get_img_data([input])
+    image_string = image_to_b64(image_array[0])
+    out = get_img_size(image_string)
+    assert out == exp
 
 
 @pytest.mark.parametrize("username, add_user, filename, add_orig, add_proc,"
