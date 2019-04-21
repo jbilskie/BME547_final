@@ -127,6 +127,48 @@ def test_validate_new_input(input, exp):
     assert status == exp
 
 
+@pytest.mark.parametrize("input, exists, exp",
+                         [("new user", False,
+                           {"code": 200,
+                            "msg": "Request was successful"}),
+                          ("existing user", True,
+                           {"code": 400,
+                            "msg": "User existing user already exists."
+                            })])
+def test_check_user_exists(input, exists, exp):
+    """Tests check_user_exists function
+
+    Tests that the check_user_exists function properly rejects attempts
+    to input a user that already exists.
+
+    Args:
+        input (str): input username to save
+        exists (bool): whether this user actually exists
+        exp (dict): expected status message
+
+    Returns:
+        none
+    """
+    # If it should exist, initialize it unless it already exists
+    if exists:
+        try:
+            user = User.objects.raw({"_id": input}).first()
+        except:
+            user = User(username=input)
+            user.save()
+    # If it should not exist, delete it if it does exist
+    else:
+        try:
+            user = User.objects.raw({"_id": input}).first()
+        except:
+            pass
+        else:
+            user.delete()
+
+    status = check_user_exists(input)
+    assert status == exp
+
+
 @pytest.mark.parametrize("img_info, exist_orig, exist_proc,"
                          "extra_orig, extra_proc",
                          # Original and processed images not already in db
