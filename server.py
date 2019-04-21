@@ -81,7 +81,7 @@ def check_user_exists(username):
     """
     # Check to see if user exists
     try:
-        user = User.objects.raw({"_id": img_info["username"]}).first()
+        user = User.objects.raw({"_id": username}).first()
 
     # If user doesn't exist, status code indicates success
     except:
@@ -196,6 +196,15 @@ def process_image_upload(img_info):
         # If status code indicates failure, exit from function
         if status["code"] != 200:
             return status
+    # Check whether user exists
+    try:
+        user = User.objects.raw({"_id": img_info["username"]}).first()
+    except:
+        status = {"code": 404,
+                  "msg": "Username not found in database."}
+        logging.warning("Username {} not found in database."
+                        .format(img_info["username"]))
+        return status
 
     # Calculate image size
     img_info["size"] = get_img_size(img_info["image"])
