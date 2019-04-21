@@ -1,6 +1,6 @@
 # test_server.py
 # Authors: Janet Chen, Kevin Chu
-# Last Modified: 4/20/19
+# Last Modified: 4/21/19
 
 from flask import Flask, jsonify, request
 import numpy as np
@@ -13,12 +13,16 @@ db = "mongodb+srv://jmb221:bme547@bme547-kcuog.mongodb.net"
 database = connect(db + "/BME547?retryWrites=true")
 
 
-@pytest.mark.parametrize("input, exp", [({"username": ""},
-                                         {"code": 400}),
-                                        ({"username": "rando"},
-                                         {"code": 200}),
-                                        ({"username": "1239"},
-                                         {"code": 200})])
+@pytest.mark.parametrize("input, exp",
+                         [({"username": ""},
+                           {"code": 400,
+                            "msg": "Field username cannot be empty."}),
+                          ({"username": "rando"},
+                           {"code": 200,
+                            "msg": "Request was successful"}),
+                          ({"username": "1239"},
+                           {"code": 200,
+                            "msg": "Request was successful"})])
 def test_process_new_user(input, exp):
     """Tests process_new_user
 
@@ -35,10 +39,6 @@ def test_process_new_user(input, exp):
     Returns:
         none
     """
-    if exp["code"] == 200:
-        exp["msg"] = "Request was successful"
-    elif exp["code"] == 400:
-        exp["msg"] = "Field username cannot be empty."
     status = process_new_user(input)
     assert status == exp
 
