@@ -1,6 +1,6 @@
 # test_server.py
 # Authors: Janet Chen, Kevin Chu
-# Last Modified: 4/20/19
+# Last Modified: 4/21/19
 
 from flask import Flask, jsonify, request
 import numpy as np
@@ -270,6 +270,12 @@ def test_upload_processed_image(img_info, exist_orig, exist_proc,
 
     # Delete user to reset database
     user.delete()
+
+
+# def test_process_image_download():
+#     """ Test the process_image_download function
+#     """
+#     from server import process_image_download
 
 
 @pytest.mark.parametrize("username, add_user, filename, add_orig, add_proc,"
