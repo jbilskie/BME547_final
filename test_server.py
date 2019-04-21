@@ -440,35 +440,59 @@ def test_process_image_download(input_img_info, add_user, add_orig, add_proc,
                          "proc_step, expected",
                          # User and file don't exist
                          [("asdf", False, "file.jpg", False, False,
-                           "Original", 404),
+                           "Original",
+                           {"code": 404,
+                            "msg": "Username not found in database."}),
 
                           # User doesn't exist but file does
                           ("asdf", False, "file.jpg", True, False,
-                           "Original", 404),
+                           "Original",
+                           {"code": 404,
+                            "msg": "Username not found in database."}),
 
                           # User exists but file doesn't
                           ("asdf", True, "file.jpg", False, False,
-                           "Original", 404),
+                           "Original",
+                           {"code": 404,
+                            "msg": "Filename/Image not found in database."}),
 
                           # User and file exist
                           ("asdf", True, "file.jpg", True, False,
-                           "Original", 200),
+                           "Original",
+                           {"code": 200,
+                            "msg": "Request was successful"}),
 
                           # Try with all processing steps
                           ("asdf", True, "file.jpg", False, True,
-                           "Histogram Equalization", 200),
+                           "Histogram Equalization",
+                           {"code": 200,
+                            "msg": "Request was successful"}),
+
                           ("asdf", True, "file.jpg", False, True,
-                           "Contrast Stretching", 200),
+                           "Contrast Stretching",
+                           {"code": 200,
+                            "msg": "Request was successful"}),
+
                           ("asdf", True, "file.jpg", False, True,
-                           "Log Compression", 200),
+                           "Log Compression",
+                           {"code": 200,
+                            "msg": "Request was successful"}),
+
                           ("asdf", True, "file.jpg", False, True,
-                           "Reverse Video", 200),
+                           "Reverse Video",
+                           {"code": 200,
+                            "msg": "Request was successful"}),
 
                           # Check with different file types
                           ("asdf", True, "file.png", True, False,
-                           "Original", 200),
+                           "Original",
+                           {"code": 200,
+                            "msg": "Request was successful"}),
+
                           ("asdf", True, "file.tiff", True, False,
-                           "Original", 200),
+                           "Original",
+                           {"code": 200,
+                            "msg": "Request was successful"}),
                           ])
 def test_exist_input(username, add_user, filename, add_orig, add_proc,
                      proc_step, expected):
@@ -486,7 +510,7 @@ def test_exist_input(username, add_user, filename, add_orig, add_proc,
         add_orig (bool): whether to add original image to database
         add_proc (bool): whether to add processed image to database
         proc_step (str): type of processing to apply
-        expected (int): expected status code
+        expected (dict): dictionary with expected status code and message
 
     Returns:
         none
@@ -516,7 +540,8 @@ def test_exist_input(username, add_user, filename, add_orig, add_proc,
 
     status = exist_input(username, filename, proc_step)
 
-    assert status["code"] == expected
+    assert (status["code"] == expected["code"] and
+            status["msg"] == expected["msg"])
 
     # Remove user from database
     if add_user:
