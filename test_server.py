@@ -272,13 +272,13 @@ def test_upload_processed_image(img_info, exist_orig, exist_proc,
     user.delete()
 
 
-@pytest.mark.parametrize("input_img_info, add_orig, add_proc,"
+@pytest.mark.parametrize("input_img_info, add_user, add_orig, add_proc,"
                          "expected_status, expected_img",
                          # Empty username
                          [({"username": "",
                             "filename": "file.jpg",
                             "proc_step": "Original"},
-                           False, False,
+                           False, False, False,
                            {"code": 400,
                             "msg": "Field username cannot be empty."},
                            {}),
@@ -287,26 +287,45 @@ def test_upload_processed_image(img_info, exist_orig, exist_proc,
                           ({"username": "asdf",
                             "filename": "",
                             "proc_step": "Original"},
-                           False, False,
+                           False, False, False,
                            {"code": 400,
                             "msg": "Field filename cannot be empty."},
                            {}),
 
                           # User and file don't exist
-                          # ({"username": "asdf",
-                          #   "filename": "file.jpg",
-                          #   "proc_step": "Original"},
-                          #  False, False,
-                          #  {"code": 404,
-                          #   "msg": "Username not found in database."},
-                          #  {}),
+                          ({"username": "asdf",
+                            "filename": "file.jpg",
+                            "proc_step": "Original"},
+                           False, False, False,
+                           {"code": 404,
+                            "msg": "Username not found in database."},
+                           {}),
+
+                          # User exists but file doesn't
+                          ({"username": "asdf",
+                            "filename": "file.jpg",
+                            "proc_step": "Original"},
+                           True, False, False,
+                           {"code": 404,
+                            "msg": "Filename/Image not found in database."},
+                           {}),
+
+                          # User doesn't exist but file does
+                          ({"username": "asdf",
+                            "filename": "file.jpg",
+                            "proc_step": "Original"},
+                           False, True, False,
+                           {"code": 404,
+                            "msg": "Username not found in database."},
+                           {}),
                           ])
-def test_process_image_download(input_img_info, add_orig, add_proc,
+def test_process_image_download(input_img_info, add_user, add_orig, add_proc,
                                 expected_status, expected_img):
     """ Test the process_image_download function
 
     Args:
         input_img_info (dict): metadata of image to download
+        add_user (bool): whether to add user to database
         add_orig (bool): whether to add original image to database
         add_proc (bool): whether to add processed image to database
         expected_status (dict): dictionary with expected status code and
@@ -317,9 +336,6 @@ def test_process_image_download(input_img_info, add_orig, add_proc,
         none
     """
     from server import process_image_download
-
-    # Add user if both input_img_info and username are non-empty
-    add_user = (input_img_info and input_img_info["username"])
 
     # Create user if indicated
     if add_user:
