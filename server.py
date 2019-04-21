@@ -1,6 +1,6 @@
 # server.py
 # Authors: Jessica Bilskie, Kevin Chu
-# Last Modified: 4/20/19
+# Last Modified: 4/21/19
 
 from flask import Flask, jsonify, request
 from user import User
@@ -51,12 +51,51 @@ def process_new_user(user_info):
     # Validate user info
     logging.info("Checking that username is valid")
     status = validate_input("username", user_info["username"])
+    if status["code"] != 200:
+        return status
+
+    # Check whether user exists
+    logging.info("Checking whether user already exists")
+    status = check_user_exists(user_info["username"])
 
     # Add user to database if valid request
     if status["code"] == 200:
         register_new_user(user_info["username"])
 
     return status
+
+
+def check_user_exists(username):
+    """ Check whether user with username exists
+
+    This function checks whether the user with username is already
+    registered to the database. The function returns a status code
+    of 200 if the user does not already exist and 400 if the user
+    does already exist.
+
+    Args:
+        username (str): username
+
+    Returns:
+        status (dict): status message and status code
+    """
+    # Check to see if user exists
+    try:
+        user = User.objects.raw({"_id": username}).first()
+
+    # If user doesn't exist, status code indicates success
+    except:
+        msg = "Request was successful"
+        logging.info(msg)
+        status = {"code": 200, "msg": msg}
+        return status
+
+    # If user does exist, status code indicates bad request
+    else:
+        msg = "User {} already exists.".format(username)
+        logging.info(msg)
+        status = {"code": 400, "msg": msg}
+        return status
 
 
 def register_new_user(username):
@@ -157,6 +196,15 @@ def process_image_upload(img_info):
         # If status code indicates failure, exit from function
         if status["code"] != 200:
             return status
+    # Check whether user exists
+    try:
+        user = User.objects.raw({"_id": img_info["username"]}).first()
+    except:
+        status = {"code": 404,
+                  "msg": "Username not found in database."}
+        logging.warning("Username {} not found in database."
+                        .format(img_info["username"]))
+        return status
 
     # Calculate image size
     img_info["size"] = get_img_size(img_info["image"])
@@ -190,7 +238,9 @@ def get_img_size(b64_string):
     img = b64_to_image(b64_string)
 
     # Only interested in width and height, not color channels
-    sz = (np.shape(img))[0:2]
+    h = (np.shape(img))[0]
+    w = (np.shape(img))[1]
+    sz = (w, h)
 
     return sz
 
