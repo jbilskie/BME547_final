@@ -6,6 +6,8 @@ from flask import Flask, jsonify, request
 import numpy as np
 import pytest
 from pymodm import connect, MongoModel, fields
+from gui import get_img_data
+from image import image_to_b64
 from server import *
 from user import User
 
@@ -16,13 +18,16 @@ database = connect(db + "/BME547?retryWrites=true")
 @pytest.mark.parametrize("input, exp",
                          [({"username": ""},
                            {"code": 400,
-                            "msg": "Field username cannot be empty."}),
+                            "msg": "Field username cannot be empty."
+                            }),
                           ({"username": "rando"},
                            {"code": 200,
-                            "msg": "Request was successful"}),
+                            "msg": "Request was successful"
+                            }),
                           ({"username": "1239"},
                            {"code": 200,
-                            "msg": "Request was successful"})])
+                            "msg": "Request was successful"
+                            })])
 def test_process_new_user(input, exp):
     """Tests process_new_user
 
@@ -43,14 +48,23 @@ def test_process_new_user(input, exp):
     assert status == exp
 
 
-@pytest.mark.parametrize("input, exp", [(("username", ""),
-                                         {"code": 400}),
-                                        (("filename", ""),
-                                         {"code": 400}),
-                                        (("username", "student"),
-                                         {"code": 200}),
-                                        (("filename", "a.jpg"),
-                                         {"code": 200})])
+@pytest.mark.parametrize("input, exp",
+                         [(("username", ""),
+                           {"code": 400,
+                            "msg": "Field username cannot be empty."
+                            }),
+                          (("filename", ""),
+                           {"code": 400,
+                            "msg": "Field filename cannot be empty."
+                            }),
+                          (("username", "student"),
+                           {"code": 200,
+                            "msg": "Request was successful"
+                            }),
+                          (("filename", "a.jpg"),
+                           {"code": 200,
+                            "msg": "Request was successful"
+                            })])
 def test_validate_new_input(input, exp):
     """Tests validate_new_input
 
@@ -65,10 +79,6 @@ def test_validate_new_input(input, exp):
     Returns:
         none
     """
-    if exp["code"] == 200:
-        exp["msg"] = "Request was successful"
-    elif exp["code"] == 400:
-        exp["msg"] = "Field {} cannot be empty.".format(input[0])
     status = validate_input(input[0], input[1])
     assert status == exp
 
@@ -270,6 +280,53 @@ def test_upload_processed_image(img_info, exist_orig, exist_proc,
 
     # Delete user to reset database
     user.delete()
+
+
+@pytest.mark.parametrize("input, img_exists, exp",
+                         [({"username": "user1",
+                            "filename": ""}, False,
+                           {"code": 400,
+                            "msg": "Field filename cannot be empty."
+                            }),
+                          ({"username": "",
+                            "filename": "orion.jpg"}, True,
+                           {"code": 400,
+                            "msg": "Field username cannot be empty."
+                            }),
+                          ({"username": "user1",
+                            "filename": "blah.jpg"}, False,
+                           {"code": 400,
+                            "msg": "Field image cannot be empty."
+                            }),
+                          ({"username": "user1",
+                            "filename": "orion.jpg"}, True,
+                           {"code": 200,
+                            "msg": "Request was successful"})])
+def test_process_image_upload(input, img_exists, exp):
+    """Tests process_image_upload
+
+    Tests whether request to upload images to the database is
+    correctly processed. All input data have been previously
+    verified as strings. If a filename doesn't correspond to an
+    image, the image field will be an empty string.
+    Note: the final test takes a while to run because it posts
+    an image to the database.
+
+    Args:
+        input ():
+        img_exists (bool): whether image exists
+        exp ():
+    Returns:
+        none
+    """
+    if img_exists:
+        # get_img_data takes in a list
+        image, _ = get_img_data([input["filename"]])
+        input["image"] = image_to_b64(image[0])
+    else:
+        input["image"] = ""
+    output = process_image_upload(input)
+    assert output == exp
 
 
 @pytest.mark.parametrize("username, add_user, filename, add_orig, add_proc,"
