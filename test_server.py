@@ -1,6 +1,6 @@
 # test_server.py
 # Authors: Janet Chen, Kevin Chu
-# Last Modified: 4/20/19
+# Last Modified: 4/21/19
 
 from flask import Flask, jsonify, request
 import numpy as np
@@ -83,6 +83,205 @@ def test_validate_new_input(input, exp):
     assert status == exp
 
 
+@pytest.mark.parametrize("img_info, exist_orig, exist_proc,"
+                         "extra_orig, extra_proc",
+                         # Original and processed images not already in db
+                         [({"username": "user",
+                            "filename": "file",
+                            "image": "b64 string",
+                            "proc_image": "processed",
+                            "timestamp": 2019,
+                            "size": [1, 1],
+                            "proc_size": [1, 1],
+                            "proc_time": "1s",
+                            "proc_step": "Histogram Equalization"},
+                           False, False, {}, {}),
+
+                          # Original image already exists
+                          ({"username": "user",
+                            "filename": "file",
+                            "image": "b64 string",
+                            "proc_image": "processed",
+                            "timestamp": 2019,
+                            "size": [1, 1],
+                            "proc_size": [1, 1],
+                            "proc_time": "1s",
+                            "proc_step": "Histogram Equalization"},
+                           True, False, {}, {}),
+
+                          # Processed image already exists
+                          ({"username": "user",
+                            "filename": "file",
+                            "image": "b64 string",
+                            "proc_image": "processed",
+                            "timestamp": 2019,
+                            "size": [1, 1],
+                            "proc_size": [1, 1],
+                            "proc_time": "1s",
+                            "proc_step": "Histogram Equalization"},
+                           False, True, {}, {}),
+
+                          # Original and processed images exist
+                          ({"username": "user",
+                            "filename": "file",
+                            "image": "b64 string",
+                            "proc_image": "processed",
+                            "timestamp": 2019,
+                            "size": [1, 1],
+                            "proc_size": [1, 1],
+                            "proc_time": "1s",
+                            "proc_step": "Histogram Equalization"},
+                           True, True, {}, {}),
+
+                          # Add extra original image
+                          ({"username": "user",
+                            "filename": "file",
+                            "image": "b64 string",
+                            "proc_image": "processed",
+                            "timestamp": 2019,
+                            "size": [1, 1],
+                            "proc_size": [1, 1],
+                            "proc_time": "1s",
+                            "proc_step": "Histogram Equalization"},
+                           False, False,
+                           {"username": "user", "filename": "file2"}, {}),
+
+                          # Add extra processed image
+                          ({"username": "user",
+                            "filename": "file",
+                            "image": "b64 string",
+                            "proc_image": "processed",
+                            "timestamp": 2019,
+                            "size": [1, 1],
+                            "proc_size": [1, 1],
+                            "proc_time": "1s",
+                            "proc_step": "Histogram Equalization"},
+                           False, False,
+                           {},
+                           {"username": "user", "filename": "file2",
+                            "proc_step": "Histogram Equalization"}),
+
+                          # Add same image but different processing
+                          ({"username": "user",
+                            "filename": "file",
+                            "image": "b64 string",
+                            "proc_image": "processed",
+                            "timestamp": 2019,
+                            "size": [1, 1],
+                            "proc_size": [1, 1],
+                            "proc_time": "1s",
+                            "proc_step": "Histogram Equalization"},
+                           False, False,
+                           {},
+                           {"username": "user", "filename": "file",
+                            "proc_step": "Log Compression"}),
+
+                          ({"username": "user",
+                            "filename": "file",
+                            "image": "b64 string",
+                            "proc_image": "processed",
+                            "timestamp": 2019,
+                            "size": [1, 1],
+                            "proc_size": [1, 1],
+                            "proc_time": "1s",
+                            "proc_step": "Histogram Equalization"},
+                           False, False,
+                           {},
+                           {"username": "user", "filename": "file",
+                            "proc_step": "Contrast Stretching"}),
+
+                          ({"username": "user",
+                            "filename": "file",
+                            "image": "b64 string",
+                            "proc_image": "processed",
+                            "timestamp": 2019,
+                            "size": [1, 1],
+                            "proc_size": [1, 1],
+                            "proc_time": "1s",
+                            "proc_step": "Histogram Equalization"},
+                           False, False,
+                           {},
+                           {"username": "user", "filename": "file",
+                            "proc_step": "Reverse Video"}),
+                          ])
+def test_upload_processed_image(img_info, exist_orig, exist_proc,
+                                extra_orig, extra_proc):
+    """ Test the upload_processed_image function
+
+    This function tests that the upload_processed_image function actually
+    uploads the image and its metadata to the database. This also involves
+    checking that the data in the database match the data within the
+    server. This is done by creating fake users and adding fake image
+    files.
+
+    Args:
+        img_info (dict): dictionary with image information such as
+        the username, filename, original image size, processed image size
+        original image, processed image, time stamp, processing time,
+        and processing step
+
+        exist_orig (bool): whether the original image already exists in db
+        exist_proc (bool): whether the processed image already exists in db
+        extra_orig (dict): adds extra original image if dict is non-empty
+        extra_proc (dict): adds extra processed image if dict is non-empty
+
+    Returns:
+        none
+    """
+    from server import upload_processed_image
+
+    # Image info for Original Image
+    img_info_original = {"username": img_info["username"],
+                         "filename": img_info["filename"],
+                         "image": img_info["image"],
+                         "timestamp": img_info["timestamp"],
+                         "size": img_info["size"]}
+
+    # Image info for Processed Image
+    img_info_processed = {"username": img_info["username"],
+                          "filename": img_info["filename"],
+                          "image": img_info["proc_image"],
+                          "timestamp": img_info["timestamp"],
+                          "size": img_info["proc_size"],
+                          "proc_time": img_info["proc_time"],
+                          "proc_step": img_info["proc_step"]}
+
+    # Create user object
+    user = User(username=img_info["username"])
+
+    # Add original image info
+    if exist_orig:
+        (user.orig_img).append(img_info_original)
+
+    # Add processed image info
+    if exist_proc:
+        (user.proc_img).append(img_info_processed)
+
+    # Add additional original image
+    if extra_orig:
+        (user.orig_img).append(extra_orig)
+
+    # Add additional processed image
+    if extra_proc:
+        (user.proc_img).append(extra_proc)
+
+    # Save to database
+    user.save()
+
+    # Upload additional original and processed images
+    upload_processed_image(img_info)
+
+    # Retrieve user from database
+    u = User.objects.raw({"_id": img_info["username"]}).first()
+
+    # Make sure most recent upload corresponds to current images
+    assert (u.orig_img[-1] == img_info_original and
+            u.proc_img[-1] == img_info_processed)
+
+    # Delete user to reset database
+    user.delete()
+
+
 @pytest.mark.parametrize("input, img_exists, exp",
                          [({"username": "user1",
                             "filename": ""}, False,
@@ -157,6 +356,12 @@ def test_process_image_upload(input, img_exists, exp):
                            "Log Compression", 200),
                           ("asdf", True, "file.jpg", False, True,
                            "Reverse Video", 200),
+
+                          # Check with different file types
+                          ("asdf", True, "file.png", True, False,
+                           "Original", 200),
+                          ("asdf", True, "file.tiff", True, False,
+                           "Original", 200),
                           ])
 def test_exist_input(username, add_user, filename, add_orig, add_proc,
                      proc_step, expected):
