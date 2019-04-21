@@ -1,8 +1,16 @@
+# test_server.py
+# Authors: Janet Chen, Kevin Chu
+# Last Modified: 4/20/19
+
 from flask import Flask, jsonify, request
 import numpy as np
 import pytest
 from pymodm import connect, MongoModel, fields
 from server import *
+from user import User
+
+db = "mongodb+srv://jmb221:bme547@bme547-kcuog.mongodb.net"
+database = connect(db + "/BME547?retryWrites=true")
 
 
 @pytest.mark.parametrize("input, exp", [({"username": ""},
@@ -63,3 +71,84 @@ def test_validate_new_input(input, exp):
         exp["msg"] = "Field {} cannot be empty.".format(input[0])
     status = validate_input(input[0], input[1])
     assert status == exp
+
+
+@pytest.mark.parametrize("username, add_user, filename, add_orig, add_proc,"
+                         "proc_step, expected",
+                         # User and file don't exist
+                         [("asdf", False, "file.jpg", False, False,
+                           "Original", 404),
+
+                          # User doesn't exist but file does
+                          ("asdf", False, "file.jpg", True, False,
+                           "Original", 404),
+
+                          # User exists but file doesn't
+                          ("asdf", True, "file.jpg", False, False,
+                           "Original", 404),
+
+                          # User and file exist
+                          ("asdf", True, "file.jpg", True, False,
+                           "Original", 200),
+
+                          # Try with all processing steps
+                          ("asdf", True, "file.jpg", False, True,
+                           "Histogram Equalization", 200),
+                          ("asdf", True, "file.jpg", False, True,
+                           "Contrast Stretching", 200),
+                          ("asdf", True, "file.jpg", False, True,
+                           "Log Compression", 200),
+                          ("asdf", True, "file.jpg", False, True,
+                           "Reverse Video", 200),
+                          ])
+def test_exist_input(username, add_user, filename, add_orig, add_proc,
+                     proc_step, expected):
+    """ Test the exist_input function
+
+    This function tests that the exist_input function correclty identifies
+    whether the username and/or filename exists. This is done by optionally
+    adding a user with username and filename to the database and verifying
+    that they do/do not exist.
+
+    Args:
+        username (str): username
+        add_user (bool): whether to add user to database
+        filename (str): filename
+        add_orig (bool): whether to add original image to database
+        add_proc (bool): whether to add processed image to database
+        proc_step (str): type of processing to apply
+        expected (int): expected status code
+
+    Returns:
+        none
+    """
+    from server import exist_input
+
+    # Create dictionary
+    img_info = {"username": username,
+                "filename": filename,
+                "proc_step": proc_step}
+
+    # Create user if indicated
+    if add_user:
+        # Create user object
+        user = User(username=username)
+
+        # Add image info
+        if add_orig:
+            (user.orig_img).append(img_info)
+
+        # Add processed image
+        if add_proc:
+            (user.proc_img).append(img_info)
+
+        # Save to database
+        user.save()
+
+    status = exist_input(username, filename, proc_step)
+
+    assert status["code"] == expected
+
+    # Remove user from database
+    if add_user:
+        user.delete()
