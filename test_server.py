@@ -3,6 +3,7 @@ import numpy as np
 import pytest
 from pymodm import connect, MongoModel, fields
 from gui import get_img_data
+from image import image_to_b64
 from server import *
 
 
@@ -80,25 +81,48 @@ def test_validate_new_input(input, exp):
     assert status == exp
 
 
-@pytest.mark.parametrize("input, exp",
-                         [({"username": "abc",
-                            "filename": "",
-                            "image": get_img_data("orion.jpg")},
+@pytest.mark.parametrize("input, img_exists, exp",
+                         [({"username": "user1",
+                            "filename": ""}, False,
                            {"code": 400,
                             "msg": "Field filename cannot be empty."
-                            })])
-def test_process_image_upload(input, exp):
+                            }),
+                          ({"username": "",
+                            "filename": "orion.jpg"}, True,
+                           {"code": 400,
+                            "msg": "Field username cannot be empty."
+                            }),
+                          ({"username": "user1",
+                            "filename": "blah.jpg"}, False,
+                           {"code": 400,
+                            "msg": "Field image cannot be empty."
+                            }),
+                          ({"username": "user1",
+                            "filename": "orion.jpg"}, True,
+                           {"code": 200,
+                            "msg": "Request was successful"})])
+def test_process_image_upload(input, img_exists, exp):
     """Tests process_image_upload
 
     Tests whether request to upload images to the database is
     correctly processed. All input data have been previously
-    verified as strings
+    verified as strings. If a filename doesn't correspond to an
+    image, the image field will be an empty string.
+    Note: the final test takes a while to run because it posts
+    an image to the database.
 
     Args:
         input ():
+        img_exists (bool): whether image exists
         exp ():
     Returns:
         none
     """
+    if img_exists:
+        # get_img_data takes in a list
+        image, _ = get_img_data([input["filename"]])
+        input["image"] = image_to_b64(image[0])
+    else:
+        input["image"] = ""
     output = process_image_upload(input)
     assert output == exp
