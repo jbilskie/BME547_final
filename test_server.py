@@ -73,6 +73,56 @@ def test_validate_new_input(input, exp):
     assert status == exp
 
 
+# @pytest.mark.parametrize("img_info, add_orig, add_proc",
+#                          [({"username": "user", "filename": "file"},
+#                            False, False)])
+# def test_upload_processed_image(img_info, add_orig, add_proc):
+#     """ Test the upload_processed_image function
+
+#     This function tests that the upload_processed_image function actually
+#     uploads the image and its metadata to the database. This also involves
+#     checking that the data in the database match the data within the
+#     server. This is done by creating fake users and adding fake image
+#     files.
+
+#     Args:
+#         img_info (dict): dictionary with image information such as
+#         the username, filename, original image size, processed image size
+#         original image, processed image, time stamp, processing time,
+#         and processing step
+
+#         add_orig (bool): whether we want to add extra original images
+#         add_proc (bool): whether we want to add extra processed images
+
+#     Returns:
+#         none
+#     """
+#     from server import upload_processed_image
+
+#     # Create user object
+#     user = User(username=img_info["username"])
+
+#     # Add image info
+#     if add_orig:
+#         (user.orig_img).append(img_info)
+
+#     # Add processed image
+#     if add_proc:
+#         (user.proc_img).append(img_info)
+
+#     # Save to database
+#     user.save()
+
+#     # Upload additional original and processed images
+#     upload_processed_image(img_info)
+
+#     # Retrieve user from database
+#     u = User.objects.raw({"_id": img_info["username"]}).first()
+
+#     # Delete user to reset database
+#     user.delete()
+
+
 @pytest.mark.parametrize("username, add_user, filename, add_orig, add_proc,"
                          "proc_step, expected",
                          # User and file don't exist
