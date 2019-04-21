@@ -100,6 +100,12 @@ def test_validate_new_input(input, exp):
                            "Log Compression", 200),
                           ("asdf", True, "file.jpg", False, True,
                            "Reverse Video", 200),
+
+                          # Check with different file types
+                          ("asdf", True, "file.png", True, False,
+                           "Original", 200),
+                          ("asdf", True, "file.tiff", True, False,
+                           "Original", 200),
                           ])
 def test_exist_input(username, add_user, filename, add_orig, add_proc,
                      proc_step, expected):
