@@ -272,10 +272,79 @@ def test_upload_processed_image(img_info, exist_orig, exist_proc,
     user.delete()
 
 
-# def test_process_image_download():
-#     """ Test the process_image_download function
-#     """
-#     from server import process_image_download
+@pytest.mark.parametrize("input_img_info, add_orig, add_proc,"
+                         "expected_status, expected_img",
+                         # Empty username
+                         [({"username": "",
+                            "filename": "file.jpg",
+                            "proc_step": "Original"},
+                           False, False,
+                           {"code": 400,
+                            "msg": "Field username cannot be empty."},
+                           {}),
+
+                          # Empty filename
+                          ({"username": "asdf",
+                            "filename": "",
+                            "proc_step": "Original"},
+                           False, False,
+                           {"code": 400,
+                            "msg": "Field filename cannot be empty."},
+                           {}),
+
+                          # User and file don't exist
+                          # ({"username": "asdf",
+                          #   "filename": "file.jpg",
+                          #   "proc_step": "Original"},
+                          #  False, False,
+                          #  {"code": 404,
+                          #   "msg": "Username not found in database."},
+                          #  {}),
+                          ])
+def test_process_image_download(input_img_info, add_orig, add_proc,
+                                expected_status, expected_img):
+    """ Test the process_image_download function
+
+    Args:
+        input_img_info (dict): metadata of image to download
+        add_orig (bool): whether to add original image to database
+        add_proc (bool): whether to add processed image to database
+        expected_status (dict): dictionary with expected status code and
+        status message
+        expected_img (dict): metadata of expected download
+
+    Returns:
+        none
+    """
+    from server import process_image_download
+
+    # Add user if both input_img_info and username are non-empty
+    add_user = (input_img_info and input_img_info["username"])
+
+    # Create user if indicated
+    if add_user:
+        # Create user object
+        user = User(username=input_img_info["username"])
+
+        # Add image info
+        if add_orig:
+            (user.orig_img).append(input_img_info)
+
+        # Add processed image
+        if add_proc:
+            (user.proc_img).append(input_img_info)
+
+        # Save to database
+        user.save()
+
+    status, img_info = process_image_download(input_img_info)
+
+    assert (status == expected_status and
+            img_info == expected_img)
+
+    # Remove user from database
+    if add_user:
+        user.delete()
 
 
 @pytest.mark.parametrize("username, add_user, filename, add_orig, add_proc,"
