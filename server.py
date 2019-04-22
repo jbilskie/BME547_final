@@ -568,20 +568,20 @@ def process_image_download(input_img_info):
     logging.info("Checking that username is valid")
     status = validate_input("username", input_img_info["username"])
     if status["code"] != 200:
-        return status
+        return status, {}
 
     # Validate filename
     logging.info("Checking that filename is valid")
     status = validate_input("filename", input_img_info["filename"])
     if status["code"] != 200:
-        return status
+        return status, {}
 
     # Does user, filename, and image exist in data based
     status = exist_input(input_img_info["username"],
                          input_img_info["filename"],
                          input_img_info["proc_step"])
     if status["code"] != 200:
-        return status
+        return status, {}
 
     # Retrieve user from database
     user = User.objects.raw({"_id": input_img_info["username"]}).first()
@@ -624,7 +624,9 @@ def exist_input(username, filename, proc_step):
     # Retrieve user from database, exit if user not found
     try:
         user = User.objects.raw({"_id": username}).first()
+        print("User exists")
     except:
+        print("Inside of exception")
         status = {"code": 404,
                   "msg": "Username not found in database."}
         logging.warning("Username {} not found in database."
@@ -634,6 +636,7 @@ def exist_input(username, filename, proc_step):
 
     # Find desired image
     else:
+        print("Insde of else")
         found = False
         if proc_step == "Original":
             for img_info in user.orig_img:
