@@ -487,6 +487,9 @@ def upload_processed_image(img_info):
     found = False
     for ind, img_infos in enumerate(user.orig_img):
         if img_infos["filename"] == img_info_original["filename"]:
+            logging.info("Updating original image to database")
+            user.orig_img[ind] = img_info_original
+            user.actions.append("Updated Original Image")
             found = True
     if found is False:
         logging.info("Uploading original image to database")
