@@ -196,6 +196,7 @@ def process_image_upload(img_info):
         # If status code indicates failure, exit from function
         if status["code"] != 200:
             return status
+
     # Check whether user exists
     try:
         user = User.objects.raw({"_id": img_info["username"]}).first()
@@ -333,12 +334,31 @@ def process_process_image(img_info):
         if status["code"] != 200:
             return status
 
+    # Check whether user exists
+    try:
+        user = User.objects.raw({"_id": img_info["username"]}).first()
+    except:
+        status = {"code": 404,
+                  "msg": "Username not found in database."}
+        logging.warning("Username {} not found in database."
+                        .format(img_info["username"]))
+        return status
+
     # Decode b64
     orig_img = b64_to_image(img_info["image"])
 
     # Process image
     t1 = time.time()
-    proc_img = run_image_processing(orig_img, img_info["proc_step"])
+    try:
+        proc_img = run_image_processing(orig_img, img_info["proc_step"])
+    except:
+        status = {"code": 404,
+                  "msg": "Processing method not defined"}
+        logging.warning("{} was unable to be {} processed."
+                        .format(img_info["filename"],
+                                img_info["proc_step"]))
+
+        return status
     t2 = time.time()
 
     # Store processed image
@@ -568,20 +588,24 @@ def process_image_download(input_img_info):
     logging.info("Checking that username is valid")
     status = validate_input("username", input_img_info["username"])
     if status["code"] != 200:
-        return status, {}
+        img_info = {}
+        return status, img_info
 
     # Validate filename
     logging.info("Checking that filename is valid")
     status = validate_input("filename", input_img_info["filename"])
     if status["code"] != 200:
-        return status, {}
+
+        img_info = {}
+        return status, img_info
 
     # Does user, filename, and image exist in data based
     status = exist_input(input_img_info["username"],
                          input_img_info["filename"],
                          input_img_info["proc_step"])
     if status["code"] != 200:
-        return status, {}
+        img_info = {}
+        return status, img_info
 
     # Retrieve user from database
     user = User.objects.raw({"_id": input_img_info["username"]}).first()
@@ -635,26 +659,24 @@ def exist_input(username, filename, proc_step):
         return status
 
     # Find desired image
+    found = False
+    if proc_step == "Original":
+        for img_info in user.orig_img:
+            if img_info["filename"] == filename:
+                found = True
     else:
-        print("Insde of else")
-        found = False
-        if proc_step == "Original":
-            for img_info in user.orig_img:
-                if img_info["filename"] == filename:
+        for img_info in user.proc_img:
+            if img_info["filename"] == filename:
+                if img_info["proc_step"] == proc_step:
                     found = True
-        else:
-            for img_info in user.proc_img:
-                if img_info["filename"] == filename:
-                    if img_info["proc_step"] == proc_step:
-                        found = True
-        if found is False:
-            status = {"code": 404,
-                      "msg": "Filename/Image not found in database."}
-            logging.warning("Desired image not found in database."
-                            .format(username))
-        else:
-            status = {"code": 200,
-                      "msg": "Request was successful"}
+    if found is False:
+        status = {"code": 404,
+                  "msg": "Filename/Image not found in database."}
+        logging.warning("Desired image not found in database."
+                        .format(username))
+    else:
+        status = {"code": 200,
+                  "msg": "Request was successful"}
 
     return status
 
