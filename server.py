@@ -595,6 +595,7 @@ def process_image_download(input_img_info):
     logging.info("Checking that filename is valid")
     status = validate_input("filename", input_img_info["filename"])
     if status["code"] != 200:
+
         img_info = {}
         return status, img_info
 
@@ -647,7 +648,9 @@ def exist_input(username, filename, proc_step):
     # Retrieve user from database, exit if user not found
     try:
         user = User.objects.raw({"_id": username}).first()
+        print("User exists")
     except:
+        print("Inside of exception")
         status = {"code": 404,
                   "msg": "Username not found in database."}
         logging.warning("Username {} not found in database."

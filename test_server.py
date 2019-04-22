@@ -377,6 +377,170 @@ def test_upload_processed_image(img_info, exist_orig, exist_proc,
     user.delete()
 
 
+@pytest.mark.parametrize("input_img_info, add_user, add_orig, add_proc,"
+                         "expected_status, expected_img",
+                         # Empty username
+                         [({"username": "",
+                            "filename": "file.jpg",
+                            "proc_step": "Original"},
+                           False, False, False,
+                           {"code": 400,
+                            "msg": "Field username cannot be empty."},
+                           {}),
+
+                          # Empty filename
+                          ({"username": "asdf",
+                            "filename": "",
+                            "proc_step": "Original"},
+                           False, False, False,
+                           {"code": 400,
+                            "msg": "Field filename cannot be empty."},
+                           {}),
+
+                          # User and file don't exist
+                          ({"username": "asdf",
+                            "filename": "file.jpg",
+                            "proc_step": "Original"},
+                           False, False, False,
+                           {"code": 404,
+                            "msg": "Username not found in database."},
+                           {}),
+
+                          # User exists but file doesn't
+                          ({"username": "asdf",
+                            "filename": "file.jpg",
+                            "proc_step": "Original"},
+                           True, False, False,
+                           {"code": 404,
+                            "msg": "Filename/Image not found in database."},
+                           {}),
+
+                          # User doesn't exist but file does
+                          ({"username": "asdf",
+                            "filename": "file.jpg",
+                            "proc_step": "Original"},
+                           False, True, False,
+                           {"code": 404,
+                            "msg": "Username not found in database."},
+                           {}),
+
+                          # Add original image
+                          ({"username": "asdf",
+                            "filename": "file.jpg",
+                            "proc_step": "Original"},
+                           True, True, False,
+                           {"code": 200,
+                            "msg": "Request was successful"},
+                           {"username": "asdf",
+                            "filename": "file.jpg",
+                            "proc_step": "Original"}),
+
+                          # Try with different image formats
+                          ({"username": "asdf",
+                            "filename": "file.png",
+                            "proc_step": "Original"},
+                           True, True, False,
+                           {"code": 200,
+                            "msg": "Request was successful"},
+                           {"username": "asdf",
+                            "filename": "file.png",
+                            "proc_step": "Original"}),
+
+                          ({"username": "asdf",
+                            "filename": "file.tiff",
+                            "proc_step": "Original"},
+                           True, True, False,
+                           {"code": 200,
+                            "msg": "Request was successful"},
+                           {"username": "asdf",
+                            "filename": "file.tiff",
+                            "proc_step": "Original"}),
+
+                          # Try with different processing steps
+                          ({"username": "asdf",
+                            "filename": "file.jpg",
+                            "proc_step": "Histogram Equalization"},
+                           True, False, True,
+                           {"code": 200,
+                            "msg": "Request was successful"},
+                           {"username": "asdf",
+                            "filename": "file.jpg",
+                            "proc_step": "Histogram Equalization"}),
+
+                          ({"username": "asdf",
+                            "filename": "file.jpg",
+                            "proc_step": "Contrast Stretching"},
+                           True, False, True,
+                           {"code": 200,
+                            "msg": "Request was successful"},
+                           {"username": "asdf",
+                            "filename": "file.jpg",
+                            "proc_step": "Contrast Stretching"}),
+
+                          ({"username": "asdf",
+                            "filename": "file.jpg",
+                            "proc_step": "Log Compression"},
+                           True, False, True,
+                           {"code": 200,
+                            "msg": "Request was successful"},
+                           {"username": "asdf",
+                            "filename": "file.jpg",
+                            "proc_step": "Log Compression"}),
+
+                          ({"username": "asdf",
+                            "filename": "file.jpg",
+                            "proc_step": "Reverse Video"},
+                           True, False, True,
+                           {"code": 200,
+                            "msg": "Request was successful"},
+                           {"username": "asdf",
+                            "filename": "file.jpg",
+                            "proc_step": "Reverse Video"}),
+                          ])
+def test_process_image_download(input_img_info, add_user, add_orig, add_proc,
+                                expected_status, expected_img):
+    """ Test the process_image_download function
+
+    Args:
+        input_img_info (dict): metadata of image to download
+        add_user (bool): whether to add user to database
+        add_orig (bool): whether to add original image to database
+        add_proc (bool): whether to add processed image to database
+        expected_status (dict): dictionary with expected status code and
+        status message
+        expected_img (dict): metadata of expected download
+
+    Returns:
+        none
+    """
+    from server import process_image_download
+
+    # Create user if indicated
+    if add_user:
+        # Create user object
+        user = User(username=input_img_info["username"])
+
+        # Add image info
+        if add_orig:
+            (user.orig_img).append(input_img_info)
+
+        # Add processed image
+        if add_proc:
+            (user.proc_img).append(input_img_info)
+
+        # Save to database
+        user.save()
+
+    status, img_info = process_image_download(input_img_info)
+
+    assert (status == expected_status and
+            img_info == expected_img)
+
+    # Remove user from database
+    if add_user:
+        user.delete()
+
+
 @pytest.mark.parametrize("input, img_exists, exp",
                          [({"username": "lalala",
                             "filename": ""}, False,
@@ -489,35 +653,59 @@ def test_upload_image(inputs, exp):
                          "proc_step, expected",
                          # User and file don't exist
                          [("asdf", False, "file.jpg", False, False,
-                           "Original", 404),
+                           "Original",
+                           {"code": 404,
+                            "msg": "Username not found in database."}),
 
                           # User doesn't exist but file does
                           ("asdf", False, "file.jpg", True, False,
-                           "Original", 404),
+                           "Original",
+                           {"code": 404,
+                            "msg": "Username not found in database."}),
 
                           # User exists but file doesn't
                           ("asdf", True, "file.jpg", False, False,
-                           "Original", 404),
+                           "Original",
+                           {"code": 404,
+                            "msg": "Filename/Image not found in database."}),
 
                           # User and file exist
                           ("asdf", True, "file.jpg", True, False,
-                           "Original", 200),
+                           "Original",
+                           {"code": 200,
+                            "msg": "Request was successful"}),
 
                           # Try with all processing steps
                           ("asdf", True, "file.jpg", False, True,
-                           "Histogram Equalization", 200),
+                           "Histogram Equalization",
+                           {"code": 200,
+                            "msg": "Request was successful"}),
+
                           ("asdf", True, "file.jpg", False, True,
-                           "Contrast Stretching", 200),
+                           "Contrast Stretching",
+                           {"code": 200,
+                            "msg": "Request was successful"}),
+
                           ("asdf", True, "file.jpg", False, True,
-                           "Log Compression", 200),
+                           "Log Compression",
+                           {"code": 200,
+                            "msg": "Request was successful"}),
+
                           ("asdf", True, "file.jpg", False, True,
-                           "Reverse Video", 200),
+                           "Reverse Video",
+                           {"code": 200,
+                            "msg": "Request was successful"}),
 
                           # Check with different file types
                           ("asdf", True, "file.png", True, False,
-                           "Original", 200),
+                           "Original",
+                           {"code": 200,
+                            "msg": "Request was successful"}),
+
                           ("asdf", True, "file.tiff", True, False,
-                           "Original", 200),
+                           "Original",
+                           {"code": 200,
+                            "msg": "Request was successful"}),
                           ])
 def test_exist_input(username, add_user, filename, add_orig, add_proc,
                      proc_step, expected):
@@ -535,7 +723,7 @@ def test_exist_input(username, add_user, filename, add_orig, add_proc,
         add_orig (bool): whether to add original image to database
         add_proc (bool): whether to add processed image to database
         proc_step (str): type of processing to apply
-        expected (int): expected status code
+        expected (dict): dictionary with expected status code and message
 
     Returns:
         none
@@ -565,7 +753,8 @@ def test_exist_input(username, add_user, filename, add_orig, add_proc,
 
     status = exist_input(username, filename, proc_step)
 
-    assert status["code"] == expected
+    assert (status["code"] == expected["code"] and
+            status["msg"] == expected["msg"])
 
     # Remove user from database
     if add_user:
