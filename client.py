@@ -73,15 +73,23 @@ def upload_image(username, filename, path):
     from image import read_img_as_b64
     from image import save_b64_img
 
+    print("Asking server to upload image")
+
     # Read in image as b64
-    b64_string = read_img_as_b64(path)
+    try:
+        b64_string = read_img_as_b64(path)
+    except FileNotFoundError:
+        status_code = 404
+        msg = "Image path is not valid."
+        print("Returned: {}".format(msg))
+        print("Status: {}".format(status_code))
+
+        return
 
     # Format into dictionary
     img_info = {"username": username,
                 "filename": filename,
                 "image": b64_string}
-
-    print("Asking server to upload image")
 
     r = requests.post(url + "image_upload", json=img_info)
 
@@ -118,10 +126,13 @@ def download_image(username, filename, path, proc_step, type_ext=".png"):
 
     r = requests.get(url + "image_download/" + username + "/" +
                      filename + "/" + proc_step)
-    results = json.loads(r.text)
-    img_info = results[0]
-    msg = results[1]
-    save_b64_img(img_info["image"], path+filename+"download"+type_ext)
+    if r.status_code != 200:
+        msg = r.text
+    else:
+        results = json.loads(r.text)
+        img_info = results[0]
+        msg = results[1]
+        save_b64_img(img_info["image"], path+filename+"download"+type_ext)
     print("Returned: {}".format(msg))
     print("Status: {}".format(r.status_code))
 
@@ -148,16 +159,24 @@ def process_image(username, filename, path, proc_step):
     """
     from image import read_img_as_b64
 
+    print("Asking server to process image")
+
     # Read in image as b64
-    b64_string = read_img_as_b64(path)
+    try:
+        b64_string = read_img_as_b64(path)
+    except FileNotFoundError:
+        status_code = 404
+        msg = "Image path is not valid."
+        print("Returned: {}".format(msg))
+        print("Status: {}".format(status_code))
+
+        return
 
     # Format into dictionary
     img_info = {"username": username,
                 "filename": filename,
                 "image": b64_string,
                 "proc_step": proc_step}
-
-    print("Asking server to process image")
 
     r = requests.post(url + "process_image", json=img_info)
 
@@ -169,16 +188,18 @@ def process_image(username, filename, path, proc_step):
 
 if __name__ == "__main__":
     add_new_user("user1")
-    add_new_user("user2")
-    upload_image("user1", "puppy1", "Pictures/Original/puppy1.jpg")
-    upload_image("user2", "puppy2", "Pictures/Original/puppy2.jpg")
-    process_image("user1", "puppy1", "Pictures/Original/puppy1.jpg",
-                  "Reverse Video")
-    process_image("user2", "puppy3", "Pictures/Original/puppy3.jpg",
-                  "Reverse Video")
-    process_image("user2", "puppy4", "Pictures/Original/puppy4.jpg",
-                  "Histogram Equalization")
-    download_image("user1", "puppy1", "Pictures/Downloaded/",
-                   "Original", ".tiff")
-    download_image("user2", "puppy3", "Pictures/Downloaded/",
-                   "Reverse Video")
+#    add_new_user("user2")
+#    upload_image("user2", "puppy8", "Pictures/Original/puppy8.jpg")
+#    upload_image("user2", "puppy2", "Pictures/Original/puppy11.jpg")
+#    process_image("user1", "puppy11", "Pictures/Original/puppy11.jpg",
+#                  "Reverse Video")
+#    process_image("user2", "puppy3", "Pictures/Original/puppy3.jpg",
+#                 "Reverse Image")
+#    process_image("user4", "puppy4", "Pictures/Original/puppy4.jpg",
+#                  "Histogram Equalization")
+#    download_image("user5", "puppy1", "Pictures/Downloaded/",
+#                   "Original", ".tiff")
+#    download_image("user2", "puppy3", "Pictures/Downloaded/",
+#                   "Reverse Image")
+#    download_image("user2", "puppy8", "Pictures/Downloaded/",
+#                   "Reverse Image")
