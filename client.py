@@ -33,6 +33,29 @@ def add_new_user(username):
     return
 
 
+def delete_user(username):
+    """ Delete user from the database
+
+    This function takes a username and searches for it
+    in the MongoDB database. If found, it deletes the user.
+
+    Args:
+        username (str): user's identifier
+
+    Returns:
+        none
+    """
+
+    print("Asking server to delete user from database")
+
+    r = requests.post(url + "delete/" + username)
+
+    print("Returned: {}".format(r.text))
+    print("Status: {}".format(r.status_code))
+
+    return
+
+
 def upload_images(username, file_list, path):
     """ Uploads multiple images to the database
 
@@ -188,6 +211,8 @@ def process_image(username, filename, path, proc_step):
 
 if __name__ == "__main__":
     add_new_user("user1")
+    delete_user("user1")
+    delete_user("user_100")
 #    add_new_user("user2")
 #    upload_image("user2", "puppy8", "Pictures/Original/puppy8.jpg")
 #    upload_image("user2", "puppy2", "Pictures/Original/puppy11.jpg")

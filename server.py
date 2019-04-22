@@ -9,8 +9,10 @@ from pymodm import connect, MongoModel, fields
 import logging
 
 app = Flask(__name__)
-db = "mongodb+srv://jmb221:bme547@bme547-kcuog.mongodb.net"
-connect(db + "/BME547?retryWrites=true")
+db1 = "mongodb+srv://jmb221:bme547@bme547-kcuog.mongodb.net"
+db2 = "/BME547?retryWrites=true"
+db = db1 + db2
+connect(db)
 
 
 @app.route("/new_user", methods=["POST"])
@@ -679,6 +681,60 @@ def exist_input(username, filename, proc_step):
                   "msg": "Request was successful"}
 
     return status
+
+
+@app.route("/delete/<username>", methods=["POST"])
+def process_delete_user(username):
+    """ Process to delete a user from the database
+
+    This implements the post request to process the deleting
+    of a user from the MongoDB database.
+
+    Args:
+        username (str): username desired to be deleted
+
+    Returns:
+        status (dict): status message and status code
+    """
+    status = delete_user(username)
+
+    return status["msg"], status["code"]
+
+
+def delete_user(username):
+    """ Processes request to delete user
+
+    This function processes the request to delete a user from
+    the MongoDB database.
+
+    Args:
+        username (str): username desired to be deleted
+
+    Returns:
+        status (dict): status message and status code
+    """
+    logging.info("Starting process to delete user {}".format(username))
+
+    # Validate user info
+    logging.info("Checking that username is valid")
+    status = validate_input("username", username)
+    if status["code"] != 200:
+        return status
+
+    # Check if user exists
+    try:
+        user = User.objects.raw({"_id": username}).first()
+    except:
+        status = {"code": 404,
+                  "msg": "Username not found in database."}
+        logging.warning("Username {} not found in database."
+                        .format(username))
+        return status
+
+    User.objects.raw({"_id": username}).delete()
+
+    return status
+
 
 if __name__ == '__main__':
     logging.basicConfig(filename='LOGFILE.log', level=logging.INFO)
