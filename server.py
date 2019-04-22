@@ -727,7 +727,7 @@ def delete_user(username):
         logging.warning("Username {} not found in database."
                         .format(username))
         return status
-    
+
     User.objects.raw({"_id": username}).delete()
 
     return status
