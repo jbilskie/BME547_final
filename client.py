@@ -91,7 +91,7 @@ def upload_image(username, filename, path):
     return
 
 
-def download_image(username, filename, path, proc_step):
+def download_image(username, filename, path, proc_step, type_ext=".png"):
     """ Download an image from the database
 
     This function takes an image filename, finds the image in the
@@ -104,12 +104,15 @@ def download_image(username, filename, path, proc_step):
         proc_step (str): type of image being asked for such as
         "Original", "Histogram Equalization", "Contrast Stretching",
         "Log Compression", "Reverse Video"
+        type_ext (str): image type including ".jpg", ".tiff",
+        and ".png" where "png" is default
 
     Returns:
         none
     """
     from image import save_b64_img
     import json
+    from PIL import Image
 
     print("Asking server to download image")
 
@@ -118,7 +121,7 @@ def download_image(username, filename, path, proc_step):
     results = json.loads(r.text)
     img_info = results[0]
     msg = results[1]
-    save_b64_img(img_info["image"], path+filename+"download.jpg")
+    save_b64_img(img_info["image"], path+filename+"download"+type_ext)
     print("Returned: {}".format(msg))
     print("Status: {}".format(r.status_code))
 
@@ -176,6 +179,6 @@ if __name__ == "__main__":
     process_image("user2", "puppy4", "Pictures/Original/puppy4.jpg",
                   "Histogram Equalization")
     download_image("user1", "puppy1", "Pictures/Downloaded/",
-                   "Original")
+                   "Original", ".tiff")
     download_image("user2", "puppy3", "Pictures/Downloaded/",
                    "Reverse Video")
