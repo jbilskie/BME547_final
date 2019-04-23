@@ -1,10 +1,13 @@
 from tkinter import *
 from tkinter import ttk
 import numpy as np
+import io
+import base64
 from PIL import ImageTk, Image
 import requests
 import os
 import matplotlib
+from matplotlib import image as mpimg
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 matplotlib.use("TkAgg")
 
@@ -37,9 +40,10 @@ def editing_window():
         entered_3 = log_comp.get()
         entered_4 = rev_vid.get()
         proc_steps = [entered_1, entered_2, entered_3, entered_4]
-        orig_images, success = get_img_data(img_paths)
+        orig_images, filenames, success = get_img_data(img_paths)
         upload_success = upload_to_server(user, orig_images,
-                                          success, proc_steps)
+                                          filenames, success,
+                                          proc_steps)
         success_label = ttk.Label(root, text=upload_success)
         success_label.grid(column=1, row=10, sticky=W)
         proc_images = []
@@ -51,7 +55,8 @@ def editing_window():
                                         display_images(display_img.get(),
                                                        root, img_paths,
                                                        orig_images,
-                                                       proc_images))
+                                                       proc_images,
+                                                       success))
         display_check.grid(column=0, row=11, sticky=W)
         return
 
@@ -156,46 +161,58 @@ def get_img_data(img_paths):
 
     Returns:
         images (list): list of numpy arrays containing image data
+        filenames (list): list of filenames to use. If zip included and
+        unzipping successful, this list contains the image filenames, not
+        the zip filename. Otherwise, it just states the zip filename.
         success (list): list of booleans denoting successful processing for
-        each image path entered
+        each of the entries in filenames
     """
     from image import read_img_as_b64, unzip
     images = []
-    success = [True for i in img_paths]
+    filenames = []
+    success = []
     is_zip = [(re.search('.zip', i) or re.search('.ZIP', i)) for i in
               img_paths]
     for i in range(len(img_paths)):
         curr_path = img_paths[i]
+        # Check if image exists
         exists = os.path.isfile(curr_path)
         if exists:
             # Append unzipped images one by one
             if is_zip[i]:
-                unzipped_images, success[i] = unzip(curr_path)
-                if success[i]:
-                    for j in unzipped_images:
-                        images.append(j)
+                unzipped_images, names, temp_success = unzip(curr_path)
+                if temp_success:
+                    for j in range(len(unzipped_images)):
+                        images.append(unzipped_images[j])
+                        filenames.append(names[j])
+                        success.append(True)
                 else:
                     images.append('')
+                    success.append(False)
             # Append non-zipped images normally
             elif curr_path.lower().endswith(('.png', '.jpg', 'jpeg',
                                             '.tiff')):
-                # img_obj = Image.open(curr_path)
-                # img_np = np.array(img_obj)
-                # images.append(img_np)
+                """
+                img_obj = Image.open(curr_path)
+                img_np = np.array(img_obj)
+                images.append(img_np)
+                """
                 images.append(read_img_as_b64(curr_path))
+                success.append(True)
+                # filenames.append(re.search())
                 # img_obj.close()
             # Don't send data if file is not an image
             else:
                 images.append('')
-                success[i] = False
+                success.append(False)
         # File not found
         else:
             images.append('')
-            success[i] = False
-    return images, success
+            success.append(False)
+    return images, filenames, success
 
 
-def upload_to_server(user, images, success, proc_steps):
+def upload_to_server(user, images, filenames, success, proc_steps):
     """Posts image to server
 
     Posts b64 strings to server
@@ -203,6 +220,7 @@ def upload_to_server(user, images, success, proc_steps):
     Args:
         user (str): inputted username
         images (list): list of b64 strings
+        filenames (list): attached original filenames
         success (list): whether images were successfully obtained
         proc_steps (list): image processing steps to take
 
@@ -230,7 +248,8 @@ def upload_to_server(user, images, success, proc_steps):
     return upload_success
 
 
-def display_images(run, root, img_paths, orig_images, proc_images):
+def display_images(run, root, img_paths, orig_images, proc_images,
+                   success):
     """Display images and histograms in new GUI window
 
     Converts image arrays to TK objects and displays them in the window.
@@ -242,6 +261,7 @@ def display_images(run, root, img_paths, orig_images, proc_images):
         img_paths (list): list of image paths
         orig_images (list): list of uploaded b64 strings
         proc_images (list): list of images downloaded from server
+        success (list): whether image extraction was successful
 
     Returns:
         none
@@ -300,29 +320,38 @@ def display_images(run, root, img_paths, orig_images, proc_images):
         new_w = img_width
         img_row = 0
         for i in range(len(orig_images)):
-            image_string = orig_images[i]
-            image_to_load = b64_to_image(image_string)
-            # Load image
-            try:
-                img_to_show = Image.fromarray(image_to_load)
-                h = img_to_show.height
-                w = img_to_show.width
-                new_h = round(h*new_w/w)
-                if new_h <= img_width:
-                    img_to_show = img_to_show.resize((new_w, new_h),
-                                                     Image.ANTIALIAS)
-                else:
-                    new_new_w = round(new_w*img_width/new_h)
-                    new_new_h = img_width
-                    img_to_show = img_to_show.resize((new_new_w,
-                                                      new_new_h),
-                                                     Image.ANTIALIAS)
-                tk_images.append(ImageTk.PhotoImage(img_to_show))
-                img_label.append(Label(orig_img_frame, image=tk_images[-1]))
-                img_label[-1].img = tk_images[-1]
-            except:
+            image_to_load = []
+            if success[i]:
+                image_string = orig_images[i]
+                image_obj = b64_to_image(image_string)
+                # Load image
+                try:
+                    image_to_load = np.asarray(image_obj)
+                    img_to_show = Image.fromarray(image_to_load)
+                    h = img_to_show.height
+                    w = img_to_show.width
+                    new_h = round(h*new_w/w)
+                    if new_h <= img_width:
+                        img_to_show = img_to_show.resize((new_w, new_h),
+                                                         Image.ANTIALIAS)
+                    else:
+                        new_new_w = round(new_w*img_width/new_h)
+                        new_new_h = img_width
+                        img_to_show = img_to_show.resize((new_new_w,
+                                                          new_new_h),
+                                                         Image.ANTIALIAS)
+                    tk_images.append(ImageTk.PhotoImage(img_to_show))
+                    img_label.append(Label(orig_img_frame,
+                                           image=tk_images[-1]))
+                    img_label[-1].img = tk_images[-1]
+                except:
+                    tk_images.append('')
+                    img_label.append(Label(orig_img_frame,
+                                           text='Image not found'))
+            else:
                 tk_images.append('')
-                img_label.append(Label(orig_img_frame, text='Image not found'))
+                img_label.append(Label(orig_img_frame,
+                                       text='Image not found'))
             # Compute histogram
             hist_plot = plot_histograms(orig_hist_frame, new_hist_frame,
                                         image_to_load)
