@@ -145,8 +145,8 @@ def process_img_paths(input):
 def get_img_data(img_paths):
     """Gets image data
 
-    Upload: Extracts data from image paths to upload to server as numpy
-    arrays (later converted to strings). Unzips images if necessary.
+    Upload: Extracts data from image paths to upload to server as b64
+    strings. Unzips images if necessary.
     Download: Unzips downloaded files.
 
     Args:
@@ -157,7 +157,7 @@ def get_img_data(img_paths):
         success (list): list of booleans denoting successful processing for
         each image path entered
     """
-    from image import image_to_b64, unzip
+    from image import read_img_as_b64, unzip
     images = []
     success = [True for i in img_paths]
     is_zip = [(re.search('.zip', i) or re.search('.ZIP', i)) for i in
@@ -177,10 +177,11 @@ def get_img_data(img_paths):
             # Append non-zipped images normally
             elif curr_path.lower().endswith(('.png', '.jpg', 'jpeg',
                                             '.tiff')):
-                img_obj = Image.open(curr_path)
-                img_np = np.array(img_obj)
-                images.append(img_np)
-                img_obj.close()
+                # img_obj = Image.open(curr_path)
+                # img_np = np.array(img_obj)
+                # images.append(img_np)
+                images.append(read_img_as_b64(curr_path))
+                # img_obj.close()
             # Don't send data if file is not an image
             else:
                 images.append('')
@@ -195,26 +196,28 @@ def get_img_data(img_paths):
 def upload_to_server(user, images, success, proc_steps):
     """Posts image to server
 
-    Converts image objects to b64 strings and posts them to server
+    Posts b64 strings to server
 
     Args:
         user (string): inputted username
-        images (list): list of np array images
+        images (list): list of b64 strings
         success (list): whether images were successfully obtained
         proc_steps (list): image processing steps to take
 
     Returns:
         upload_success (str): message to print below upload button
     """
-    from image import image_to_b64
+    # from image import image_to_b64
     from client import process_image
-    imgs_for_upload = []
+    imgs_for_upload = images
+    """
     for img in images:
         try:
             imgs_for_upload.append(image_to_b64(img))
         except:
             imgs_for_upload.append('')
-    # status = process_image(user, imgs_for_upload, proc_steps)
+    """
+    # status = upload_image(user, imgs_for_upload, proc_steps)
     status = 0
     if status == 200:
         upload_success = "Successfully uploaded"
@@ -235,12 +238,13 @@ def display_images(run, root, img_paths, orig_images, proc_images):
         run (bool): run function or close window
         root (Tk window)
         img_paths (list): list of image paths
-        orig_images (list): list of uploaded np array images
+        orig_images (list): list of uploaded b64 strings
         proc_images (list): list of images downloaded from server
 
     Returns:
         none
     """
+    from image import b64_to_image
     global index
     index = 0
 
@@ -294,7 +298,8 @@ def display_images(run, root, img_paths, orig_images, proc_images):
         new_w = img_width
         img_row = 0
         for i in range(len(orig_images)):
-            image_to_load = orig_images[i]
+            image_string = orig_images[i]
+            image_to_load = b64_to_image(image_string)
             # Load image
             try:
                 img_to_show = Image.fromarray(image_to_load)
@@ -389,18 +394,6 @@ def show_prev(images, img_label, img_width, hist_plots, hist_width):
                             ipady=0.35*img_width, sticky=E)
             next_hist.grid(column=0, row=1, columnspan=2, sticky=E)
     return
-
-
-class set_dim:
-    def __init__(self, in_width, in_height):
-        self.w = in_width
-        self.h = in_height
-
-    def width(self):
-        return self.w
-
-    def height(self):
-        return self.h
 
 
 def plot_histograms(orig_hist_frame, new_hist_frame, img_array):
