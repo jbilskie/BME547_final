@@ -1,6 +1,6 @@
 # server.py
 # Authors: Jessica Bilskie, Kevin Chu
-# Last Modified: 4/21/19
+# Last Modified: 4/23/19
 
 from flask import Flask, jsonify, request
 from user import User
@@ -185,12 +185,12 @@ def process_image_upload(img_info):
         status (dict): status message and status code
     """
     from datetime import datetime
+
     logging.info("Starting process for uploading {} to user {}"
                  .format(img_info["filename"], img_info["username"]))
 
-    keys = ["username", "filename", "image"]
-
     # Input data validation
+    keys = ["username", "filename", "image"]
     for key in keys:
         # Make sure keys are non-empty
         status = validate_input(key, img_info[key])
@@ -200,7 +200,7 @@ def process_image_upload(img_info):
             return status
 
     # Check whether user exists
-    status = validate_user(img_info["username"])
+    _, status = validate_user(img_info["username"])
     if status["code"] != 200:
         return status
 
@@ -228,6 +228,8 @@ def validate_user(username):
         username (str): username
 
     Returns:
+        user (User or NoneType): returns User object if successful request
+        and NoneType if user was not found
         status (dict): status message and status code
     """
     # Check whether user exists
@@ -236,12 +238,13 @@ def validate_user(username):
         status = {"code": 200,
                   "msg": "Request was successful"}
     except:
+        user = None
         status = {"code": 404,
                   "msg": "Username not found in database."}
         logging.warning("Username {} not found in database."
                         .format(username))
 
-    return status
+    return user, status
 
 
 def get_img_size(b64_string):
@@ -258,6 +261,7 @@ def get_img_size(b64_string):
         sz (tuple): dimensions of image expressed as (width x height)
     """
     from image import b64_to_image
+
     logging.info("Calculating image size")
 
     img = b64_to_image(b64_string)
@@ -344,12 +348,12 @@ def process_process_image(img_info):
     import time
     from image import b64_to_image
     from image import image_to_b64
+
     logging.info("Starting process for processing {} to user {}"
                  .format(img_info["filename"], img_info["username"]))
 
-    keys = ["username", "filename", "image"]
-
     # Input data validation
+    keys = ["username", "filename", "image"]
     for key in keys:
         # Make sure keys are non-empty
         status = validate_input(key, img_info[key])
@@ -359,13 +363,8 @@ def process_process_image(img_info):
             return status
 
     # Check whether user exists
-    try:
-        user = User.objects.raw({"_id": img_info["username"]}).first()
-    except:
-        status = {"code": 404,
-                  "msg": "Username not found in database."}
-        logging.warning("Username {} not found in database."
-                        .format(img_info["username"]))
+    _, status = validate_user(img_info["username"])
+    if status["code"] != 200:
         return status
 
     # Decode b64
@@ -383,6 +382,7 @@ def process_process_image(img_info):
                                 img_info["proc_step"]))
 
         return status
+
     t2 = time.time()
 
     # Store processed image
@@ -670,14 +670,8 @@ def exist_input(username, filename, proc_step):
     logging.info("Checking that desired image exists")
 
     # Retrieve user from database, exit if user not found
-    try:
-        user = User.objects.raw({"_id": username}).first()
-    except:
-        status = {"code": 404,
-                  "msg": "Username not found in database."}
-        logging.warning("Username {} not found in database."
-                        .format(username))
-
+    user, status = validate_user(username)
+    if status["code"] != 200:
         return status
 
     # Find desired image
@@ -742,13 +736,8 @@ def delete_user(username):
         return status
 
     # Check if user exists
-    try:
-        user = User.objects.raw({"_id": username}).first()
-    except:
-        status = {"code": 404,
-                  "msg": "Username not found in database."}
-        logging.warning("Username {} not found in database."
-                        .format(username))
+    _, status = validate_user(username)
+    if status["code"] != 200:
         return status
 
     User.objects.raw({"_id": username}).delete()
@@ -798,13 +787,8 @@ def delete_img(username, filename):
         return status
 
     # Check if user exists
-    try:
-        user = User.objects.raw({"_id": username}).first()
-    except:
-        status = {"code": 404,
-                  "msg": "Username not found in database."}
-        logging.warning("Username {} not found in database."
-                        .format(username))
+    user, status = validate_user(username)
+    if status["code"] != 200:
         return status
 
     # Validate filename
