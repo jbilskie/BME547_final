@@ -210,6 +210,7 @@ def upload_to_server(user, images, success, proc_steps):
     # from image import image_to_b64
     from client import process_image
     imgs_for_upload = images
+    status_codes = [400]
     """
     for img in images:
         try:
@@ -217,14 +218,13 @@ def upload_to_server(user, images, success, proc_steps):
         except:
             imgs_for_upload.append('')
     """
-    # status = upload_image(user, imgs_for_upload, proc_steps)
-    status = 0
-    if status == 200:
+    # status_codes = upload_images(user, imgs_for_upload, proc_steps)
+    if all([True if i == 200 else False for i in status_codes]):
         upload_success = "Successfully uploaded"
-    elif status == 400:
+    elif any([True if i == 400 else False for i in status_codes]):
         upload_success = "One or more fields missing"
     else:
-        upload_success = "Upload failed"
+        upload_success = "Upload failed for one or more images"
     return upload_success
 
 
