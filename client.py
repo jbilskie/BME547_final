@@ -94,15 +94,18 @@ def upload_images(username, file_list, path):
         path (str): path to images being uploaded
 
     Returns:
-        none
+    status_codes (list): list of status codes for image upload
+    attempts
     """
+    status_codes = []
     if len(file_list) == 0:
         print("No files were selected.")
     else:
         for filename in file_list:
-            upload_iamge(username, filename, path)
+            status_codes.append(upload_image(username, filename,
+                                             path))
 
-    return
+    return status_codes
 
 
 def upload_image(username, filename, path):
@@ -117,7 +120,7 @@ def upload_image(username, filename, path):
         path (str): path to image being uploaded
 
     Returns:
-        none
+        status_code (int): whether image was successfully uploaded
     """
     from image import read_img_as_b64
     from image import save_b64_img
@@ -133,7 +136,7 @@ def upload_image(username, filename, path):
         print("Returned: {}".format(msg))
         print("Status: {}".format(status_code))
 
-        return
+        return status_code
 
     # Format into dictionary
     img_info = {"username": username,
@@ -141,11 +144,11 @@ def upload_image(username, filename, path):
                 "image": b64_string}
 
     r = requests.post(url + "image_upload", json=img_info)
-
+    status_code = r.status_code
     print("Returned: {}".format(r.text))
-    print("Status: {}".format(r.status_code))
+    print("Status: {}".format(status_code))
 
-    return
+    return status_code
 
 
 def download_image(username, filename, path, proc_step, type_ext=".png"):
@@ -165,7 +168,8 @@ def download_image(username, filename, path, proc_step, type_ext=".png"):
         and ".png" where "png" is default
 
     Returns:
-        none
+        img_info (dict): dictionary containing image information
+        status_code (int): status code
     """
     from image import save_b64_img
     import json
@@ -175,7 +179,8 @@ def download_image(username, filename, path, proc_step, type_ext=".png"):
 
     r = requests.get(url + "image_download/" + username + "/" +
                      filename + "/" + proc_step)
-    if r.status_code != 200:
+    status_code = r.status_code
+    if status_code != 200:
         msg = r.text
     else:
         results = json.loads(r.text)
@@ -183,9 +188,9 @@ def download_image(username, filename, path, proc_step, type_ext=".png"):
         msg = results[1]
         save_b64_img(img_info["image"], path+filename+"download"+type_ext)
     print("Returned: {}".format(msg))
-    print("Status: {}".format(r.status_code))
+    print("Status: {}".format(status_code))
 
-    return
+    return img_info, status_code
 
 
 def process_image(username, filename, path, proc_step):
@@ -199,12 +204,11 @@ def process_image(username, filename, path, proc_step):
         username (str): user identifier
         filename (str): name of file
         path (str): path to image being uploaded
-        proc_step (str): type of image being asked for such as
-        "Original", "Histogram Equalization", "Contrast Stretching",
-        "Log Compression", "Reverse Video"
+        proc_step (list): list containing requested processing
+        steps
 
     Returns:
-        none
+        status_code (int): whether image was successfully processed
     """
     from image import read_img_as_b64
 
@@ -219,7 +223,7 @@ def process_image(username, filename, path, proc_step):
         print("Returned: {}".format(msg))
         print("Status: {}".format(status_code))
 
-        return
+        return status_code
 
     # Format into dictionary
     img_info = {"username": username,
@@ -228,11 +232,11 @@ def process_image(username, filename, path, proc_step):
                 "proc_step": proc_step}
 
     r = requests.post(url + "process_image", json=img_info)
-
+    status_code = r.status_code
     print("Returned: {}".format(r.text))
-    print("Status: {}".format(r.status_code))
+    print("Status: {}".format(status_code))
 
-    return
+    return status_code
 
 
 if __name__ == "__main__":
