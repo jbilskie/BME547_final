@@ -56,6 +56,32 @@ def delete_user(username):
     return
 
 
+def delete_image(username, filename):
+    """ Delete images under filename from the database
+
+    This function takes a username and filename and searches for
+    the original and processed images associated with them
+    in the MongoDB database. If found, it deletes the images and
+    the associated metadata.
+
+    Args:
+        username (str): user's identifier
+        filename (str): file's identifier
+
+    Returns:
+        none
+    """
+
+    print("Asking server to delete image from database")
+
+    r = requests.post(url + "delete/" + username + '/' + filename)
+
+    print("Returned: {}".format(r.text))
+    print("Status: {}".format(r.status_code))
+
+    return
+
+
 def upload_images(username, file_list, path):
     """ Uploads multiple images to the database
 
@@ -211,20 +237,12 @@ def process_image(username, filename, path, proc_step):
 
 if __name__ == "__main__":
     add_new_user("user1")
+    add_new_user("user2")
     delete_user("user1")
     delete_user("user_100")
-#    add_new_user("user2")
-#    upload_image("user2", "puppy8", "Pictures/Original/puppy8.jpg")
-#    upload_image("user2", "puppy2", "Pictures/Original/puppy11.jpg")
-#    process_image("user1", "puppy11", "Pictures/Original/puppy11.jpg",
-#                  "Reverse Video")
-#    process_image("user2", "puppy3", "Pictures/Original/puppy3.jpg",
-#                 "Reverse Image")
-#    process_image("user4", "puppy4", "Pictures/Original/puppy4.jpg",
-#                  "Histogram Equalization")
-#    download_image("user5", "puppy1", "Pictures/Downloaded/",
-#                   "Original", ".tiff")
-#    download_image("user2", "puppy3", "Pictures/Downloaded/",
-#                   "Reverse Image")
-#    download_image("user2", "puppy8", "Pictures/Downloaded/",
-#                   "Reverse Image")
+    upload_image("user2", "puppy2", "Pictures/Original/puppy2.jpg")
+    process_image("user2", "puppy7", "Pictures/Original/puppy7.jpg",
+                  "Reverse Video")
+    download_image("user2", "puppy7", "Pictures/Downloaded/",
+                   "Reverse Video")
+    delete_image("user2", "puppy7")

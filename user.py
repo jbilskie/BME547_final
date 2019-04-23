@@ -37,5 +37,5 @@ class User(MongoModel):
     """
     username = fields.CharField(primary_key=True)
     actions = fields.ListField()
-    orig_img = fields.ListField()
-    proc_img = fields.ListField()
+    orig_img = fields.ListField(blank=True)
+    proc_img = fields.ListField(blank=True)
