@@ -175,8 +175,8 @@ def test_image_to_b64(img_path, b64_path):
                           # Test zip file with 1 image
                           # NOTE: May need to change success
                           ("test-image/test-unzip2.zip",
-                           {"imgs": [np.array([[0]], dtype="uint8")],
-                            "success": True}),
+                           {"imgs": [],
+                            "success": False}),
                           ])
 def test_unzip(filename, expected):
     """ Test the unzip function

@@ -591,7 +591,7 @@ def test_process_image_upload(input, img_exists, exp):
     if img_exists:
         # get_img_data takes in a list
         image, _ = get_img_data([input["filename"]])
-        input["image"] = image_to_b64(image[0])
+        input["image"] = image[0]
     else:
         input["image"] = ""
     output = process_image_upload(input)
@@ -621,9 +621,8 @@ def test_get_img_size(input, exp):
     Returns:
         none
     """
-    image_array, _ = get_img_data([input])
-    image_string = image_to_b64(image_array[0])
-    out = get_img_size(image_string)
+    image_string, _ = get_img_data([input])
+    out = get_img_size(image_string[0])
     assert out == exp
 
 

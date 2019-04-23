@@ -116,17 +116,20 @@ def unzip(filename):
         # Ignores garbage files in Mac
         if not re.search('._', file):
             try:
+                """
                 with zip_files.open(file) as img_file:
                     img_obj = Image.open(img_file)
                     img_np = np.array(img_obj)
                     imgs.append(img_np)
                     img_obj.close()
+                """
+                imgs.append(read_img_as_b64(file))
             except:
                 success = False
     # Empty lists are false
     if not imgs:
         success = False
-    zip_files.close()
+    # zip_files.close()
     return imgs, success
 
 
