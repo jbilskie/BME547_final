@@ -650,9 +650,7 @@ def exist_input(username, filename, proc_step):
     # Retrieve user from database, exit if user not found
     try:
         user = User.objects.raw({"_id": username}).first()
-        print("User exists")
     except:
-        print("Inside of exception")
         status = {"code": 404,
                   "msg": "Username not found in database."}
         logging.warning("Username {} not found in database."
@@ -732,6 +730,90 @@ def delete_user(username):
         return status
 
     User.objects.raw({"_id": username}).delete()
+
+    return status
+
+
+@app.route("/delete/<username>/<filename>", methods=["POST"])
+def process_delete_img(username, filename):
+    """ Process to delete an image under a specified user from
+    the database
+
+    This implements the post request to process the deleting
+    of an image under a specified user from the MongoDB database.
+
+    Args:
+        username (str): username undre which the image is stored
+        filename (str): filename of the image desired to be deleted
+
+    Returns:
+        status (dict): status message and status code
+    """
+    status = delete_img(username, filename)
+
+    return status["msg"], status["code"]
+
+
+def delete_img(username, filename):
+    """ Processes request to delete image under a specified user
+
+    This function processes the request to delete an image under a
+    specified user from the MongoDB database.
+
+    Args:
+        username (str): username undre which the image is stored
+        filename (str): filename of the image desired to be deleted
+
+    Returns:
+        status (dict): status message and status code
+    """
+    logging.info("Starting process to delete image {}".format(username))
+
+    # Validate user info
+    logging.info("Checking that username is valid")
+    status = validate_input("username", username)
+    if status["code"] != 200:
+        return status
+
+    # Check if user exists
+    try:
+        user = User.objects.raw({"_id": username}).first()
+    except:
+        status = {"code": 404,
+                  "msg": "Username not found in database."}
+        logging.warning("Username {} not found in database."
+                        .format(username))
+        return status
+
+    # Validate filename
+    logging.info("Checking that filename is valid")
+    status = validate_input("filename", filename)
+    if status["code"] != 200:
+        return status
+
+    # Find desired image
+    found = False
+    for ind, img_info in enumerate(user.orig_img):
+        if img_info["filename"] == filename:
+            logging.info("Deleting original image metadata")
+            user.orig_img.pop(ind)
+            found = True
+    for ind, img_info in enumerate(user.proc_img):
+        if img_info["filename"] == filename:
+            logging.info("Deleting processed image metadata")
+            user.proc_img.pop(ind)
+            found = True
+    if found is False:
+        status = {"code": 404,
+                  "msg": "Filename not found in database."}
+        logging.warning("Desired filename not found in database."
+                        .format(username))
+    else:
+        status = {"code": 200,
+                  "msg": "Request was successful"}
+
+    user.actions.append("Deleted Image")
+    user.save()
 
     return status
 
