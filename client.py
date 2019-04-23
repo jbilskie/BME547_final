@@ -108,7 +108,7 @@ def upload_images(username, file_list, path):
     return status_codes
 
 
-def upload_image(username, filename, path):
+def upload_image(username, filename, b64_string):
     """ Upload an image to the database
 
     This function takes an image filename, reads in the image
@@ -117,7 +117,7 @@ def upload_image(username, filename, path):
     Args:
         username (str): user identifier
         filename (str): name of file
-        path (str): path to image being uploaded
+        b64_string (str): image string to upload
 
     Returns:
         status_code (int): whether image was successfully uploaded
@@ -127,10 +127,8 @@ def upload_image(username, filename, path):
 
     print("Asking server to upload image")
 
-    # Read in image as b64
-    try:
-        b64_string = read_img_as_b64(path)
-    except FileNotFoundError:
+    # See if get_img_data was able to read the image
+    if b64string == "":
         status_code = 404
         msg = "Image path is not valid."
         print("Returned: {}".format(msg))
@@ -193,7 +191,7 @@ def download_image(username, filename, path, proc_step, type_ext=".png"):
     return img_info, status_code
 
 
-def process_image(username, filename, path, proc_step):
+def process_image(username, filename, b64_string, proc_step):
     """ Process image
 
     This function takes an image and sends it to the server as a
@@ -203,7 +201,7 @@ def process_image(username, filename, path, proc_step):
     Args:
         username (str): user identifier
         filename (str): name of file
-        path (str): path to image being uploaded
+        b64_string (str): image string to process
         proc_step (list): list containing requested processing
         steps
 
@@ -214,10 +212,8 @@ def process_image(username, filename, path, proc_step):
 
     print("Asking server to process image")
 
-    # Read in image as b64
-    try:
-        b64_string = read_img_as_b64(path)
-    except FileNotFoundError:
+    # See if get_img_data was able to read the image
+    if b64_string == "":
         status_code = 404
         msg = "Image path is not valid."
         print("Returned: {}".format(msg))
