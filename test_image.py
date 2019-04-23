@@ -4,6 +4,7 @@
 
 import numpy as np
 import pytest
+import re
 
 
 @pytest.mark.parametrize("file_path, b64_path",
@@ -175,8 +176,10 @@ def test_image_to_b64(img_path, b64_path):
                           # Test zip file with 1 image
                           # NOTE: May need to change success
                           ("test-image/test-unzip2.zip",
-                           {"imgs": [],
-                            "success": False}),
+                           {"imgs": ["""iVBORw0KGgoAAAANSUhEUgAAAAEAA
+                                     AABCAAAAAA6fptVAAAACklEQVR4nGNgA
+                                     AAAAgABSK+kcQAAAABJRU5ErkJggg=="""],
+                            "success": True}),
                           ])
 def test_unzip(filename, expected):
     """ Test the unzip function
@@ -193,10 +196,13 @@ def test_unzip(filename, expected):
         none
     """
     from image import unzip
+    try:
+        expected["imgs"][0] = "".join(expected["imgs"][0].split())
+    except:
+        pass
 
-    imgs, success = unzip(filename)
+    imgs, names, success = unzip(filename)
     print(imgs)
     print(expected["imgs"])
-
     assert (imgs == expected["imgs"] and
             success is expected["success"])
