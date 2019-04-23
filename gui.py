@@ -132,13 +132,15 @@ def process_img_paths(input):
     all paths.
 
     Args:
-        input (string): string containing image path(s)
+        input (str): string containing image path(s)
 
     Returns:
         paths (list): list containing image path, or separated image paths
     """
+    input = input.replace(" ", "")
     paths = input.split(",")
-    paths = [i.strip(" ") for i in paths]
+    if '' in paths:
+        paths.remove("")
     return paths
 
 
@@ -199,7 +201,7 @@ def upload_to_server(user, images, success, proc_steps):
     Posts b64 strings to server
 
     Args:
-        user (string): inputted username
+        user (str): inputted username
         images (list): list of b64 strings
         success (list): whether images were successfully obtained
         proc_steps (list): image processing steps to take
