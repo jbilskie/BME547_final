@@ -424,9 +424,11 @@ def run_image_processing(orig_img, proc_step):
     from skimage.util import invert
 
     if proc_step == "Histogram Equalization":
+        logging.info("Perfomring histogram equalization")
         proc_img = equalize_histogram(orig_img)
 
     elif proc_step == "Contrast Stretching":
+        logging.info("Performing contrast stretching")
         proc_img = stretch_contrast(orig_img)
 
     elif proc_step == "Log Compression":
