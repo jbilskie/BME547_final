@@ -53,7 +53,7 @@ def editing_window():
                                         onvalue=True, offvalue=False,
                                         command=lambda:
                                         display_images(display_img.get(),
-                                                       root, img_paths,
+                                                       root, filenames,
                                                        orig_images,
                                                        proc_images,
                                                        success))
@@ -63,6 +63,14 @@ def editing_window():
     # Main window
     root = Tk()
     root.title("Image Editor")
+    screen_w = root.winfo_screenwidth()
+    screen_h = root.winfo_screenheight()
+    root_w = 0.3*screen_w
+    root_h = 0.3*screen_h
+    root.config(height=root_h, width=root_w)
+    x = 0.35*screen_w
+    y = 0.35*screen_h
+    root.geometry('+%d+%d' % (x, y))
 
     top_label = ttk.Label(root, text='Edit Your Image On Our Server!')
     top_label.grid(column=0, row=0, columnspan=2, sticky=N)
@@ -123,7 +131,7 @@ def editing_window():
     rev_check.grid(column=1, row=8, sticky=W)
 
     upload_btn = ttk.Button(root, text='Upload file', command=enter_data,
-                            width=5)
+                            width=10)
     upload_btn.grid(column=1, row=9, sticky=W)
     # Show GUI window
     root.mainloop()
@@ -248,7 +256,7 @@ def upload_to_server(user, images, filenames, success, proc_steps):
     return upload_success
 
 
-def display_images(run, root, img_paths, orig_images, proc_images,
+def display_images(run, root, filenames, orig_images, proc_images,
                    success):
     """Display images and histograms in new GUI window
 
@@ -258,7 +266,7 @@ def display_images(run, root, img_paths, orig_images, proc_images,
     Args:
         run (bool): run function or close window
         root (Tk window)
-        img_paths (list): list of image paths
+        filenames (list): list of filenames
         orig_images (list): list of uploaded b64 strings
         proc_images (list): list of images downloaded from server
         success (list): whether image extraction was successful
@@ -269,50 +277,66 @@ def display_images(run, root, img_paths, orig_images, proc_images,
     from image import b64_to_image
     global index
     index = 0
-
+    i_row = 0
     if run:
         img_window = Toplevel(root)
-        img_window.config(height=1200, width=1000)
+        screen_w = root.winfo_screenwidth()
+        screen_h = root.winfo_screenheight()
+        img_window.config(height=0.8*screen_h, width=0.8*screen_w)
         img_window.title("Image Viewer")
-        img_width = 400
-        hist_width = 400
+        img_width = round(0.35*screen_h)
+        hist_width = round(0.35*screen_h)
 
+        global f_text
+        f_text = StringVar()
+        f_text.set("Filename: <>")
+        filename_label = ttk.Label(img_window,
+                                   textvariable=f_text)
+        filename_label.update()
+        filename_label.grid(column=0, row=i_row, columnspan=4,
+                            sticky=N)
+
+        i_row += 1
         orig_label = ttk.Label(img_window, text='Original Image')
-        orig_label.grid(column=0, row=0, columnspan=2, ipady=50, sticky=N)
+        orig_label.grid(column=0, row=i_row, columnspan=2,
+                        sticky=N)
         new_label = ttk.Label(img_window, text='Processed Image')
-        new_label.grid(column=2, row=0, columnspan=2, ipady=50,
+        new_label.grid(column=2, row=i_row, columnspan=2,
                        sticky=N)
 
+        i_row += 1
         orig_img_frame = ttk.Frame(img_window, width=img_width,
                                    height=img_width)
-        orig_img_frame.grid(column=0, row=1, columnspan=2)
+        orig_img_frame.grid(column=0, row=i_row, columnspan=2)
         new_img_frame = ttk.Frame(img_window, width=img_width,
                                   height=img_width)
-        new_img_frame.grid(column=2, row=1, columnspan=2)
+        new_img_frame.grid(column=2, row=i_row, columnspan=2)
 
+        i_row += 1
         orig_hist_label = ttk.Label(img_window,
                                     text='Original Image Histogram')
-        orig_hist_label.grid(column=0, row=2, columnspan=2, ipady=50,
+        orig_hist_label.grid(column=0, row=i_row, columnspan=2,
                              sticky=N)
         new_hist_label = ttk.Label(img_window,
                                    text='Processed Image Histogram')
-        new_hist_label.grid(column=2, row=2, columnspan=2, ipady=50,
+        new_hist_label.grid(column=2, row=i_row, columnspan=2,
                             sticky=N)
 
+        i_row += 1
         orig_hist_frame = ttk.Frame(img_window, width=hist_width,
                                     height=hist_width)
-        orig_hist_frame.grid(column=0, row=3, columnspan=2)
+        orig_hist_frame.grid(column=0, row=i_row, columnspan=2)
         new_hist_frame = ttk.Frame(img_window, width=hist_width,
                                    height=hist_width)
-        new_hist_frame.grid(column=2, row=3, columnspan=2)
-
+        new_hist_frame.grid(column=2, row=i_row, columnspan=2)
+        """
         right_top_frame = ttk.Frame(img_window, width=0,
                                     height=img_width+50)
         right_top_frame.grid(column=4, row=1)
         right_bott_frame = ttk.Frame(img_window, width=0,
                                      height=hist_width+50)
         right_bott_frame.grid(column=4, row=3)
-
+        """
         tk_images = []
         img_label = []
         hist_plots = []
@@ -358,32 +382,39 @@ def display_images(run, root, img_paths, orig_images, proc_images,
             hist_plots.append(hist_plot)
 
         if tk_images[index] == '':
-            img_label[index].grid(column=0, row=1, ipadx=0.35*img_width,
-                                  ipady=0.35*img_width, sticky=(N, S, E, W))
-            hist_plots[index].grid(column=0, row=1, ipadx=0.35*img_width,
-                                   ipady=0.35*img_width, sticky=(N, S, E, W))
+            img_label[index].grid(column=0, row=2, ipadx=0.35*img_width,
+                                  sticky=(N, S, E, W))
+            hist_plots[index].grid(column=0, row=2, ipadx=0.35*img_width,
+                                   sticky=(N, S, E, W))
             img_window.grid_rowconfigure("all", weight=1)
             img_window.grid_columnconfigure("all", weight=1)
         else:
-            img_label[index].grid(column=0, row=1, columnspan=2,
+            f_text.set("Filename: {}".format(filenames[index]))
+            filename_label.update()
+            img_label[index].grid(column=0, row=2, columnspan=2,
                                   sticky=(N, S, E, W))
-            hist_plots[index].grid(column=0, row=1, columnspan=2,
+            hist_plots[index].grid(column=0, row=2, columnspan=2,
                                    sticky=N)
             img_window.grid_rowconfigure("all", weight=1)
             img_window.grid_columnconfigure("all", weight=1)
 
+        i_row += 1
         next_btn = ttk.Button(img_window, text='>>',
-                              command=lambda: show_next(tk_images, img_label,
-                                                        img_width, hist_plots,
+                              command=lambda: show_next(tk_images, filenames,
+                                                        filename_label,
+                                                        img_label, img_width,
+                                                        hist_plots,
                                                         hist_width),
                               width=4)
-        next_btn.grid(column=1, row=4, sticky=E)
+        next_btn.grid(column=1, row=i_row, sticky=E)
         prev_btn = ttk.Button(img_window, text='<<',
-                              command=lambda: show_prev(tk_images, img_label,
-                                                        img_width, hist_plots,
+                              command=lambda: show_prev(tk_images, filenames,
+                                                        filename_label,
+                                                        img_label, img_width,
+                                                        hist_plots,
                                                         hist_width),
                               width=4)
-        prev_btn.grid(column=0, row=4, sticky=W)
+        prev_btn.grid(column=0, row=i_row, sticky=W)
 
     else:
         for widget in root.winfo_children():
@@ -391,7 +422,8 @@ def display_images(run, root, img_paths, orig_images, proc_images,
                 widget.destroy()
 
 
-def show_next(images, img_label, img_width, hist_plots, hist_width):
+def show_next(images, filenames, filename_label, img_label, img_width,
+              hist_plots, hist_width):
     global index
     if index < (len(img_label))-1:
         img_label[index].grid_forget()
@@ -399,17 +431,23 @@ def show_next(images, img_label, img_width, hist_plots, hist_width):
         index += 1
         next_label = img_label[index]
         next_hist = hist_plots[index]
+        global f_text
         if images[index] != '':
-            next_label.grid(column=0, row=1, columnspan=2, sticky=E)
-            next_hist.grid(column=0, row=1, columnspan=2, sticky=E)
+            next_label.grid(column=0, row=2, columnspan=2, sticky=E)
+            next_hist.grid(column=0, row=2, columnspan=2, sticky=E)
+            f_text.set("Filename: {}".format(filenames[index]))
+            filename_label.update()
         else:
-            next_label.grid(column=0, row=1, ipadx=0.35*img_width,
+            f_text.set("Filename: <>")
+            filename_label.update()
+            next_label.grid(column=0, row=2, ipadx=0.35*img_width,
                             ipady=0.35*img_width, sticky=E)
-            next_hist.grid(column=0, row=1, columnspan=2, sticky=E)
+            next_hist.grid(column=0, row=2, columnspan=2, sticky=E)
     return
 
 
-def show_prev(images, img_label, img_width, hist_plots, hist_width):
+def show_prev(images, filenames, filename_label, img_label, img_width,
+              hist_plots, hist_width):
     global index
     if index > 0:
         img_label[index].grid_forget()
@@ -417,13 +455,18 @@ def show_prev(images, img_label, img_width, hist_plots, hist_width):
         index -= 1
         next_label = img_label[index]
         next_hist = hist_plots[index]
+        global f_text
         if images[index] != '':
-            next_label.grid(column=0, row=1, columnspan=2, sticky=E)
-            next_hist.grid(column=0, row=1, columnspan=2, sticky=E)
+            f_text.set("Filename: {}".format(filenames[index]))
+            filename_label.update()
+            next_label.grid(column=0, row=2, columnspan=2, sticky=E)
+            next_hist.grid(column=0, row=2, columnspan=2, sticky=E)
         else:
-            next_label.grid(column=0, row=1, ipadx=0.35*img_width,
+            f_text.set("Filename: <>")
+            filename_label.update()
+            next_label.grid(column=0, row=2, ipadx=0.35*img_width,
                             ipady=0.35*img_width, sticky=E)
-            next_hist.grid(column=0, row=1, columnspan=2, sticky=E)
+            next_hist.grid(column=0, row=2, columnspan=2, sticky=E)
     return
 
 
@@ -465,17 +508,21 @@ def plot_histograms(orig_hist_frame, new_hist_frame, img_array):
         hist_canvas = FigureCanvasTkAgg(hist_fig, master=orig_hist_frame)
         hist_plot = hist_canvas.get_tk_widget()
         # hist_canvas._tkcanvas.bind("<Configure>", hist_dim)
-        hist_plot["width"] = w-50
-        hist_plot["height"] = h-50
+        hist_plot["width"] = 0.98*w
+        hist_plot["height"] = 0.98*h
         ax1.set_title("Histograms", fontsize=10)
         ax1.plot(r, 'r')
         ax2.plot(g, 'g')
         ax3.plot(b, 'b')
         plt.xlabel('Intensity')
-        ax1.set_ylabel("# red pixels", fontsize=10)
-        ax2.set_ylabel("# green pixels", fontsize=10)
-        ax3.set_ylabel("# blue pixels", fontsize=10)
+        ax1.set_ylabel("# red\npixels", fontsize=10)
+        ax1.ticklabel_format(axis='y', style='sci', scilimits=(0, 4))
+        ax2.set_ylabel("# green\npixels", fontsize=10)
+        ax2.ticklabel_format(axis='y', style='sci', scilimits=(0, 4))
+        ax3.set_ylabel("# blue\npixels", fontsize=10)
+        ax3.ticklabel_format(axis='y', style='sci', scilimits=(0, 4))
         plt.xlabel("Intensity")
+        plt.subplots_adjust(wspace=0, hspace=0)
     except:
         hist_plot = Label(orig_hist_frame, text='Histogram not calculated')
     return hist_plot
