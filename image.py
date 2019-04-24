@@ -109,10 +109,15 @@ def is_b64(b64_image):
     """
     truth = False
     if isinstance(b64_image, str) is True:
-        decode_encode = str(base64.b64encode(base64.b64decode(b64_image)),
-                            encoding='utf-8')
-        if decode_encode == b64_image:
-            truth = True
+        if len(b64_image) != 0:
+            try:
+                decode_encode = str(base64.b64encode
+                                    (base64.b64decode(b64_image)),
+                                    encoding='utf-8')
+                if decode_encode == b64_image:
+                    truth = True
+            except:
+                pass
 
     return truth
 

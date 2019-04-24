@@ -6,7 +6,6 @@ from user import User
 import numpy as np
 import pytest
 from gui import *
-from user import User
 
 
 @pytest.mark.parametrize("input, exp_paths",
