@@ -621,7 +621,6 @@ def process_image_download(input_img_info):
     logging.info("Checking that filename is valid")
     status = validate_input("filename", input_img_info["filename"])
     if status["code"] != 200:
-
         img_info = {}
         return status, img_info
 
@@ -638,13 +637,13 @@ def process_image_download(input_img_info):
 
     # Find desired image
     if input_img_info["proc_step"] == "Original":
-        for ind, img_info in enumerate(user.orig_img):
-            if img_info["filename"] == input_img_info["filename"]:
+        for ind, img_infos in enumerate(user.orig_img):
+            if img_infos["filename"] == input_img_info["filename"]:
                 img_info = user.orig_img[ind]
     else:
-        for ind, img_info in enumerate(user.proc_img):
-            if img_info["filename"] == input_img_info["filename"]:
-                if img_info["proc_step"] == input_img_info["proc_step"]:
+        for ind, img_infos in enumerate(user.proc_img):
+            if img_infos["filename"] == input_img_info["filename"]:
+                if img_infos["proc_step"] == input_img_info["proc_step"]:
                     img_info = user.proc_img[ind]
 
     user.actions.append("Downloaded Image")
