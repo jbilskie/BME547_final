@@ -207,7 +207,8 @@ def get_img_data(img_paths):
                 """
                 images.append(read_img_as_b64(curr_path))
                 success.append(True)
-                # filenames.append(re.search())
+                curr_filename = re.split('/', curr_path)[-1]
+                filenames.append(curr_filename)
                 # img_obj.close()
             # Don't send data if file is not an image
             else:
