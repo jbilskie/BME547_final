@@ -814,3 +814,76 @@ def test_delete_user(username, add_user, expected_status, expected_found):
     assert (status["code"] == expected_status["code"] and
             status["msg"] == expected_status["msg"] and
             found is expected_found)
+
+
+@pytest.mark.parametrize("username, add_user, filename, add_img,"
+                         "expected_status, expected_found",
+                         # Invalid username
+                         [("", False, "file.jpg", False,
+                           {"code": 400,
+                            "msg": "Field username cannot be empty."},
+                           False),
+
+                          # Username not found
+                          ("asdf", False, "file.jpg", False,
+                           {"code": 404,
+                            "msg": "Username not found in database."},
+                           False),
+
+                          # Filename not found
+                          ("asdf", True, "file.jpg", False,
+                           {"code": 404,
+                            "msg": "Filename not found in database."},
+                           False),
+
+                          # File is found
+                          ("asdf", True, "file.jpg", True,
+                           {"code": 200,
+                            "msg": "Request was successful"},
+                           False),
+                          ])
+def test_delete_img(username, add_user, filename, add_img,
+                    expected_status, expected_found):
+    """ Test the delete_img function
+
+    Args:
+        username (str): username linked to filename to delete
+        add_user (bool): whether to add user to database
+        filename (str): filename to delete
+        add_img (bool): whether to add image to database
+        expected_status (dict): expected status code and status message
+        expected_found (bool): whether the file is expected to exist in db
+    """
+    from server import delete_img
+
+    # Create user if indicated
+    if add_user:
+        # Create user object
+        user = User(username=username)
+
+        # Create original and processed images if indicated
+        if add_img:
+            user.orig_img.append({"filename": filename})
+            user.proc_img.append({"filename": filename})
+
+        # Save to database
+        user.save()
+
+    status = delete_img(username, filename)
+
+    # Indicates whether deleted image is found (should be False)
+    try:
+        user = User.objects.raw({"_id": username}).first()
+        orig_img = user.orig_img[-1]
+        proc_img = user.proc_img[-1]
+        found = True
+    except:
+        found = False
+
+    assert (status["code"] == expected_status["code"] and
+            status["msg"] == expected_status["msg"] and
+            found is expected_found)
+
+    # Delete added user
+    if add_user:
+        user.delete()
