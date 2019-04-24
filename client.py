@@ -82,7 +82,90 @@ def delete_image(username, filename):
     return
 
 
-def upload_images(username, file_list, path):
+def check_file_list(file_list):
+    """ Validate a user input
+
+    This function ensures that the user enters a valid list of file lists
+    where each file containts a non-empty filename, b64 image, and a valid
+    processing steps array.
+
+    Args:
+        file_list (list): list of files where each item in the list
+        is a list of the file's filename, b64 image, and an array of
+        what processing steps should be done
+            Example: file_list = [file1, file2]
+                    file1 = ["image1", b64_image1, [0, 1, 1, 0]]
+                    file2 = ["image1", b64_image1, [1, 0, 0, 1]]
+            Each processing steps array has a 1 if that process is
+            desired and 0 if not. In this example, image1 desires to
+            perform contrast stretching and log compression. Likewise,
+            image2 desired to perform histogram equalization and reverse
+            video.
+
+    Returns:
+        status (dict): status message and status code
+    """
+    from image import is_b64
+
+    # Default to valid file_list
+    status = {"code": 200,
+              "msg": "Request was successful"}
+
+    # Check for empty list
+    if len(file_list) == 0:
+        status = {"code": 400,
+                  "msg": "No files were selected."}
+        return status
+
+    # Check that each file has all components
+    for file in file_list:
+        if len(file) != 3:
+            status = {"code": 400,
+                      "msg": "File {} doesn't contain the correct\
+                      amount of elements.".format(file[0])}
+            return status
+
+    # Make sure all filenames are non-empty strings
+    for file in file_list:
+        if isinstance(file[0], str) is not True:
+            print(type(file[0]))
+            status = {"code": 400,
+                      "msg": "Filename {} is not a string."
+                      .format(file[0])}
+            return status
+        if len(file[0]) == 0:
+            status = {"code": 400,
+                      "msg": "Filename {} is empty.".format(file[0])}
+            return status
+
+    # Check if b64_image is valid
+    for file in file_list:
+        validity = is_b64(file[1])
+        if validity is False:
+            status = {"code": 400,
+                      "msg": "Filename {} has invalid b64 image"
+                      .format(file[0])}
+            return status
+
+    # Check processing array for proper format
+    for file in file_list:
+        if len(file[2]) != 4:
+            status = {"code": 400,
+                      "msg": "Processing array in file {} doesn't \
+                      contain the correct amount of elements."
+                      .format(file[0])}
+            return status
+        for proc in file[2]:
+            if (proc != 0) and (proc != 1):
+                status = {"code": 400,
+                          "msg": "Processing array contains invalid \
+                          elements.".format(file[0])}
+                return status
+
+    return status
+
+
+def upload_images(username, file_list):
     """ Uploads multiple images to the database
 
     This function takes a list of images and uploads them
@@ -90,20 +173,47 @@ def upload_images(username, file_list, path):
 
     Args:
         username (str): user identifier
-        file_list (list): list of file paths
-        path (str): path to images being uploaded
+        file_list (list): list of files where each item in the list
+        is a list of the file's filename, b64 image, and an array of
+        what processing steps should be done
+            Example: file_list = [file1, file2]
+                    file1 = ["image1", b64_image1, [0, 1, 1, 0]]
+                    file2 = ["image1", b64_image1, [1, 0, 0, 1]]
+            Each processing steps array has a 1 if that process is
+            desired and 0 if not. In this example, image1 desires to
+            perform contrast stretching and log compression. Likewise,
+            image2 desired to perform histogram equalization and reverse
+            video.
 
     Returns:
-    status_codes (list): list of status codes for image upload
-    attempts
+        status_codes (list): list of status codes for each file being
+        uploaded
+            Each file has a list of status codes where the first one is
+            for uploading the original image and the preceding are for
+            uploading the processed versions specified through the
+            processing steps array provided.
+            If file_list is invalid, this return is a single status code.
     """
+    # Make sure input is valid
+    status = check_file_list(file_list)
+    if status["code"] != 200:
+        return status
+
+    # Define Processing Options
+    procs = ["Histogram Equalization", "Contrast Stretching",
+             "Log Compression", "Reverse Video"]
+
+    # Complete all uploading tasks and append with their status codes
     status_codes = []
-    if len(file_list) == 0:
-        print("No files were selected.")
-    else:
-        for filename in file_list:
-            status_codes.append(upload_image(username, filename,
-                                             path))
+    for file in file_list:
+        file_status = []
+        file_status.append(upload_image(username, file[0], file[1]))
+        for proc, do_proc in enumerate(file[2]):
+            if do_proc == 1:
+                proc_status = process_image(username, file[0],
+                                            file[1], procs[proc])
+                file_status.append(proc_status)
+        status_codes.append(file_status)
 
     return status_codes
 
@@ -241,9 +351,11 @@ if __name__ == "__main__":
     add_new_user("user1")
     puppy1 = read_img_as_b64("Pictures/Original/puppy1.jpg")
     puppy2 = read_img_as_b64("Pictures/Original/puppy2.jpg")
-    upload_image("user1", "puppy1", puppy1)
-    process_image("user1", "puppy2", puppy2, "Reverse Video")
-    download_image("user1", "puppy1", "Pictures/Downloaded/",
-                   "Original", ".jpg")
+    puppy3 = read_img_as_b64("Pictures/Original/puppy3.jpg")
+    file1 = ["puppy1", puppy1, [1, 0, 0, 0]]
+    file2 = ["puppy2", puppy2, [1, 1, 1, 1]]
+    file3 = ["puppy3", puppy3, [0, 0, 0, 0]]
+    status = upload_images("user1", [file1, file2, file3])
+    print(status)
     download_image("user1", "puppy2", "Pictures/Downloaded/",
-                   "Original", ".png")
+                   "Reverse Video", ".png")
