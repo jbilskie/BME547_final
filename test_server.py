@@ -1,6 +1,6 @@
 # test_server.py
 # Authors: Janet Chen, Kevin Chu
-# Last Modified: 4/21/19
+# Last Modified: 4/24/19
 
 from flask import Flask, jsonify, request
 from user import User
@@ -758,3 +758,59 @@ def test_exist_input(username, add_user, filename, add_orig, add_proc,
     # Remove user from database
     if add_user:
         user.delete()
+
+
+@pytest.mark.parametrize("username, add_user, expected_status, expected_found",
+                         # Invalid username
+                         [("", False,
+                           {"code": 400,
+                            "msg": "Field username cannot be empty."},
+                           False),
+
+                          # User not in database
+                          ("asdf", False,
+                           {"code": 404,
+                            "msg": "Username not found in database."},
+                           False),
+
+                          # Add and delete user
+                          ("asdf", True,
+                           {"code": 200,
+                            "msg": "Request was successful"},
+                           False),
+                          ])
+def test_delete_user(username, add_user, expected_status, expected_found):
+    """ Test the delete_user function
+
+    Args:
+        username (str): username
+        add_user (bool): whether to add user to database
+        expected_status (dict): expected status code and status message
+        expected_found (bool): whether the user is expected to exist in db
+
+    Returns:
+        none
+    """
+    from server import delete_user
+
+    # Create user if indicated
+    if add_user:
+        # Create user object
+        user = User(username=username)
+
+        # Save to database
+        user.save()
+
+    status = delete_user(username)
+
+    # Indicates whether deleted user is found (should be False)
+    try:
+        user = User.objects.raw({"_id": username}).first()
+        found = True
+    except:
+        user = None
+        found = False
+
+    assert (status["code"] == expected_status["code"] and
+            status["msg"] == expected_status["msg"] and
+            found is expected_found)
