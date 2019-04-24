@@ -122,13 +122,12 @@ def upload_image(username, filename, b64_string):
     Returns:
         status_code (int): whether image was successfully uploaded
     """
-    from image import read_img_as_b64
     from image import save_b64_img
 
     print("Asking server to upload image")
 
     # See if get_img_data was able to read the image
-    if b64string == "":
+    if b64_string == "":
         status_code = 404
         msg = "Image path is not valid."
         print("Returned: {}".format(msg))
@@ -179,7 +178,8 @@ def download_image(username, filename, path, proc_step, type_ext=".png"):
                      filename + "/" + proc_step)
     status_code = r.status_code
     if status_code != 200:
-        msg = r.text
+        img_info = {}
+        msg = r.text[1]
     else:
         results = json.loads(r.text)
         img_info = results[0]
@@ -236,13 +236,14 @@ def process_image(username, filename, b64_string, proc_step):
 
 
 if __name__ == "__main__":
-    add_new_user("user1")
-    add_new_user("user2")
+    from image import read_img_as_b64
     delete_user("user1")
-    delete_user("user_100")
-    upload_image("user2", "puppy2", "Pictures/Original/puppy2.jpg")
-    process_image("user2", "puppy7", "Pictures/Original/puppy7.jpg",
-                  "Reverse Video")
-    download_image("user2", "puppy7", "Pictures/Downloaded/",
-                   "Reverse Video")
-    delete_image("user2", "puppy7")
+    add_new_user("user1")
+    puppy1 = read_img_as_b64("Pictures/Original/puppy1.jpg")
+    puppy2 = read_img_as_b64("Pictures/Original/puppy2.jpg")
+    upload_image("user1", "puppy1", puppy1)
+    process_image("user1", "puppy2", puppy2, "Reverse Video")
+    download_image("user1", "puppy1", "Pictures/Downloaded/",
+                   "Original", ".jpg")
+    download_image("user1", "puppy2", "Pictures/Downloaded/",
+                   "Original", ".png")
