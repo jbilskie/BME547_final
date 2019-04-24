@@ -95,6 +95,28 @@ def image_to_b64(img):
     return b64_string
 
 
+def is_b64(b64_image):
+    """ Check if the input is a b64 image
+
+    This function decodes and then re-encodes a given string to check
+    whether it is a valid b64 string.
+
+    Args:
+        b64_image (str): string in question for b64 validity
+
+    Returns:
+        truth (Boolean): whether the string is b64 encoded
+    """
+    truth = False
+    if isinstance(b64_image, str) is True:
+        decode_encode = str(base64.b64encode(base64.b64decode(b64_image)),
+                            encoding='utf-8')
+        if decode_encode == b64_image:
+            truth = True
+
+    return truth
+
+
 def unzip(filename):
     """Unzips file at requested path
 
