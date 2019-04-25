@@ -95,10 +95,12 @@ def check_file_list(file_list, direction):
         is a list of the file's filename, b64 image, and an array of
         what processing steps should be done
             Example: file_list = [file1, file2]
-                    file1 = ["image1", b64_image1, [0, 0, 1, 1, 0]]
-                    file2 = ["image1", b64_image1, [1, 1, 0, 0, 1]]
-            Each processing steps array has a 1 if that process is
-            desired and 0 if not. In this example, image1 desires to
+                    file1 = ["image1", b64_image1,
+                             [False, False, True, True, False]]
+                    file2 = ["image1", b64_image1,
+                             [True, True, False, False, True]]
+            Each processing steps array has a True if that process is
+            desired and False if not. In this example, image1 desires to
             perform contrast stretching and log compression. Likewise,
             image2 desires the original and to perform histogram
             equalization and reverse video.
@@ -106,10 +108,12 @@ def check_file_list(file_list, direction):
         list is a list of the file's filename, image download type, and
         an array of what processing steps should be downloaded
             Example: file_list = [file1, file2]
-                    file1 = ["image1", ".jpg", [0, 0, 1, 1, 0]]
-                    file2 = ["image1", ".tiff", [1, 1, 0, 0, 1]]
-            Each processing steps array has a 1 if that process is
-            desired and 0 if not. In this example, image1 desires to
+                    file1 = ["image1", ".jpg",
+                             [False, False, True, True, False]]
+                    file2 = ["image1", ".tiff",
+                             [True, True, False, False, True]]
+            Each processing steps array has a True if that process is
+            desired and False if not. In this example, image1 desires to
             perform contrast stretching and log compression. Likewise,
             image2 desires the original and to perform histogram
             equalization and reverse video.
@@ -186,9 +190,9 @@ def check_file_list(file_list, direction):
                       .format(file[0])}
             return status
         for proc in file[2]:
-            if (proc != 0) and (proc != 1):
+            if isinstance(proc, bool) is False:
                 status = {"code": 400,
-                          "msg": "Processing array contains invalid \
+                          "msg": "Processing array contains non-Boolean \
                           elements.".format(file[0])}
                 return status
 
@@ -207,10 +211,12 @@ def upload_images(username, file_list):
         is a list of the file's filename, b64 image, and an array of
         what processing steps should be done
             Example: file_list = [file1, file2]
-                    file1 = ["image1", b64_image1, [0, 0, 1, 1, 0]]
-                    file2 = ["image1", b64_image1, [0, 1, 0, 0, 1]]
-            Each processing steps array has a 1 if that process is
-            desired and 0 if not. In this example, image1 desires to
+                    file1 = ["image1", b64_image1,
+                             [False, False, True, True, False]]
+                    file2 = ["image1", b64_image1,
+                             [False, True, False, False, True]]
+            Each processing steps array has a True if that process is
+            desired and False if not. In this example, image1 desires to
             perform contrast stretching and log compression. Likewise,
             image2 desired to perform histogram equalization and reverse
             video.
@@ -241,7 +247,7 @@ def upload_images(username, file_list):
             if proc == 0:
                 file_status.append(upload_image(username, file[0], file[1]))
             else:
-                if do_proc == 1:
+                if do_proc is True:
                     proc_status = process_image(username, file[0],
                                                 file[1], procs[proc])
                     file_status.append(proc_status)
@@ -263,9 +269,12 @@ def download_images(username, file_list, zip_path):
         is a list of the file's filename, image type, and an array of
         what processing steps should be done
             Example: file_list = [file1, file2, file3]
-                    file1 = ["image1", ".jpg", [0, 0, 1, 1, 0]]
-                    file2 = ["image2", ".png", [0, 1, 0, 0, 1]]
-                    file3 = ["image3", ".tiff", [1, 0, 0, 0, 0]]
+                    file1 = ["image1", ".jpg",
+                             [False, False, True, True, False]]
+                    file2 = ["image2", ".png",
+                             [False, True, False, False, True]]
+                    file3 = ["image3", ".tiff",
+                             [True, False, False, False, False]]
             Each processing steps array has a 1 if that process is
             desired and 0 if not. In this example, image1 desires to
             perform contrast stretching and log compression. Likewise,
@@ -279,8 +288,15 @@ def download_images(username, file_list, zip_path):
             only one version (Original or Processed) of the image is
             downloaded. If file_list is invalid, this return is a single
             status code.
+        img_infos (list): list of img_info for each file being
+        downloaded
+            Each file has a list of img_info dictionaries which is of
+            length one if only one version (Original or Processed) of
+            the image is downloaded. If file_list is invalid, this return
+            is a single img_info dictionary.
     """
     import zipfile
+    import os
 
     # Make sure input is valid
     status = check_file_list(file_list, "download")
@@ -293,36 +309,41 @@ def download_images(username, file_list, zip_path):
 
     # If one photo, just download it
     if len(file_list) == 1:
-        if sum(file_list[0][1]) == 1:
-            for proc, do_proc in enumerate(file[2]):
-                if do_proc == 1:
+        if file_list[0][2].count(True) == 1:
+            for proc, do_proc in enumerate(file_list[0][2]):
+                if do_proc is True:
                     proc_step = procs[proc]
-            _, status_code = download_image(username, file_list[0][0],
-                                            zip_path, proc_step,
-                                            file_list[0][1])
-    # Else start a directory to zip
-    else:
-        dir = "downloads/"
-        zipf = zipfile.ZipFile(zip_path + 'downloads.zip',
-                               'w', zipfile.ZIP_DEFLATED)
+            img_info, status_code = download_image(username, file_list[0][0],
+                                                   zip_path, proc_step,
+                                                   file_list[0][1])
+            return img_info, status_code
 
     # Complete all downloading tasks and append with their status codes
     status_codes = []
+    img_infos = []
+    os.mkdir(zip_path + 'temp')
     for file in file_list:
         file_status = []
+        file_infos = []
         for proc, do_proc in enumerate(file[2]):
-            if do_proc == 1:
-                _, proc_status = download_image(username, file[0],
-                                                zip_path + "Downloaded/",
-                                                procs[proc], file[1])
+            if do_proc is True:
+                proc_infos, proc_status = download_image(username, file[0],
+                                                         zip_path + 'temp/',
+                                                         procs[proc],
+                                                         file[1])
                 file_status.append(proc_status)
+                file_infos.append(proc_infos)
         status_codes.append(file_status)
+        img_infos.append(file_infos)
 
     # Zip the downloads
-    zipdir('./Pictures/Downloaded', zipf)
+    zipf = zipfile.ZipFile(zip_path + 'downloads.zip',
+                           'w', zipfile.ZIP_DEFLATED)
+    zipdir(zip_path + 'temp/', zipf)
+    os.rmdir('temp')
     zipf.close()
 
-    return status_codes
+    return img_infos, status_codes
 
 
 def zipdir(path, ziph):
@@ -346,6 +367,7 @@ def zipdir(path, ziph):
         for file in files:
             ziph.write(os.path.join(root, file))
             os.remove(file)
+    os.chdir('..')
 
 
 def upload_image(username, filename, b64_string):
@@ -486,13 +508,14 @@ if __name__ == "__main__":
     puppy1 = read_img_as_b64("Pictures/Original/puppy1.jpg")
     puppy2 = read_img_as_b64("Pictures/Original/puppy2.jpg")
     puppy3 = read_img_as_b64("Pictures/Original/puppy3.jpg")
-    file1 = ["puppy1", puppy1, [1, 1, 0, 0, 0]]
-    file2 = ["puppy2", puppy2, [1, 1, 1, 1, 1]]
-    file3 = ["puppy3", puppy3, [1, 0, 0, 0, 0]]
+    file1 = ["puppy1", puppy1, [True, True, False, False, False]]
+    file2 = ["puppy2", puppy2, [True, True, True, True, True]]
+    file3 = ["puppy3", puppy3, [True, False, False, False, False]]
     status = upload_images("user1", [file1, file2, file3])
     print(status)
-    file1 = ["puppy1", ".jpg", [1, 1, 0, 0, 0]]
-    file2 = ["puppy2", ".png", [1, 1, 1, 1, 1]]
-    file3 = ["puppy3", ".tiff", [1, 0, 0, 0, 0]]
-    status = download_images("user1", [file1, file2, file3], "Pictures/")
+    file1 = ["puppy1", ".jpg", [True, True, False, False, False]]
+    file2 = ["puppy2", ".png", [True, True, True, True, True]]
+    file3 = ["puppy3", ".tiff", [True, False, False, False, False]]
+    img_info, status = download_images("user1", [file1, file2, file3],
+                                       "Pictures/Downloaded/")
     print(status)
