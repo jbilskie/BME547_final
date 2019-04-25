@@ -398,6 +398,7 @@ def download_image(username, filename, path, proc_step, type_ext=".png"):
         username (str): user identifier
         filename (str): name of file
         path (str): path to where image should be downloaded
+            If path is 'none', image isn't saved to a location.
         proc_step (str): type of image being asked for such as
         "Original", "Histogram Equalization", "Contrast Stretching",
         "Log Compression", "Reverse Video"
@@ -424,7 +425,10 @@ def download_image(username, filename, path, proc_step, type_ext=".png"):
         results = json.loads(r.text)
         img_info = results[0]
         msg = results[1]
-        save_b64_img(img_info["image"], path+filename+proc_step+type_ext)
+        if path == 'none':
+            pass
+        else:
+            save_b64_img(img_info["image"], path+filename+proc_step+type_ext)
     print("Returned: {}".format(msg))
     print("Status: {}".format(status_code))
 
