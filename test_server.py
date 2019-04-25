@@ -1,6 +1,6 @@
 # test_server.py
 # Authors: Janet Chen, Kevin Chu
-# Last Modified: 4/24/19
+# Last Modified: 4/21/19
 
 from flask import Flask, jsonify, request
 from user import User
@@ -8,12 +8,14 @@ import numpy as np
 import pytest
 from pymodm import connect, MongoModel, fields
 from gui import get_img_data
-from image import image_to_b64
+from image import image_to_b64, read_img_as_b64
+from client import delete_user, add_new_user
 from server import *
-from user import User
+from datetime import datetime as dt
+app = Flask(__name__)
 
 db = "mongodb+srv://jmb221:bme547@bme547-kcuog.mongodb.net"
-database = connect(db + "/BME547?retryWrites=true")
+connect(db + "/BME547?retryWrites=true")
 
 
 @pytest.mark.parametrize("input, times, exp",
@@ -57,9 +59,86 @@ def test_process_new_user(input, times, exp):
         pass
     else:
         user.delete()
+        # delete_user(input["username"])
 
     for i in range(times):
         status = process_new_user(input)
+    assert status == exp
+
+
+@pytest.mark.parametrize("input, exp", [("abc", True),
+                                        ("USER", True),
+                                        ("Holla123", True)])
+def test_register_new_user(input, exp):
+    """Tests register_new_user
+
+    Check that a new user is correctly registered to the MongoDB
+    database. Based on GUI code and process_new_user, the input
+    is already a valid string, so we just need to test that the
+    function actually adds a new user to the database.
+
+    Args:
+        input (str): inputted username
+        exp (str): username found in database
+
+    Returns:
+        none
+    """
+    # Delete user if it does exist
+    try:
+        user = User.objects.raw({"_id": input}).first()
+    except:
+        pass
+    else:
+        user.delete()
+        # delete_user(input)
+
+    new_user = User(username=input)
+    new_user.save()
+    # add_new_user(input)
+
+    try:
+        user_in_database = User.objects.raw({"_id": input}).first()
+        success = True
+        user_in_database.delete()
+        # delete_user(input)
+    except:
+        success = False
+    assert success == exp
+
+
+@pytest.mark.parametrize("input, exp",
+                         [(("username", ""),
+                           {"code": 400,
+                            "msg": "Field username cannot be empty."
+                            }),
+                          (("filename", ""),
+                           {"code": 400,
+                            "msg": "Field filename cannot be empty."
+                            }),
+                          (("username", "student"),
+                           {"code": 200,
+                            "msg": "Request was successful"
+                            }),
+                          (("filename", "a.jpg"),
+                           {"code": 200,
+                            "msg": "Request was successful"
+                            })])
+def test_validate_new_input(input, exp):
+    """Tests validate_new_input
+
+    Tests whether a dictionary value is non-empty. Original
+    function assumes the second argument is a string based on
+    GUI input handling.
+
+    Args:
+        input (list): test inputs
+        exp (dict): tested status message
+
+    Returns:
+        none
+    """
+    status = validate_input(input[0], input[1])
     assert status == exp
 
 
@@ -92,6 +171,7 @@ def test_check_user_exists(input, exists, exp):
         except:
             user = User(username=input)
             user.save()
+            # add_new_user(input)
     # If user should not exist, delete it if it does exist
     else:
         try:
@@ -100,199 +180,10 @@ def test_check_user_exists(input, exists, exp):
             pass
         else:
             user.delete()
+            # delete_user(input)
 
     status = check_user_exists(input)
     assert status == exp
-
-
-@pytest.mark.parametrize("input, exp", [("abc", True),
-                                        ("USER", True),
-                                        ("Holla123", True)])
-def test_register_new_user(input, exp):
-    """Tests register_new_user
-
-    Check that a new user is correctly registered to the MongoDB
-    database. Based on GUI code and process_new_user, the input
-    is already a valid string, so we just need to test that the
-    function actually adds a new user to the database.
-
-    Args:
-        input (str): inputted username
-        exp (str): username found in database
-
-    Returns:
-        none
-    """
-    # Delete user if it does exist
-    try:
-        user = User.objects.raw({"_id": input}).first()
-    except:
-        pass
-    else:
-        user.delete()
-
-    new_user = User(username=input)
-    new_user.save()
-
-    try:
-        user_in_database = User.objects.raw({"_id": input}).first()
-        success = True
-    except:
-        success = False
-    assert success == exp
-    new_user.delete()
-
-
-@pytest.mark.parametrize("input, exp",
-                         [(("username", ""),
-                           {"code": 400,
-                            "msg": "Field username cannot be empty."
-                            }),
-                          (("filename", ""),
-                           {"code": 400,
-                            "msg": "Field filename cannot be empty."
-                            }),
-                          (("username", "student"),
-                           {"code": 200,
-                            "msg": "Request was successful"
-                            }),
-                          (("filename", "a.jpg"),
-                           {"code": 200,
-                            "msg": "Request was successful"
-                            })])
-def test_validate_input(input, exp):
-    """Tests validate_input
-
-    Tests whether a dictionary value is non-empty. Original
-    function assumes the second argument is a string based on
-    GUI input handling.
-
-    Args:
-        input (list): test inputs
-        exp (dict): tested status message
-
-    Returns:
-        none
-    """
-    status = validate_input(input[0], input[1])
-    assert status == exp
-
-
-@pytest.mark.parametrize("input, img_exists, exp",
-                         [({"username": "lalala",
-                            "filename": ""}, False,
-                           {"code": 400,
-                            "msg": "Field filename cannot be empty."
-                            }),
-                          ({"username": "",
-                            "filename": "test_image/orion.jpg"},
-                           True,
-                           {"code": 400,
-                            "msg": "Field username cannot be empty."
-                            }),
-                          ({"username": "whooptidoo",
-                            "filename": "blah.jpg"}, False,
-                           {"code": 400,
-                            "msg": "Field image cannot be empty."
-                            }),
-                          ({"username": "jonsnow",
-                            "filename": "test_image/blank.png"},
-                           True,
-                           {"code": 200,
-                            "msg": "Request was successful"})])
-def test_process_image_upload(input, img_exists, exp):
-    """Tests process_image_upload
-
-    Tests whether request to upload images to the database is
-    correctly processed. All input data have been previously
-    verified as strings. If a filename doesn't correspond to an
-    image, the image field will be an empty string.
-    Note: the final test takes a while to run because it posts
-    an image to the database.
-
-    Args:
-        input (dict): dictionary containing username and filename
-        img_exists (bool): whether image exists
-        exp (dict): expected status dictionary
-    Returns:
-        none
-    """
-    # Initialize user if it does not exist
-    try:
-        user = User.objects.raw({"_id": input}).first()
-    except:
-        if input["username"] != "":
-            user = User(username=input["username"])
-            user.save()
-
-    if img_exists:
-        # get_img_data takes in a list
-        image, _, _ = get_img_data([input["filename"]])
-        input["image"] = image[0]
-    else:
-        input["image"] = ""
-    output = process_image_upload(input)
-    assert output == exp
-
-# def test_validate_user
-
-
-@pytest.mark.parametrize("input, exp", [("test_image/orion.jpg",
-                                         (1600, 1200)),
-                                        ("test_image/sky.jpg",
-                                         (930, 620)),
-                                        ("test_image/test_1.jpg",
-                                         (1, 1)),
-                                        ("test_image/test_3.png",
-                                         (1, 1)),
-                                        ("test_image/test_4.tiff",
-                                         (1, 1))])
-def test_get_img_size(input, exp):
-    """Tests get_img_size function
-
-    Tests whether image size is correctly calculated from its base64
-    representation. Assumes the function input is in the proper format.
-
-    Args:
-        input (string): input filename
-        exp (tuple): expected image dimensions
-
-    Returns:
-        none
-    """
-    image_string, _, _ = get_img_data([input])
-    out = get_img_size(image_string[0])
-    assert out == exp
-
-
-@pytest.mark.parametrize("inputs, exp",
-                         [({"username": "danyt",
-                            "filename": "test_image/orion.jpg"},
-                           True),
-                          ({"username": "tyrionl",
-                            "filename": "test_image/blank.png"},
-                           True)])
-def test_upload_image(inputs, exp):
-    """Tests upload_image function
-
-    Checks whether images are properly uploaded. Assumes request is valid,
-    because status is checked by function process_image_upload prior to call.
-
-    Args:
-        input (string): input filename
-        exp ():
-
-    Returns:
-        none
-    """
-
-# def test_process_process_image
-
-# def test_run_image_processing
-
-# def test_equalize_histogram
-
-# def test_stretch_contrast
 
 
 @pytest.mark.parametrize("img_info, exist_orig, exist_proc,"
@@ -658,6 +549,187 @@ def test_process_image_download(input_img_info, add_user, add_orig, add_proc,
         user.delete()
 
 
+@pytest.mark.parametrize("input, img_exists, exp",
+                         [({"username": "lalala",
+                            "filename": ""}, False,
+                           {"code": 400,
+                            "msg": "Field filename cannot be empty."
+                            }),
+                          ({"username": "",
+                            "filename": "test_image/orion.jpg"},
+                           True,
+                           {"code": 400,
+                            "msg": "Field username cannot be empty."
+                            }),
+                          ({"username": "whooptidoo",
+                            "filename": "blah.jpg"}, False,
+                           {"code": 400,
+                            "msg": "Field image cannot be empty."
+                            }),
+                          ({"username": "jonsnow",
+                            "filename": "test_image/blank.png"},
+                           True,
+                           {"code": 200,
+                            "msg": "Request was successful"})])
+def test_process_image_upload(input, img_exists, exp):
+    """Tests process_image_upload
+
+    Tests whether request to upload images to the database is
+    correctly processed. All input data have been previously
+    verified as strings. If a filename doesn't correspond to an
+    image, the image field will be an empty string.
+    Note: the final test takes a while to run because it posts
+    an image to the database.
+
+    Args:
+        input (dict): dictionary containing username and filename
+        img_exists (bool): whether image exists
+        exp (dict): expected status dictionary
+    Returns:
+        none
+    """
+    # Initialize user if it does not exist
+    try:
+        user = User.objects.raw({"_id": input}).first()
+    except:
+        if input["username"] != "":
+            user = User(username=input["username"])
+            user.save()
+            # add_new_user(input["username"])
+
+    if img_exists:
+        # get_img_data takes in a list
+        image, _, _ = get_img_data([input["filename"]])
+        input["image"] = image[0]
+    else:
+        input["image"] = ""
+    output = process_image_upload(input)
+    assert output == exp
+
+
+@pytest.mark.parametrize("input, exp", [("test_image/orion.jpg",
+                                         (1600, 1200)),
+                                        ("test_image/sky.jpg",
+                                         (930, 620)),
+                                        ("test_image/test_1.jpg",
+                                         (1, 1)),
+                                        ("test_image/test_3.png",
+                                         (1, 1)),
+                                        ("test_image/test_4.tiff",
+                                         (1, 1))])
+def test_get_img_size(input, exp):
+    """Tests get_img_size function
+
+    Tests whether image size is correctly calculated from its base64
+    representation. Assumes the function input is in the proper format.
+
+    Args:
+        input (string): input filename
+        exp (tuple): expected image dimensions
+
+    Returns:
+        none
+    """
+    image_string, _, _ = get_img_data([input])
+    out = get_img_size(image_string[0])
+    assert out == exp
+
+
+@pytest.mark.parametrize("img_info, first_image, exp_i, exp_i2, exp_a",
+                         [({"username": "danyt",
+                            "filename": "orion.jpg",
+                            "image":
+                            read_img_as_b64("test_image/orion.jpg")},
+                           True, 2, 2, "Uploaded Image"),
+                          ({"username": "danyt",
+                            "filename": "orion.jpg",
+                            "image":
+                            read_img_as_b64("test_image/orion.jpg")},
+                           False, 1, 3, "Updated Image"),
+                          ({"username": "tyrionl",
+                            "filename": "blank.png",
+                            "image":
+                            read_img_as_b64("test_image/blank.png")},
+                           True, 2, 2, "Uploaded Image")])
+def test_upload_image(img_info, first_image, exp_i, exp_i2, exp_a):
+    """Tests upload_image function
+
+    Checks whether images are properly uploaded. Assumes request is valid,
+    because status is checked by function process_image_upload prior to call.
+    Also checks that, if an image is uploaded by a user with a filename
+    they previously used, the function updates (overwrites) that image.
+
+    Args:
+        img_info (dict): dictionary containing image information (username,
+        filename, image, size, timestamp, b64 string)
+        first_image (bool): whether this is the first image with this
+        filename uploaded by the user
+        exp_i (int): expected index of the image that has been uploaded
+        exp_i2 (int): expected index of the action string
+        exp_a (str): expected string added to user.actions
+
+    Returns:
+        none
+    """
+    time_1 = str(dt.now())
+    time_2 = str(dt.now())
+    time_3 = str(dt.now())
+    time_4 = str(dt.now())
+    # Delete user if it already exists
+    try:
+        existing_user = User.objects.raw({"_id": img_info["username"]}).first()
+    except:
+        pass
+    else:
+        existing_user.delete()
+        # delete_user(img_info["username"])
+    # Create user
+    user = User(username=img_info["username"])
+    user.save()
+    # add_new_user(img_info["username"])
+
+    # Other images
+    img2_path = "test_image/sky.jpg"
+    img2_info = {"username": img_info["username"],
+                 "filename": "sky.jpg",
+                 "image": read_img_as_b64(img2_path),
+                 "timestamp": time_1}
+    img2_info["size"] = get_img_size(img2_info["image"])
+    img3_path = "test_image/test_4.tiff"
+    img3_info = {"username": img_info["username"],
+                 "filename": "test_4.tiff",
+                 "image": read_img_as_b64(img3_path),
+                 "timestamp": time_3}
+    img3_info["size"] = get_img_size(img3_info["image"])
+
+    # Upload image 2
+    upload_image(img2_info)
+
+    img_info["size"] = list(get_img_size(img_info["image"]))
+    if not first_image:
+        # First time this image was uploaded for test case 2
+        img_info["timestamp"] = time_2
+        upload_image(img_info)
+
+    # Helps test that the correct index is replaced
+    upload_image(img3_info)
+    # Upload image. If "first_image" is false, this is the second time
+    # the same image is uploaded. If it's true, this is the first time.
+    # If false, expect this image to replace the previous image of the
+    # same filename at the same location.
+    img_info["timestamp"] = time_4
+    upload_image(img_info)
+
+    # Collect user information
+    user = User.objects.raw({"_id": img_info["username"]}).first()
+    print(user.actions)
+
+    # Check that image information and action for user are as expected
+    # at the specific index
+    assert (user.orig_img[exp_i] == img_info and
+            user.actions[exp_i2] == exp_a)
+
+
 @pytest.mark.parametrize("username, add_user, filename, add_orig, add_proc,"
                          "proc_step, expected",
                          # User and file don't exist
@@ -766,134 +838,5 @@ def test_exist_input(username, add_user, filename, add_orig, add_proc,
             status["msg"] == expected["msg"])
 
     # Remove user from database
-    if add_user:
-        user.delete()
-
-
-@pytest.mark.parametrize("username, add_user, expected_status, expected_found",
-                         # Invalid username
-                         [("", False,
-                           {"code": 400,
-                            "msg": "Field username cannot be empty."},
-                           False),
-
-                          # User not in database
-                          ("asdf", False,
-                           {"code": 404,
-                            "msg": "Username not found in database."},
-                           False),
-
-                          # Add and delete user
-                          ("asdf", True,
-                           {"code": 200,
-                            "msg": "Request was successful"},
-                           False),
-                          ])
-def test_delete_user(username, add_user, expected_status, expected_found):
-    """ Test the delete_user function
-
-    Args:
-        username (str): username
-        add_user (bool): whether to add user to database
-        expected_status (dict): expected status code and status message
-        expected_found (bool): whether the user is expected to exist in db
-
-    Returns:
-        none
-    """
-    from server import delete_user
-
-    # Create user if indicated
-    if add_user:
-        # Create user object
-        user = User(username=username)
-
-        # Save to database
-        user.save()
-
-    status = delete_user(username)
-
-    # Indicates whether deleted user is found (should be False)
-    try:
-        user = User.objects.raw({"_id": username}).first()
-        found = True
-    except:
-        user = None
-        found = False
-
-    assert (status["code"] == expected_status["code"] and
-            status["msg"] == expected_status["msg"] and
-            found is expected_found)
-
-
-@pytest.mark.parametrize("username, add_user, filename, add_img,"
-                         "expected_status, expected_found",
-                         # Invalid username
-                         [("", False, "file.jpg", False,
-                           {"code": 400,
-                            "msg": "Field username cannot be empty."},
-                           False),
-
-                          # Username not found
-                          ("asdf", False, "file.jpg", False,
-                           {"code": 404,
-                            "msg": "Username not found in database."},
-                           False),
-
-                          # Filename not found
-                          ("asdf", True, "file.jpg", False,
-                           {"code": 404,
-                            "msg": "Filename not found in database."},
-                           False),
-
-                          # File is found
-                          ("asdf", True, "file.jpg", True,
-                           {"code": 200,
-                            "msg": "Request was successful"},
-                           False),
-                          ])
-def test_delete_img(username, add_user, filename, add_img,
-                    expected_status, expected_found):
-    """ Test the delete_img function
-
-    Args:
-        username (str): username linked to filename to delete
-        add_user (bool): whether to add user to database
-        filename (str): filename to delete
-        add_img (bool): whether to add image to database
-        expected_status (dict): expected status code and status message
-        expected_found (bool): whether the file is expected to exist in db
-    """
-    from server import delete_img
-
-    # Create user if indicated
-    if add_user:
-        # Create user object
-        user = User(username=username)
-
-        # Create original and processed images if indicated
-        if add_img:
-            user.orig_img.append({"filename": filename})
-            user.proc_img.append({"filename": filename})
-
-        # Save to database
-        user.save()
-
-    status = delete_img(username, filename)
-
-    # Indicates whether deleted image is found (should be False)
-    try:
-        user = User.objects.raw({"_id": username}).first()
-        orig_img = user.orig_img[-1]
-        proc_img = user.proc_img[-1]
-        found = True
-    except:
-        found = False
-
-    assert (status["code"] == expected_status["code"] and
-            status["msg"] == expected_status["msg"] and
-            found is expected_found)
-
-    # Delete added user
     if add_user:
         user.delete()
