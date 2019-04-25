@@ -45,3 +45,8 @@ if __name__ == '__main__':
     # Test image 4
     test_image4 = "test_image/test4.tiff"
     save_array_as_img(img1, test_image4)
+
+    # Test image 5
+    img5 = (np.array([[[255, 0, 0]]], dtype="uint8"))
+    test_image5 = "test_image/test5.png"
+    save_array_as_img(img5, test_image5)

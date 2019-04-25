@@ -163,5 +163,5 @@ def unzip(filename):
 
 
 if __name__ == '__main__':
-    a = read_img_as_b64("test_image/test4.tiff")
+    a = read_img_as_b64("test_image/test5.png")
     print(a)
