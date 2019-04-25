@@ -11,7 +11,7 @@ from matplotlib import image as mpimg
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 # matplotlib.use("TkAgg")
 
-url = "http://vcm-9111.vm.duke.edu:5000"
+url = "http://vcm-9111.vm.duke.edu:5000/"
 
 
 def editing_window():
