@@ -607,6 +607,41 @@ def test_process_image_upload(input, img_exists, exp):
     assert output == exp
 
 
+@pytest.mark.parametrize("username, add_user, expected_status",
+                         [("asdf", False,
+                           {"code": 404,
+                            "msg": "Username not found in database."}),
+                          ("asdf", True,
+                           {"code": 200,
+                            "msg": "Request was successful"})])
+def test_validate_user(username, add_user, expected_status):
+    """ Test the validate_user function
+
+    This function tests that validate_user correctly identifies whether
+    a user exists in the database.
+
+    Args:
+        username (str): username
+        add_user (bool): whether to add user to database
+        expected_status (dict): expected status code and message
+
+    Returns:
+        none
+    """
+    from server import validate_user
+
+    if add_user:
+        user = User(username=username)
+        user.save()
+
+    user, status = validate_user(username)
+
+    assert status == expected_status
+
+    if add_user:
+        user.delete()
+
+
 @pytest.mark.parametrize("input, exp", [("test_image/orion.jpg",
                                          (1600, 1200)),
                                         ("test_image/sky.jpg",
