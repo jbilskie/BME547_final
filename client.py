@@ -5,7 +5,7 @@
 import requests
 from pymodm import connect, MongoModel, fields
 
-url = "http://vcm-9111.vm.duke.edu:5000"
+url = "http://vcm-9111.vm.duke.edu:5000/"
 
 
 def add_new_user(username):
