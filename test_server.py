@@ -8,12 +8,14 @@ import numpy as np
 import pytest
 from pymodm import connect, MongoModel, fields
 from gui import get_img_data
-from image import image_to_b64
+from image import image_to_b64, read_img_as_b64
+from client import delete_user, add_new_user
 from server import *
-from user import User
+from datetime import datetime as dt
+app = Flask(__name__)
 
 db = "mongodb+srv://jmb221:bme547@bme547-kcuog.mongodb.net"
-database = connect(db + "/BME547?retryWrites=true")
+connect(db + "/BME547?retryWrites=true")
 
 
 @pytest.mark.parametrize("input, times, exp",
@@ -57,6 +59,7 @@ def test_process_new_user(input, times, exp):
         pass
     else:
         user.delete()
+        # delete_user(input["username"])
 
     for i in range(times):
         status = process_new_user(input)
@@ -87,18 +90,20 @@ def test_register_new_user(input, exp):
     except:
         pass
     else:
-        user.delete()
+        # user.delete()
+        delete_user(input)
 
-    new_user = User(username=input)
-    new_user.save()
+    # new_user = User(username=input)
+    # new_user.save()
+    add_new_user(input)
 
     try:
         user_in_database = User.objects.raw({"_id": input}).first()
         success = True
+        delete_user(input)
     except:
         success = False
     assert success == exp
-    new_user.delete()
 
 
 @pytest.mark.parametrize("input, exp",
@@ -163,8 +168,9 @@ def test_check_user_exists(input, exists, exp):
         try:
             user = User.objects.raw({"_id": input}).first()
         except:
-            user = User(username=input)
-            user.save()
+            # user = User(username=input)
+            # user.save()
+            add_new_user(input)
     # If user should not exist, delete it if it does exist
     else:
         try:
@@ -172,7 +178,8 @@ def test_check_user_exists(input, exists, exp):
         except:
             pass
         else:
-            user.delete()
+            # user.delete()
+            delete_user(input)
 
     status = check_user_exists(input)
     assert status == exp
@@ -585,8 +592,9 @@ def test_process_image_upload(input, img_exists, exp):
         user = User.objects.raw({"_id": input}).first()
     except:
         if input["username"] != "":
-            user = User(username=input["username"])
-            user.save()
+            # user = User(username=input["username"])
+            # user.save()
+            add_new_user(input["username"])
 
     if img_exists:
         # get_img_data takes in a list
@@ -626,26 +634,99 @@ def test_get_img_size(input, exp):
     assert out == exp
 
 
-@pytest.mark.parametrize("inputs, exp",
+@pytest.mark.parametrize("img_info, first_image, exp_i, exp_i2, exp_a",
                          [({"username": "danyt",
-                            "filename": "test_image/orion.jpg"},
-                           True),
+                            "filename": "orion.jpg",
+                            "image":
+                            read_img_as_b64("test_image/orion.jpg")},
+                           True, 2, 3, "Uploaded Image"),
+                          ({"username": "danyt",
+                            "filename": "orion.jpg",
+                            "image":
+                            read_img_as_b64("test_image/orion.jpg")},
+                           False, 1, 4, "Updated Image"),
                           ({"username": "tyrionl",
-                            "filename": "test_image/blank.png"},
-                           True)])
-def test_upload_image(inputs, exp):
+                            "filename": "blank.png",
+                            "image":
+                            read_img_as_b64("test_image/blank.png")},
+                           True, 2, 3, "Uploaded Image")])
+def test_upload_image(img_info, first_image, exp_i, exp_i2, exp_a):
     """Tests upload_image function
 
     Checks whether images are properly uploaded. Assumes request is valid,
     because status is checked by function process_image_upload prior to call.
+    Also checks that, if an image is uploaded by a user with a filename
+    they previously used, the function updates (overwrites) that image.
 
     Args:
-        input (string): input filename
-        exp ():
+        img_info (dict): dictionary containing image information (username,
+        filename, image, size, timestamp, b64 string)
+        first_image (bool): whether this is the first image with this
+        filename uploaded by the user
+        exp_i (int): expected index of the image that has been uploaded
+        exp_i2 (int): expected index of the action string
+        exp_a (str): expected string added to user.actions
 
     Returns:
         none
     """
+    time_1 = str(dt.now())
+    time_2 = str(dt.now())
+    time_3 = str(dt.now())
+    time_4 = str(dt.now())
+    # Delete user if it already exists
+    try:
+        existing_user = User.objects.raw({"_id": img_info["username"]}).first()
+    except:
+        pass
+    else:
+        # existing_user.delete()
+        delete_user(img_info["username"])
+    # Create user
+    # user = User(username=img_info["username"])
+    # user.save()
+    add_new_user(img_info["username"])
+
+    # Other images
+    img2_path = "test_image/sky.jpg"
+    img2_info = {"username": img_info["username"],
+                 "filename": "sky.jpg",
+                 "image": read_img_as_b64(img2_path),
+                 "timestamp": time_1}
+    img2_info["size"] = get_img_size(img2_info["image"])
+    img3_path = "test_image/test_4.tiff"
+    img3_info = {"username": img_info["username"],
+                 "filename": "test_4.tiff",
+                 "image": read_img_as_b64(img3_path),
+                 "timestamp": time_3}
+    img3_info["size"] = get_img_size(img3_info["image"])
+
+    # Upload image 2
+    upload_image(img2_info)
+
+    img_info["size"] = list(get_img_size(img_info["image"]))
+    if not first_image:
+        # First time this image was uploaded for test case 2
+        img_info["timestamp"] = time_2
+        upload_image(img_info)
+
+    # Helps test that the correct index is replaced
+    upload_image(img3_info)
+    # Upload image. If "first_image" is false, this is the second time
+    # the same image is uploaded. If it's true, this is the first time.
+    # If false, expect this image to replace the previous image of the
+    # same filename at the same location.
+    img_info["timestamp"] = time_4
+    upload_image(img_info)
+
+    # Collect user information
+    user = User.objects.raw({"_id": img_info["username"]}).first()
+    print(user.actions)
+
+    # Check that image information and action for user are as expected
+    # at the specific index
+    assert (user.orig_img[exp_i] == img_info and
+            user.actions[exp_i2] == exp_a)
 
 
 @pytest.mark.parametrize("username, add_user, filename, add_orig, add_proc,"
