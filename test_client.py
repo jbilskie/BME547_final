@@ -5,7 +5,6 @@
 from user import User
 import numpy as np
 import pytest
-from client import *
 from image import read_img_as_b64
 
 good_img1 = read_img_as_b64("test_client_images/test1.jpg")
@@ -66,5 +65,7 @@ def test_upload_check_file_list(file_list, exp_status_code):
     Returns:
         none
     """
+    from client import check_file_list
+
     status = check_file_list(file_list, "upload")
     assert status['code'] == exp_status_code
