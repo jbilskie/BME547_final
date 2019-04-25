@@ -321,6 +321,7 @@ def download_images(username, file_list, zip_path):
     # Complete all downloading tasks and append with their status codes
     status_codes = []
     img_infos = []
+    cwd = os.getcwd()
     os.mkdir(zip_path + 'temp')
     for file in file_list:
         file_status = []
@@ -337,11 +338,13 @@ def download_images(username, file_list, zip_path):
         img_infos.append(file_infos)
 
     # Zip the downloads
-    zipf = zipfile.ZipFile(zip_path + 'downloads.zip',
-                           'w', zipfile.ZIP_DEFLATED)
-    zipdir(zip_path + 'temp/', zipf)
-    os.rmdir('temp')
-    zipf.close()
+    if zip_path != 'none':
+        zipf = zipfile.ZipFile(zip_path + 'downloads.zip',
+                               'w', zipfile.ZIP_DEFLATED)
+        zipdir(zip_path + 'temp/', zipf)
+        zipf.close()
+    os.chdir(cwd)
+    os.rmdir(zip_path + 'temp')
 
     return img_infos, status_codes
 
@@ -367,7 +370,6 @@ def zipdir(path, ziph):
         for file in files:
             ziph.write(os.path.join(root, file))
             os.remove(file)
-    os.chdir('..')
 
 
 def upload_image(username, filename, b64_string):
@@ -507,17 +509,38 @@ if __name__ == "__main__":
     from image import read_img_as_b64
     delete_user("user1")
     add_new_user("user1")
+
+    # Uploading Examples
     puppy1 = read_img_as_b64("Pictures/Original/puppy1.jpg")
     puppy2 = read_img_as_b64("Pictures/Original/puppy2.jpg")
     puppy3 = read_img_as_b64("Pictures/Original/puppy3.jpg")
+    puppy4 = read_img_as_b64("Pictures/Original/puppy4.jpg")
     file1 = ["puppy1", puppy1, [True, True, False, False, False]]
     file2 = ["puppy2", puppy2, [True, True, True, True, True]]
     file3 = ["puppy3", puppy3, [True, False, False, False, False]]
+    file4 = ["puppy4", puppy4, [True, False, False, False, False]]
+    # Example uploading multiple images
     status = upload_images("user1", [file1, file2, file3])
+    # Example uploading single image
+    status = upload_images("user1", [file4])
     print(status)
+
+    # Downloading Examples
     file1 = ["puppy1", ".jpg", [True, True, False, False, False]]
     file2 = ["puppy2", ".png", [True, True, True, True, True]]
     file3 = ["puppy3", ".tiff", [True, False, False, False, False]]
+    # Example download (no saving) multiple images
+    img_info, status = download_images("user1", [file1, file2, file3],
+                                       "none")
+    print(status)
+    # Example download (no saving) single image
+    img_info, status = download_images("user1", [file3], "none")
+    print(status)
+    # Example download (saving) multiple images
     img_info, status = download_images("user1", [file1, file2, file3],
                                        "Pictures/Downloaded/")
+    print(status)
+    # Exampe download (saving) single image
+    img_info, status = download_images("user1", [file3],
+                                       "Pictures/")
     print(status)
