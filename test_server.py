@@ -951,6 +951,37 @@ def test_equalize_histogram(orig_img, expected):
     assert np.array_equal(proc_img, expected)
 
 
+@pytest.mark.parametrize("orig_img, expected",
+                         # Grayscale image
+                         [((np.array([[100, 128], [128, 200]], dtype="uint8")),
+                           (np.array([[0, 71], [71, 255]], dtype="uint8"))),
+
+                          # Color image
+                          ((np.array([[[255, 200, 200], [200, 255, 200]]],
+                                     dtype="uint8")),
+                           (np.array([[[255, 0, 0], [0, 255, 0]]],
+                                     dtype="uint8"))),
+                          ])
+def test_stretch_contrast(orig_img, expected):
+    """ Test the stretch_constrast function
+
+    This function ensures that the stretch_contrast function properly
+    computes the contrast stretched image.
+
+    Args:
+        orig_img (np.array): unprocessed image as RGB or grayscale intensities
+        expected (np.array): expected processed image
+
+    Returns:
+        none
+    """
+    from server import stretch_contrast
+
+    proc_img = stretch_contrast(orig_img)
+
+    assert np.array_equal(proc_img, expected)
+
+
 @pytest.mark.parametrize("username, add_user, filename, add_orig, add_proc,"
                          "proc_step, expected",
                          # User and file don't exist
