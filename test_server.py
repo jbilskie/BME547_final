@@ -910,12 +910,43 @@ def test_run_image_processing(orig_img, proc_step, expected):
         expected (np.array): expected processed image
 
     Returns:
-        proc_img (np.array): processed image
+        none
     """
     from server import run_image_processing
 
     proc_img = run_image_processing(orig_img, proc_step)
     print(proc_img)
+
+    assert np.array_equal(proc_img, expected)
+
+
+@pytest.mark.parametrize("orig_img, expected",
+                         # Grayscale image
+                         [((np.array([[0, 128], [128, 255]], dtype="uint8")),
+                           (np.array([[63, 191], [191, 255]], dtype="uint8"))),
+
+                          # Color image
+                          ((np.array([[[255, 0, 0], [0, 255, 0]]],
+                                     dtype="uint8")),
+                           (np.array([[[255, 127, 255], [127, 255, 255]]],
+                                     dtype="uint8"))),
+                          ])
+def test_equalize_histogram(orig_img, expected):
+    """ Test the equalize_histogram function
+
+    This function ensures that the equalize_histogram function properly
+    computes the histogram equalized image.
+
+    Args:
+        orig_img (np.array): unprocessed image as RGB or grayscale intensities
+        expected (np.array): expected processed image
+
+    Returns:
+        none
+    """
+    from server import equalize_histogram
+
+    proc_img = equalize_histogram(orig_img)
 
     assert np.array_equal(proc_img, expected)
 
