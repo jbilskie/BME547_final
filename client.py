@@ -1,6 +1,6 @@
 # client.py
-# Author: Kevin Chu
-# Last Modified: 4/19/19
+# Author: Kevin Chu, Jessica Bilskie
+# Last Modified: 4/24/19
 
 import requests
 from pymodm import connect, MongoModel, fields
@@ -136,6 +136,15 @@ def check_file_list(file_list, direction):
                       "msg": "File {} doesn't contain the correct\
                       amount of elements.".format(file[0])}
             return status
+
+    # Check that images were selected
+    image_count = 0
+    for file in file_list:
+        image_count = image_count + sum(file[2])
+    if image_count == 0:
+        status = {"code": 400,
+                  "msg": "No image types were selected for given files."}
+        return status
 
     # Make sure all filenames are non-empty strings
     for file in file_list:
