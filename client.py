@@ -449,6 +449,8 @@ def download_image(username, filename, path, proc_step, type_ext=".png"):
         msg = results[1]
         if path == 'none':
             pass
+        elif path == 'nonetemp/':
+            pass
         else:
             save_b64_img(img_info["image"], path+filename+proc_step+type_ext)
     print("Returned: {}".format(msg))
