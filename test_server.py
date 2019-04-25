@@ -90,17 +90,18 @@ def test_register_new_user(input, exp):
     except:
         pass
     else:
-        # user.delete()
-        delete_user(input)
+        user.delete()
+        # delete_user(input)
 
-    # new_user = User(username=input)
-    # new_user.save()
-    add_new_user(input)
+    new_user = User(username=input)
+    new_user.save()
+    # add_new_user(input)
 
     try:
         user_in_database = User.objects.raw({"_id": input}).first()
         success = True
-        delete_user(input)
+        user_in_database.delete()
+        # delete_user(input)
     except:
         success = False
     assert success == exp
@@ -168,9 +169,9 @@ def test_check_user_exists(input, exists, exp):
         try:
             user = User.objects.raw({"_id": input}).first()
         except:
-            # user = User(username=input)
-            # user.save()
-            add_new_user(input)
+            user = User(username=input)
+            user.save()
+            # add_new_user(input)
     # If user should not exist, delete it if it does exist
     else:
         try:
@@ -178,8 +179,8 @@ def test_check_user_exists(input, exists, exp):
         except:
             pass
         else:
-            # user.delete()
-            delete_user(input)
+            user.delete()
+            # delete_user(input)
 
     status = check_user_exists(input)
     assert status == exp
@@ -592,9 +593,9 @@ def test_process_image_upload(input, img_exists, exp):
         user = User.objects.raw({"_id": input}).first()
     except:
         if input["username"] != "":
-            # user = User(username=input["username"])
-            # user.save()
-            add_new_user(input["username"])
+            user = User(username=input["username"])
+            user.save()
+            # add_new_user(input["username"])
 
     if img_exists:
         # get_img_data takes in a list
@@ -639,17 +640,17 @@ def test_get_img_size(input, exp):
                             "filename": "orion.jpg",
                             "image":
                             read_img_as_b64("test_image/orion.jpg")},
-                           True, 2, 3, "Uploaded Image"),
+                           True, 2, 2, "Uploaded Image"),
                           ({"username": "danyt",
                             "filename": "orion.jpg",
                             "image":
                             read_img_as_b64("test_image/orion.jpg")},
-                           False, 1, 4, "Updated Image"),
+                           False, 1, 3, "Updated Image"),
                           ({"username": "tyrionl",
                             "filename": "blank.png",
                             "image":
                             read_img_as_b64("test_image/blank.png")},
-                           True, 2, 3, "Uploaded Image")])
+                           True, 2, 2, "Uploaded Image")])
 def test_upload_image(img_info, first_image, exp_i, exp_i2, exp_a):
     """Tests upload_image function
 
@@ -680,12 +681,12 @@ def test_upload_image(img_info, first_image, exp_i, exp_i2, exp_a):
     except:
         pass
     else:
-        # existing_user.delete()
-        delete_user(img_info["username"])
+        existing_user.delete()
+        # delete_user(img_info["username"])
     # Create user
-    # user = User(username=img_info["username"])
-    # user.save()
-    add_new_user(img_info["username"])
+    user = User(username=img_info["username"])
+    user.save()
+    # add_new_user(img_info["username"])
 
     # Other images
     img2_path = "test_image/sky.jpg"
