@@ -1,6 +1,6 @@
 # test_server.py
 # Authors: Janet Chen, Kevin Chu
-# Last Modified: 4/24/19
+# Last Modified: 4/25/19
 
 from flask import Flask, jsonify, request
 from user import User
@@ -763,6 +763,92 @@ def test_upload_image(img_info, first_image, exp_i, exp_i2, exp_a):
     # at the specific index
     assert (user.orig_img[exp_i] == img_info and
             user.actions[exp_i2] == exp_a)
+
+
+@pytest.mark.parametrize("img_info, expected_status, add_user",
+                         # Username is empty
+                         [({"username": "",
+                            "filename": "file.jpg",
+                            "image": "invalid"},
+                           {"code": 400,
+                            "msg": "Field username cannot be empty."},
+                           False),
+
+                          # Filename is empty
+                          ({"username": "user",
+                            "filename": "",
+                            "image": "invalid"},
+                           {"code": 400,
+                            "msg": "Field filename cannot be empty."},
+                           False),
+
+                          # Image is empty
+                          ({"username": "user",
+                            "filename": "file.jpg",
+                            "image": ""},
+                           {"code": 400,
+                            "msg": "Field image cannot be empty."},
+                           False),
+
+                          # User doesn't exist
+                          ({"username": "user",
+                            "filename": "file.jpg",
+                            "image": "image"},
+                           {"code": 404,
+                            "msg": "Username not found in database."},
+                           False),
+
+                          # Invalid processing step
+                          ({"username": "user",
+                            "filename": "file.jpg",
+                            "proc_step": "invalid",
+                            "image": """iVBORw0KGgoAAAANSUhEUgAAAAEAA"""
+                            """AABCAAAAAA6fptVAAAACklEQVR4nGNgA"""
+                            """AAAAgABSK+kcQAAAABJRU5ErkJggg=="""},
+                           {"code": 404,
+                            "msg": "Processing method not defined"},
+                           True),
+
+                          # Try with all processing steps
+                          ({"username": "user",
+                            "filename": "file.jpg",
+                            "proc_step": "Histogram Equalization",
+                            "image": """iVBORw0KGgoAAAANSUhEUgAAAAEAA"""
+                            """AABCAAAAAA6fptVAAAACklEQVR4nGNgA"""
+                            """AAAAgABSK+kcQAAAABJRU5ErkJggg=="""},
+                           {"code": 200,
+                            "msg": "Request was successful"},
+                           True),
+                          ])
+def test_process_process_image(img_info, expected_status, add_user):
+    """ Tests the process_process_image function
+
+    This function tests whether the process_process_image function returns
+    the correct status code and message. There is no need to test the image
+    to base64 conversions or processing steps since those are covered by
+    other unit tests.
+
+    Args:
+        img_info (dict): dictionary with image information
+        expected_status (dict): dictionary with expected code and message
+        add_user (bool): whether to add user for purpose of testing
+
+    Returns:
+        none
+    """
+    from server import process_process_image
+
+    if add_user:
+        user = User(username=img_info["username"])
+        user.save()
+
+    status = process_process_image(img_info)
+
+    assert status == expected_status
+
+    # Reset database
+    if add_user:
+        user.delete()
 
 
 @pytest.mark.parametrize("username, add_user, filename, add_orig, add_proc,"
