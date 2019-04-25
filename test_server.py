@@ -881,6 +881,45 @@ def test_process_process_image(img_info, expected_status, add_user):
         user.delete()
 
 
+@pytest.mark.parametrize("orig_img, proc_step, expected",
+                         [((np.array([[0, 128], [128, 255]], dtype="uint8")),
+                           "Histogram Equalization",
+                           (np.array([[63, 191], [191, 255]], dtype="uint8"))),
+
+                          ((np.array([[0, 128], [128, 255]], dtype="uint8")),
+                           "Contrast Stretching",
+                           (np.array([[0, 128], [128, 255]], dtype="uint8"))),
+
+                          ((np.array([[0, 128], [128, 255]], dtype="uint8")),
+                           "Log Compression",
+                           (np.array([[0, 149], [149, 255]], dtype="uint8"))),
+
+                          ((np.array([[0, 128], [128, 255]], dtype="uint8")),
+                           "Reverse Video",
+                           (np.array([[255, 127], [127, 0]], dtype="uint8"))),
+                          ])
+def test_run_image_processing(orig_img, proc_step, expected):
+    """ Test the run_image_processing function
+
+    This function ensures that run_image_processing processes the image with
+    the correct processing step.
+
+    Args:
+        orig_img (np.array): unprocessed image as RGB or grayscale intensities
+        proc_step (str): type of processing to apply to image
+        expected (np.array): expected processed image
+
+    Returns:
+        proc_img (np.array): processed image
+    """
+    from server import run_image_processing
+
+    proc_img = run_image_processing(orig_img, proc_step)
+    print(proc_img)
+
+    assert np.array_equal(proc_img, expected)
+
+
 @pytest.mark.parametrize("username, add_user, filename, add_orig, add_proc,"
                          "proc_step, expected",
                          # User and file don't exist
