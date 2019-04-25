@@ -1,6 +1,6 @@
 # test_image.py
 # Author: Kevin Chu
-# Last Modified: 4/20/19
+# Last Modified: 4/25/19
 
 import numpy as np
 import pytest
@@ -166,6 +166,38 @@ def test_image_to_b64(img_path, b64_path):
     expected = (expected.split("\n"))[0]
 
     assert b64_string == expected
+
+
+@pytest.mark.parametrize("b64_image, expected",
+                         # Valid base64 image
+                         [("""iVBORw0KGgoAAAANSUhEUgAAAAEAA"""
+                           """AABCAAAAAA6fptVAAAACklEQVR4nGNgA"""
+                           """AAAAgABSK+kcQAAAABJRU5ErkJggg==""",
+                           True),
+
+                          # Invalid string
+                          ("invalid", False),
+
+                          # Empty string
+                          ("", False),
+
+                          # Invalid input
+                          (1234, False),
+                          ])
+def test_is_b64(b64_image, expected):
+    """ Test the is_b64 function
+
+    Args:
+        b64_image (str): string in question for b64 validity
+
+    Returns:
+        none
+    """
+    from image import is_b64
+
+    truth = is_b64(b64_image)
+
+    assert truth == expected
 
 
 @pytest.mark.parametrize("filename, expected",

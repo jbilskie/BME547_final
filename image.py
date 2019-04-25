@@ -1,6 +1,6 @@
 # image.py
-# Authors: Janet Chen, Kevin Chu
-# Last Modified: 4/20/19
+# Authors: Jessica Bilskie, Janet Chen, Kevin Chu
+# Last Modified: 4/25/19
 
 import base64
 import io
