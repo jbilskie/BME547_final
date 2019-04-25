@@ -819,6 +819,36 @@ def test_upload_image(img_info, first_image, exp_i, exp_i2, exp_a):
                            {"code": 200,
                             "msg": "Request was successful"},
                            True),
+
+                          ({"username": "user",
+                            "filename": "file.jpg",
+                            "proc_step": "Contrast Stretching",
+                            "image": """iVBORw0KGgoAAAANSUhEUgAAAAEAA"""
+                            """AABCAAAAAA6fptVAAAACklEQVR4nGNgA"""
+                            """AAAAgABSK+kcQAAAABJRU5ErkJggg=="""},
+                           {"code": 200,
+                            "msg": "Request was successful"},
+                           True),
+
+                          ({"username": "user",
+                            "filename": "file.jpg",
+                            "proc_step": "Log Compression",
+                            "image": """iVBORw0KGgoAAAANSUhEUgAAAAEAA"""
+                            """AABCAAAAAA6fptVAAAACklEQVR4nGNgA"""
+                            """AAAAgABSK+kcQAAAABJRU5ErkJggg=="""},
+                           {"code": 200,
+                            "msg": "Request was successful"},
+                           True),
+
+                          ({"username": "user",
+                            "filename": "file.jpg",
+                            "proc_step": "Reverse Video",
+                            "image": """iVBORw0KGgoAAAANSUhEUgAAAAEAA"""
+                            """AABCAAAAAA6fptVAAAACklEQVR4nGNgA"""
+                            """AAAAgABSK+kcQAAAABJRU5ErkJggg=="""},
+                           {"code": 200,
+                            "msg": "Request was successful"},
+                           True),
                           ])
 def test_process_process_image(img_info, expected_status, add_user):
     """ Tests the process_process_image function
