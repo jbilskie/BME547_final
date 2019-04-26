@@ -9,7 +9,6 @@ import os
 import matplotlib
 from matplotlib import image as mpimg
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-matplotlib.use("TkAgg")
 
 url = "http://127.0.0.1:5000/"
 
