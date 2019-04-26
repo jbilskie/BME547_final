@@ -1,6 +1,6 @@
 # server.py
 # Authors: Jessica Bilskie, Kevin Chu
-# Last Modified: 4/23/19
+# Last Modified: 4/25/19
 
 from flask import Flask, jsonify, request
 from user import User
@@ -461,9 +461,12 @@ def equalize_histogram(orig_img):
     # Preallocate
     proc_img = np.zeros(np.shape(orig_img))
 
-    # Apply histogram equalization to all channels
-    for i in range(0, (np.shape(orig_img))[-1]):
-        proc_img[:, :, i] = equalize_hist(orig_img[:, :, i])
+    # If color image, apply histogram equalization to all channels
+    if len(np.shape(orig_img)) == 2:
+        proc_img = equalize_hist(orig_img)
+    elif len(np.shape(orig_img)) == 3:
+        for i in range(0, (np.shape(orig_img))[-1]):
+            proc_img[:, :, i] = equalize_hist(orig_img[:, :, i])
 
     # equalize_hist outputs np.array with floats in range [0-1]
     # Cast this to uint8 in range [0-255]
