@@ -43,7 +43,7 @@ def editing_window():
         proc_steps = [False, entered_1, entered_2, entered_3,
                       entered_4]
         orig_images, filenames, success = get_img_data(img_paths)
-        upload_success = upload_to_server(user, orig_images,
+        upload_success = upload_to_server(entered_user, orig_images,
                                           filenames, success,
                                           proc_steps)
         success_label = ttk.Label(root, text=upload_success)
@@ -66,22 +66,22 @@ def editing_window():
                                        entered_img_type,
                                        [True, False, False,
                                         False, False])
-        file_list = get_file_list(filenames, entered_img_type, proc_list)
+        file_list = get_file_list(filenames, entered_img_type, proc_steps)
         if upload_success:
             download_btn = ttk.Button(root,
                                       text='Download original image',
                                       command=lambda:
                                       download_images(entered_user,
-                                                      orig_file,
+                                                      orig_file_list,
                                                       ''))
-            download_btn.grid(column=1, row=12, sticky=W)
+            download_btn.grid(column=0, columnspan=2, row=12, sticky=N)
             download_btn2 = ttk.Button(root,
                                        text='Download processed image(s)',
                                        command=lambda:
                                        download_images(entered_user,
                                                        file_list, ''),
-                                       width=20)
-            download_btn2.grid(column=1, row=13, sticky=W)
+                                       width=23)
+            download_btn2.grid(column=0, columnspan=2, row=13, sticky=N)
         return
 
     # Main window
@@ -281,11 +281,13 @@ def upload_to_server(user, images, filenames, success, proc_steps):
     Returns:
         upload_success (str): message to print below upload button
     """
-    from client import upload_images
+    from client import add_new_user, upload_images
     status_codes = [400]
     list_for_upload = []
     for i in range(len(filenames)):
         list_for_upload.append([filenames[i], images[i], proc_steps])
+        print("Filename {} is {}".format(i, filenames[i]))
+    add_new_user(user)
     status_codes = upload_images(user, list_for_upload)
     print("Upload status codes:")
     print(status_codes)
