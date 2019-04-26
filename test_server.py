@@ -886,17 +886,29 @@ def test_process_process_image(img_info, expected_status, add_user):
                            "Histogram Equalization",
                            (np.array([[63, 191], [191, 255]], dtype="uint8"))),
 
-                          ((np.array([[0, 128], [128, 255]], dtype="uint8")),
+                          ((np.array([[100, 128], [128, 200]], dtype="uint8")),
                            "Contrast Stretching",
-                           (np.array([[0, 128], [128, 255]], dtype="uint8"))),
+                           (np.array([[0, 71], [71, 255]], dtype="uint8"))),
 
                           ((np.array([[0, 128], [128, 255]], dtype="uint8")),
                            "Log Compression",
                            (np.array([[0, 149], [149, 255]], dtype="uint8"))),
 
+                          ((np.array([[[255, 200, 200], [200, 255, 200]]],
+                                     dtype="uint8")),
+                           "Log Compression",
+                           (np.array([[[255, 213, 213], [213, 255, 213]]],
+                                     dtype="uint8"))),
+
                           ((np.array([[0, 128], [128, 255]], dtype="uint8")),
                            "Reverse Video",
                            (np.array([[255, 127], [127, 0]], dtype="uint8"))),
+
+                          ((np.array([[[255, 200, 200], [200, 255, 200]]],
+                                     dtype="uint8")),
+                           "Reverse Video",
+                           (np.array([[[0, 55, 55], [55, 0, 55]]],
+                                     dtype="uint8"))),
                           ])
 def test_run_image_processing(orig_img, proc_step, expected):
     """ Test the run_image_processing function
