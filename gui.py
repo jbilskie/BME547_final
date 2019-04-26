@@ -35,12 +35,10 @@ def editing_window():
         for i in img_paths:
             print("\t{}".format(i))
         entered_img_type = img_type.get()
-        entered_1 = hist_eq.get()
-        entered_2 = contr_stretch.get()
-        entered_3 = log_comp.get()
-        entered_4 = rev_vid.get()
-        proc_steps = [False, entered_1, entered_2, entered_3,
-                      entered_4]
+        entered_proc_step = proc_step_var.get()
+        req_img_type, proc_steps = convert_inputs(entered_img_type,
+                                                  entered_proc_step)
+
         orig_images, filenames, success = get_img_data(img_paths)
         upload_success = upload_to_server(entered_user, orig_images,
                                           filenames, success,
@@ -54,18 +52,23 @@ def editing_window():
                                         command=lambda:
                                         display_images(display_img.get(),
                                                        entered_user,
-                                                       entered_img_type,
+                                                       req_img_type,
                                                        img_paths,
                                                        proc_steps,
                                                        root, filenames,
                                                        orig_images,
                                                        success))
         display_check.grid(column=0, row=11, sticky=W)
-        orig_file_list = get_file_list(filenames[0],
-                                       entered_img_type,
+        orig_file_list = get_file_list(filenames,
+                                       req_img_type,
                                        [True, False, False,
                                         False, False])
-        file_list = get_file_list(filenames, entered_img_type, proc_steps)
+        print("ORIG LENGTH")
+        print(len(orig_file_list))
+        file_list = get_file_list(filenames, req_img_type, proc_steps)
+        print("PROC LENGTH")
+        print(len(file_list[0]))
+        print(len(file_list))
         if upload_success:
             download_btn = ttk.Button(root,
                                       text='Download original image',
@@ -81,6 +84,12 @@ def editing_window():
                                                        file_list, ''),
                                        width=23)
             download_btn2.grid(column=0, columnspan=2, row=13, sticky=N)
+            """
+            process_btn = ttk.Button(root,
+                                     text='Process images again',
+                                     command=lambda:
+                                     download_images(entered_user,
+            """
         return
 
     # Main window
@@ -124,33 +133,30 @@ def editing_window():
     type_dropdown = ttk.Combobox(root, textvariable=img_type)
     type_dropdown['values'] = ('JPEG', 'PNG', 'TIFF')
     type_dropdown.grid(column=1, row=4, sticky=W)
+    type_dropdown.current(0)
     type_dropdown.config(state='readonly')
 
     # Check processing steps
     steps_label = ttk.Label(root, text="Processing steps:")
     steps_label.grid(column=0, row=5, sticky=E)
 
-    hist_eq = BooleanVar()
-    hist_eq.set(True)
-    contr_stretch = BooleanVar()
-    log_comp = BooleanVar()
-    rev_vid = BooleanVar()
+    proc_step_var = StringVar(None, "A")
 
-    hist_check = ttk.Checkbutton(root, text='Histogram Equalization',
-                                 variable=hist_eq,
-                                 onvalue=True, offvalue=False)
+    hist_check = ttk.Radiobutton(root, text='Histogram Equalization',
+                                 variable=proc_step_var,
+                                 value="A")
     hist_check.grid(column=1, row=5, sticky=W)
-    contr_check = ttk.Checkbutton(root, text='Contrast Stretching',
-                                  variable=contr_stretch,
-                                  onvalue=True, offvalue=False)
+    contr_check = ttk.Radiobutton(root, text='Contrast Stretching',
+                                  variable=proc_step_var,
+                                  value="B")
     contr_check.grid(column=1, row=6, sticky=W)
-    log_check = ttk.Checkbutton(root, text='Log Compression',
-                                variable=log_comp,
-                                onvalue=True, offvalue=False)
+    log_check = ttk.Radiobutton(root, text='Log Compression',
+                                variable=proc_step_var,
+                                value="C")
     log_check.grid(column=1, row=7, sticky=W)
-    rev_check = ttk.Checkbutton(root, text='Reverse video',
-                                variable=rev_vid,
-                                onvalue=True, offvalue=False)
+    rev_check = ttk.Radiobutton(root, text='Reverse video',
+                                variable=proc_step_var,
+                                value="D")
     rev_check.grid(column=1, row=8, sticky=W)
 
     upload_btn = ttk.Button(root, text='Upload file', command=enter_data,
@@ -159,6 +165,36 @@ def editing_window():
     # Show GUI window
     root.mainloop()
     return
+
+
+def convert_inputs(entered_img_type, entered_proc_step):
+    """Converts GUI user input into function inputs
+
+    Gets requested image type and processing steps in the desired format.
+
+    Args:
+        entered_img_type (str): selected image type from GUI dropdown
+        entered_proc_step (str): selected processing step from GUI
+
+    Returns:
+        req_img_type (str): requested image type
+        proc_steps (list): processing steps as a list of booleans
+    """
+    if entered_img_type == 'JPEG':
+        req_img_type = '.jpg'
+    elif entered_img_type == 'PNG':
+        req_img_type = '.png'
+    elif entered_img_type == 'TIFF':
+        req_img_type = '.tiff'
+    if entered_proc_step == "A":
+        proc_steps = [False, True, False, False, False]
+    elif entered_proc_step == "B":
+        proc_steps = [False, False, True, False, False]
+    elif entered_proc_step == "C":
+        proc_steps = [False, False, False, True, False]
+    elif entered_proc_step == "D":
+        proc_steps = [False, False, False, False, True]
+    return req_img_type, proc_steps
 
 
 def process_img_paths(input):
@@ -240,6 +276,7 @@ def get_img_data(img_paths):
         # File not found
         else:
             images.append('')
+            filenames.append(img_paths[i])
             success.append(False)
     return images, filenames, success
 
@@ -290,12 +327,20 @@ def upload_to_server(user, images, filenames, success, proc_steps):
     status_codes = upload_images(user, list_for_upload)
     print("Upload status codes:")
     print(status_codes)
-    if all([True if i == 200 else False for i in status_codes]):
-        upload_success = "Successfully uploaded"
-    elif any([True if i == 400 else False for i in status_codes]):
-        upload_success = "One or more fields missing"
-    else:
-        upload_success = "Upload failed for one or more images"
+    if isinstance(status_codes, list):
+        if all([True if i == 200 else False for i in status_codes[0]]):
+            upload_success = "Successfully uploaded"
+        elif any([True if i == 400 else False for i in status_codes[0]]):
+            upload_success = "One or more fields missing"
+        else:
+            upload_success = "Upload failed for one or more images"
+    elif isinstance(status_codes, dict):
+        if status_codes["code"] == 200:
+            upload_success = "Successfully uploaded"
+        elif status_codes["code"] == 400:
+            upload_success = status_codes["msg"]
+        else:
+            upload_success = "Upload failed for one or more images"
     return upload_success
 
 
@@ -311,7 +356,7 @@ def display_images(run, user, img_type, img_paths, proc_steps, root,
         user (str): username
         img_type (str): image type to show/download
         img_paths (list): list of image paths
-        proc_steps (list): list of processings teps
+        proc_steps (list): list of processing steps
         root (Tk window)
         filenames (list): list of filenames
         orig_images (list): list of uploaded b64 strings
@@ -321,6 +366,7 @@ def display_images(run, user, img_type, img_paths, proc_steps, root,
         none
     """
     from image import b64_to_image
+    from client import download_images
     global index
     index = 0
     i_row = 0
@@ -328,14 +374,15 @@ def display_images(run, user, img_type, img_paths, proc_steps, root,
         img_window = Toplevel(root)
         screen_w = root.winfo_screenwidth()
         screen_h = root.winfo_screenheight()
-        img_window.config(height=0.8*screen_h, width=0.8*screen_w)
+        img_window.config(height=0.75*screen_h, width=0.4*screen_w)
         img_window.title("Image Viewer")
         img_width = round(0.35*screen_h)
         hist_width = round(0.35*screen_h)
 
+        # Initialize Tk labels and frames
         global f_text
         f_text = StringVar()
-        f_text.set("Filename: <>")
+        f_text.set("Processing ...")
         filename_label = ttk.Label(img_window,
                                    textvariable=f_text)
         filename_label.update()
@@ -372,28 +419,24 @@ def display_images(run, user, img_type, img_paths, proc_steps, root,
         orig_hist_frame = ttk.Frame(img_window, width=hist_width,
                                     height=hist_width)
         orig_hist_frame.grid(column=0, row=i_row, columnspan=2)
-        new_hist_frame = ttk.Frame(img_window, width=hist_width,
-                                   height=hist_width)
-        new_hist_frame.grid(column=2, row=i_row, columnspan=2)
-        """
-        right_top_frame = ttk.Frame(img_window, width=0,
-                                    height=img_width+50)
-        right_top_frame.grid(column=4, row=1)
-        right_bott_frame = ttk.Frame(img_window, width=0,
-                                     height=hist_width+50)
-        right_bott_frame.grid(column=4, row=3)
-        """
+        proc_hist_frame = ttk.Frame(img_window, width=hist_width,
+                                    height=hist_width)
+        proc_hist_frame.grid(column=2, row=i_row, columnspan=2)
+
+        # Display
         tk_images = []
         proc_images = []
         orig_img_label = []
         proc_img_label = []
-        hist_plots = []
-        hist_canvases = []
+        orig_hist_plots = []
+        proc_hist_plots = []
         new_w = img_width
-        img_row = 0
-        # Display original images
+
+        # Display original and processed images
         for i in range(len(orig_images)):
             image_to_load = []
+            proc_img_to_load = []
+            # If the image was successfully extracted
             if success[i]:
                 image_string = orig_images[i]
                 image_obj = b64_to_image(image_string)
@@ -416,80 +459,124 @@ def display_images(run, user, img_type, img_paths, proc_steps, root,
                     orig_img_label.append(Label(orig_img_frame,
                                                 text='Image not found'))
                 # Load processed image
-                try:
-                    file_list = [filenames[i], img_type, proc_steps]
-                    img_infos, status = download_images(user,
-                                                        filenames[i],
-                                                        'none',
-                                                        proc_steps)
-                    img_str = img_infos[0][i]["image"]
-                    proc_img_obj = b64_to_image(img_str)
-                    proc_img_to_load = np.asarray(proc_img_obj)
-                    img_to_show = Image.fromarray(proc_img_to_load)
-                    w = img_to_show.width
-                    h = img_to_show.height
-                    final_w, final_h = resize_img_dim(w, h, new_w)
-                    img_to_show = img_to_show.resize((final_w,
-                                                      final_h),
-                                                     Image.ANTIALIAS)
-                    proc_images.append(ImageTk.PhotoImage(img_to_show))
-                    proc_img_label.append(Label(proc_img_frame,
-                                                image=proc_images[-1]))
+                # try:
+                file_list = [[filenames[i], img_type, proc_steps]]
+                print("FILE TO GET IS")
+                print(file_list)
+                img_info, status = download_images(user,
+                                                   file_list,
+                                                   'none')
+                print("IMAGE INFO IS ")
+                print(img_info)
+                print("STATUS IS ")
+                print(status)
+                if isinstance(img_info, dict):
+                    print("IMAGE INFO KEYS ARE")
+                    print(img_info.keys())
+                    img_str = img_info["image"]
+                elif isinstance(img_info, list):
+                    img_str = img_info[1]["image"]
+                if isinstance(status, dict):
+                    if status["code"] != 200:
+                        raise LookupError()
+                else: # status is an int
+                    if status != 200:
+                        raise LookupError()
+                proc_img_obj = b64_to_image(img_str)
+                proc_img_to_load = np.asarray(proc_img_obj)
+                img_to_show2 = Image.fromarray(proc_img_to_load)
+                w2 = img_to_show2.width
+                h2 = img_to_show2.height
+                final_w2, final_h2 = resize_img_dim(w2, h2, new_w)
+                img_to_show2 = img_to_show2.resize((final_w,
+                                                    final_h),
+                                                   Image.ANTIALIAS)
+                proc_images.append(ImageTk.PhotoImage(img_to_show2))
+                proc_img_label.append(Label(proc_img_frame,
+                                            image=proc_images[-1]))
+                proc_img_label[-1].img = proc_images[-1]
+                """
                 except:
+                    print("TRY CASE FAILED")
                     proc_images.append('')
                     proc_img_label.append(Label
                                           (proc_img_frame,
                                            text='Image not processed'))
+                """
+            # Image not successfully extracted
             else:
                 tk_images.append('')
                 orig_img_label.append(Label(orig_img_frame,
                                             text='Image not found'))
+                proc_images.append('')
                 proc_img_label.append(Label(proc_img_frame,
                                             text='Image not processed'))
             # Compute histograms
-            hist_plot = plot_histograms(orig_hist_frame, new_hist_frame,
-                                        image_to_load)
-            hist_plots.append(hist_plot)
+            orig_hist_plot = plot_histograms(orig_hist_frame,
+                                             image_to_load)
+            orig_hist_plots.append(orig_hist_plot)
+            proc_hist_plot = plot_histograms(proc_hist_frame,
+                                             proc_img_to_load)
+            proc_hist_plots.append(proc_hist_plot)
 
-        # Display first image in slideshow
+        # Display first original image in slideshow
         if tk_images[index] == '':
+            f_text.set("Invalid image".format(filenames[index]))
             orig_img_label[index].grid(column=0, row=2,
                                        ipadx=0.35*img_width,
+                                       ipady=0.45*img_width,
                                        sticky=(N, S, E, W))
-            hist_plots[index].grid(column=0, row=2, ipadx=0.35*img_width,
-                                   sticky=(N, S, E, W))
-            img_window.grid_rowconfigure("all", weight=1)
-            img_window.grid_columnconfigure("all", weight=1)
+            orig_hist_plots[index].grid(column=0, row=2,
+                                        ipadx=0.35*img_width,
+                                        ipady=0.45*img_width,
+                                        sticky=(N, S, E, W))
         else:
             f_text.set("Filename: {}".format(filenames[index]))
             filename_label.update()
             orig_img_label[index].grid(column=0, row=2, columnspan=2,
                                        sticky=(N, S, E, W))
-            hist_plots[index].grid(column=0, row=2, columnspan=2,
-                                   sticky=N)
-            img_window.grid_rowconfigure("all", weight=1)
-            img_window.grid_columnconfigure("all", weight=1)
+            orig_hist_plots[index].grid(column=0, row=2, columnspan=2,
+                                        sticky=N)
+        # Display first processed image in slideshow
+        if proc_images[index] == '':
+            proc_img_label[index].grid(column=0, row=2,
+                                       ipadx=0.35*img_width,
+                                       sticky=(N, S, E, W))
+            proc_hist_plots[index].grid(column=0, row=2,
+                                        ipadx=0.35*img_width,
+                                        sticky=(N, S, E, W))
+        else:
+            proc_img_label[index].grid(column=0, row=2, columnspan=2,
+                                       sticky=(N, S, E, W))
+            proc_hist_plots[index].grid(column=0, row=2, columnspan=2,
+                                        sticky=N)
+        img_window.grid_rowconfigure("all", weight=1)
+        img_window.grid_columnconfigure("all", weight=1)
 
         i_row += 1
         next_btn = ttk.Button(img_window, text='>>',
-                              command=lambda: show_next(tk_images,
+                              command=lambda: show_next('next',
+                                                        tk_images,
                                                         filenames,
                                                         filename_label,
                                                         orig_img_label,
                                                         proc_img_label,
                                                         img_width,
-                                                        hist_plots,
+                                                        orig_hist_plots,
+                                                        proc_hist_plots,
                                                         hist_width),
                               width=4)
         next_btn.grid(column=1, row=i_row, sticky=E)
         prev_btn = ttk.Button(img_window, text='<<',
-                              command=lambda: show_prev(tk_images,
+                              command=lambda: show_next('prev',
+                                                        tk_images,
                                                         filenames,
                                                         filename_label,
                                                         orig_img_label,
                                                         proc_img_label,
                                                         img_width,
-                                                        hist_plots,
+                                                        orig_hist_plots,
+                                                        proc_hist_plots,
                                                         hist_width),
                               width=4)
         prev_btn.grid(column=0, row=i_row, sticky=W)
@@ -504,7 +591,10 @@ def resize_img_dim(w, h, new_w):
     """Gets dimensions for resizing input image
 
     Args:
-    w (int): current width of image
+        w (int): current width of image
+        h (int): current height of image
+        new_w (int): new width of image
+        
     Returns:
         final_w (int): new width
         final_h (int): new height
@@ -514,70 +604,66 @@ def resize_img_dim(w, h, new_w):
         final_w = new_w
         final_h = new_h
     else:
-        final_w = round(new_w*img_width/new_h)
-        final_h = img_width
+        final_w = round(new_w*new_w/new_h)
+        final_h = new_w
 
     return final_w, final_h
 
 
-def show_next(images, filenames, filename_label, orig_img_label,
-              proc_img_label, img_width, hist_plots, hist_width):
+def show_next(next, images, filenames, filename_label, orig_img_label,
+              proc_img_label, img_width, orig_hist_plots,
+              proc_hist_plots, hist_width):
     global index
-    if index < (len(orig_img_label))-1:
+    if next == 'next':
+        display_next = index < (len(orig_img_label))-1
+    elif next == 'prev':
+        display_next = index > 0
+    if display_next:
         orig_img_label[index].grid_forget()
-        hist_plots[index].grid_forget()
-        index += 1
-        next_label = orig_img_label[index]
-        next_hist = hist_plots[index]
-        global f_text
-        if images[index] != '':
-            next_label.grid(column=0, row=2, columnspan=2, sticky=E)
-            next_hist.grid(column=0, row=2, columnspan=2, sticky=E)
-            f_text.set("Filename: {}".format(filenames[index]))
-            filename_label.update()
-        else:
-            f_text.set("Filename: <>")
-            filename_label.update()
-            next_label.grid(column=0, row=2, ipadx=0.35*img_width,
-                            ipady=0.35*img_width, sticky=E)
-            next_hist.grid(column=0, row=2, columnspan=2, sticky=E)
-    return
-
-
-def show_prev(images, filenames, filename_label, orig_img_label,
-              proc_img_label, img_width, hist_plots, hist_width):
-    global index
-    if index > 0:
-        orig_img_label[index].grid_forget()
-        hist_plots[index].grid_forget()
-        index -= 1
-        next_label = orig_img_label[index]
-        next_hist = hist_plots[index]
+        orig_hist_plots[index].grid_forget()
+        proc_img_label[index].grid_forget()
+        proc_hist_plots[index].grid_forget()
+        if next == 'next':
+            index += 1
+        elif next == 'prev':
+            index -= 1
+        next_olabel = orig_img_label[index]
+        next_plabel = proc_img_label[index]
+        next_ohist = orig_hist_plots[index]
+        next_phist = proc_hist_plots[index]
         global f_text
         if images[index] != '':
             f_text.set("Filename: {}".format(filenames[index]))
             filename_label.update()
-            next_label.grid(column=0, row=2, columnspan=2, sticky=E)
-            next_hist.grid(column=0, row=2, columnspan=2, sticky=E)
+            next_olabel.grid(column=0, row=2, columnspan=2, sticky=E)
+            next_ohist.grid(column=0, row=2, columnspan=2, sticky=E)
+            next_plabel.grid(column=0, row=2, columnspan=2, sticky=W)
+            next_phist.grid(column=0, row=2, columnspan=2, sticky=W)
         else:
             f_text.set("Filename: <>")
             filename_label.update()
-            next_label.grid(column=0, row=2, ipadx=0.35*img_width,
-                            ipady=0.35*img_width, sticky=E)
-            next_hist.grid(column=0, row=2, columnspan=2, sticky=E)
+            next_olabel.grid(column=0, row=2, columnspan=2,
+                             ipadx=0.35*img_width,
+                             ipady=0.45*img_width, sticky=E)
+            next_ohist.grid(column=0, row=2, columnspan=2,
+                            ipadx=0.35*img_width,
+                            ipady=0.45*img_width, sticky=E)
+            next_plabel.grid(column=0, row=2, columnspan=2,
+                             ipadx=0.35*img_width,
+                             ipady=0.45*img_width, sticky=W)
+            next_phist.grid(column=0, row=2, ipadx=0.35*img_width,
+                            ipady=0.45*img_width, columnspan=2,
+                            sticky=W)
     return
 
 
-def plot_histograms(orig_hist_frame, new_hist_frame, img_array):
+def plot_histograms(frame, img_array):
     """Creates histogram widget and plots it.
 
     Converts image arrays to histograms for display
 
     Args:
-        orig_hist_frame (Tk Frame): frame to put histograms of uploaded
-        images
-        new_hist_frame (Tk Frame): frame to put histograms of processed
-        images
+        frame (Tk Frame): frame to put histograms of images
         img_array (np array): np array containing image data
 
     Returns:
@@ -592,15 +678,15 @@ def plot_histograms(orig_hist_frame, new_hist_frame, img_array):
         img_to_show = Image.fromarray(img_array)
         r, g, b = calc_histograms(img_to_show)
 
-        orig_hist_frame.update()
-        w = orig_hist_frame.winfo_width()
-        h = orig_hist_frame.winfo_height()
+        frame.update()
+        w = frame.winfo_width()
+        h = frame.winfo_height()
 
         plt.figure()
         hist_fig, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True,
                                                  sharey=False)
         hist_fig.set_tight_layout(True)
-        hist_canvas = FigureCanvasTkAgg(hist_fig, master=orig_hist_frame)
+        hist_canvas = FigureCanvasTkAgg(hist_fig, master=frame)
         hist_plot = hist_canvas.get_tk_widget()
         # hist_canvas._tkcanvas.bind("<Configure>", hist_dim)
         hist_plot["width"] = 0.98*w
@@ -619,7 +705,7 @@ def plot_histograms(orig_hist_frame, new_hist_frame, img_array):
         plt.xlabel("Intensity")
         plt.subplots_adjust(wspace=0, hspace=0)
     except:
-        hist_plot = Label(orig_hist_frame, text='Histogram not calculated')
+        hist_plot = Label(frame, text='Histogram not calculated')
     return hist_plot
 
 
