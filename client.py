@@ -5,7 +5,8 @@
 import requests
 from pymodm import connect, MongoModel, fields
 
-url = "http://vcm-9111.vm.duke.edu:5000/"
+# url = "http://vcm-9111.vm.duke.edu:5000/"
+url = "http://127.0.0.1:5000/"
 
 
 def add_new_user(username):
@@ -27,9 +28,6 @@ def add_new_user(username):
 
     r = requests.post(url + "new_user", json=user)
 
-    print("Returned: {}".format(r.text))
-    print("Status: {}".format(r.status_code))
-
     return
 
 
@@ -49,9 +47,6 @@ def delete_user(username):
     print("Asking server to delete user from database")
 
     r = requests.post(url + "delete/" + username)
-
-    print("Returned: {}".format(r.text))
-    print("Status: {}".format(r.status_code))
 
     return
 
@@ -75,9 +70,6 @@ def delete_image(username, filename):
     print("Asking server to delete image from database")
 
     r = requests.post(url + "delete/" + username + '/' + filename)
-
-    print("Returned: {}".format(r.text))
-    print("Status: {}".format(r.status_code))
 
     return
 
@@ -111,7 +103,7 @@ def check_file_list(file_list, direction):
                     file1 = ["image1", ".jpg",
                              [False, False, True, True, False]]
                     file2 = ["image1", ".tiff",
-                             [True, True, False, False, True]]
+                             [False, True, False, False, True]]
             Each processing steps array has a True if that process is
             desired and False if not. In this example, image1 desires to
             perform contrast stretching and log compression. Likewise,
@@ -221,41 +213,30 @@ def upload_images(username, file_list):
             video.
 
     Returns:
-        status_codes (list): list of status codes for each file being
-        uploaded
-            Each file has a list of status codes where the first one is
-            for uploading the original image and the preceding are for
-            uploading the processed versions specified through the
-            processing steps array provided.
-            If file_list is invalid, this return is a single status code.
+        files_status (dict of two lists): dictionary of a list of status codes
+        and list of status messages for each file being uploaded
     """
     # Make sure input is valid
     status = check_file_list(file_list, "upload")
-    """
     if status["code"] != 200:
         return status
-    """
-
-    # Define Processing Options
-    procs = ["Original", "Histogram Equalization", "Contrast Stretching",
-             "Log Compression", "Reverse Video"]
 
     # Complete all uploading tasks and append with their status codes
-    status_codes = []
-    print("UPLOAD {} FILES".format(len(file_list)))
+    files_status = {}
+    msg = []
+    code = []
     for file in file_list:
         file_status = []
-        for proc, do_proc in enumerate(file[2]):
-            if proc == 0:
-                file_status.append(upload_image(username, file[0], file[1]))
-            else:
-                if do_proc is True:
-                    proc_status = process_image(username, file[0],
-                                                file[1], procs[proc])
-                    file_status.append(proc_status)
-        status_codes.append(file_status)
+        if file[2] == [True, False, False, False, False]:
+            file_status = upload_image(username, file[0], file[1])
+        else:
+            file_status = process_image(username, file[0], file[1], file[2])
+        msg.append(file_status['msg'])
+        code.append(file_status['code'])
+    files_status['msg'] = msg
+    files_status['code'] = code
 
-    return status_codes
+    return files_status
 
 
 def download_images(username, file_list, zip_path):
@@ -284,73 +265,60 @@ def download_images(username, file_list, zip_path):
             video. Image3 only desires the original image.
 
     Returns:
-        status_codes (list): list of status codes for each file being
+        files_status (dict of two lists): dictionary of status codes and
+        and messages for each file being downloaded
+        files_img_infos (list): list of img_info for each file being
         downloaded
-            Each file has a list of status codes which is of length one if
-            only one version (Original or Processed) of the image is
-            downloaded. If file_list is invalid, this return is a single
-            status code.
-        img_infos (list): list of img_info for each file being
-        downloaded
-            Each file has a list of img_info dictionaries which is of
-            length one if only one version (Original or Processed) of
-            the image is downloaded. If file_list is invalid, this return
-            is a single img_info dictionary.
     """
     import zipfile
     import os
+    import time
 
     # Make sure input is valid
     status = check_file_list(file_list, "download")
-    img_info = {}
     if status["code"] != 200:
-        return img_info, status
+        return status['msg'], status['code']
 
     # Define Processing Options
     procs = ["Original", "Histogram Equalization", "Contrast Stretching",
              "Log Compression", "Reverse Video"]
 
     # If one photo, just download it
-    print(len(file_list))
     if len(file_list) == 1:
-        if file_list[0][2].count(True) == 1:
-            for proc, do_proc in enumerate(file_list[0][2]):
-                if do_proc is True:
-                    proc_step = procs[proc]
-            img_info, status_code = download_image(username, file_list[0][0],
-                                                   zip_path, proc_step,
-                                                   file_list[0][1])
-            return img_info, status_code
+        img_info, status_code = download_image(username, file_list[0][0],
+                                               zip_path, file_list[0][2],
+                                               file_list[0][1])
+        return img_info, status_code
 
     # Complete all downloading tasks and append with their status codes
-    status_codes = []
-    img_infos = []
+    files_status = {}
+    msg = []
+    code = []
+    files_img_infos = []
     cwd = os.getcwd()
     os.mkdir(zip_path + 'temp')
     for file in file_list:
-        file_status = []
-        file_infos = []
-        for proc, do_proc in enumerate(file[2]):
-            if do_proc is True:
-                proc_infos, proc_status = download_image(username, file[0],
-                                                         zip_path + 'temp/',
-                                                         procs[proc],
-                                                         file[1])
-                file_status.append(proc_status)
-                file_infos.append(proc_infos)
-        status_codes.append(file_status)
-        img_infos.append(file_infos)
+        img_info, status = download_image(username, file[0],
+                                          zip_path + 'temp/',
+                                          file[2], file[1])
+        msg.append(status['msg'])
+        code.append(status['code'])
+        files_img_infos.append(img_info)
 
     # Zip the downloads
+    t = str(time.time())
     if zip_path != 'none':
-        zipf = zipfile.ZipFile(zip_path + 'downloads.zip',
+        zipf = zipfile.ZipFile(zip_path + 'downloaded_' + t + '.zip',
                                'w', zipfile.ZIP_DEFLATED)
         zipdir(zip_path + 'temp/', zipf)
         zipf.close()
     os.chdir(cwd)
     os.rmdir(zip_path + 'temp')
 
-    return img_infos, status_codes
+    files_status['msg'] = msg
+    files_status['code'] = code
+
+    return files_img_infos, files_status
 
 
 def zipdir(path, ziph):
@@ -388,19 +356,17 @@ def upload_image(username, filename, b64_string):
         b64_string (str): image string to upload
 
     Returns:
-        status_code (int): whether image was successfully uploaded
+        status (dict): status message and status code
     """
     from image import save_b64_img
 
     print("Asking server to upload image")
+    status = {}
 
     # See if get_img_data was able to read the image
     if b64_string == "":
-        status_code = 404
-        msg = "Image path is not valid."
-        print("Returned: {}".format(msg))
-        print("Status: {}".format(status_code))
-
+        status = {"code": 404,
+                  "msg": "Image path is not valid."}
         return status_code
 
     # Format into dictionary
@@ -409,14 +375,13 @@ def upload_image(username, filename, b64_string):
                 "image": b64_string}
 
     r = requests.post(url + "image_upload", json=img_info)
-    status_code = r.status_code
-    print("Returned: {}".format(r.text))
-    print("Status: {}".format(status_code))
+    status['code'] = r.status_code
+    status['msg'] = r.text
 
-    return status_code
+    return status
 
 
-def download_image(username, filename, path, proc_step, type_ext=".png"):
+def download_image(username, filename, path, proc_steps, type_ext=".png"):
     """ Download an image from the database
 
     This function takes an image filename, finds the image in the
@@ -427,30 +392,38 @@ def download_image(username, filename, path, proc_step, type_ext=".png"):
         filename (str): name of file
         path (str): path to where image should be downloaded
             If path is 'none', image isn't saved to a location.
-        proc_step (str): type of image being asked for such as
-        "Original", "Histogram Equalization", "Contrast Stretching",
-        "Log Compression", "Reverse Video"
+        proc_steps (list): list of Booleans containing requested
+        processing steps such as [False, True, False, False, True]
+        for "Original" ,"Histogram Equalization", "Contrast
+        Stretching", "Log Compression", and "Reverse Video"
         type_ext (str): image type including ".jpg", ".tiff",
         and ".png" where "png" is default
 
     Returns:
         img_info (dict): dictionary containing image information
-        status_code (int): status code
+        status (dict): status code and status message
     """
     from image import save_b64_img
     import json
     from PIL import Image
-    import re
 
     print("Asking server to download image")
 
+    # Create Processing Steps Extension
+    proc_ext = ""
+    for ind, step in enumerate(proc_steps):
+        if step is True:
+            proc_ext = proc_ext + "1"
+        else:
+            proc_ext = proc_ext + "0"
+
     r = requests.get(url + "image_download/" + username + "/" +
-                     filename + "/" + proc_step)
+                     filename + "/" + proc_ext)
+
     status_code = r.status_code
     if status_code != 200:
-        print("{} FAILED HERE".format(filename))
         img_info = {}
-        msg = r.text[1]
+        msg = r.text
     else:
         results = json.loads(r.text)
         img_info = results[0]
@@ -460,21 +433,16 @@ def download_image(username, filename, path, proc_step, type_ext=".png"):
         elif path == 'nonetemp/':
             pass
         else:
-            re_obj = re.search('\.', filename)
-            if re_obj:
-                match_start = re_obj.span()[0]
-                new_filename = filename[0:match_start]
-            else:
-                new_filename = filename
-            save_path = path+new_filename+" "+proc_step+type_ext
-            save_b64_img(img_info["image"], save_path)
-    print("Returned: {}".format(msg))
-    print("Status: {}".format(status_code))
+            save_b64_img(img_info["image"],
+                         path + filename + '_' + proc_ext + type_ext)
 
-    return img_info, status_code
+    status = {'code': status_code,
+              'msg': msg}
+
+    return img_info, status
 
 
-def process_image(username, filename, b64_string, proc_step):
+def process_image(username, filename, b64_string, proc_steps):
     """ Process image
 
     This function takes an image and sends it to the server as a
@@ -485,37 +453,60 @@ def process_image(username, filename, b64_string, proc_step):
         username (str): user identifier
         filename (str): name of file
         b64_string (str): image string to process
-        proc_step (list): list containing requested processing
-        steps
+        proc_steps (list): list of Booleans containing requested
+        processing steps such as [False, True, False, False, True]
+        for "Original" ,"Histogram Equalization", "Contrast
+        Stretching", "Log Compression", and "Reverse Video"
 
     Returns:
-        status_code (int): whether image was successfully processed
+        status (dict): status message and status code
     """
     from image import read_img_as_b64
+    from image import is_b64
 
     print("Asking server to process image")
+    status = {}
 
-    # See if get_img_data was able to read the image
-    if b64_string == "":
-        status_code = 404
-        msg = "Image path is not valid."
-        print("Returned: {}".format(msg))
-        print("Status: {}".format(status_code))
+    # See if image is b64 string
+    validity = is_b64(b64_string)
+    if validity is False:
+        status = {"code": 400,
+                  "msg": "Filename {} has invalid b64 image."
+                  .format(file[0])}
+        return status
 
-        return status_code
+    # Check processing array for proper format
+    if len(proc_steps) != 5:
+        status = {"code": 400,
+                  "msg": "Processing array doesn't contain the correct \
+                  amount of elements."}
+        return status
+    for proc in proc_steps:
+        if isinstance(proc, bool) is False:
+            status = {"code": 400,
+                      "msg": "Processing array contains non-Boolean \
+                      elements.".format(file[0])}
+            return status
+
+    # Obtain processing extension
+    proc_ext = ""
+    for ind, step in enumerate(proc_steps):
+        if step is True:
+            proc_ext = proc_ext + "1"
+        else:
+            proc_ext = proc_ext + "0"
 
     # Format into dictionary
     img_info = {"username": username,
                 "filename": filename,
                 "image": b64_string,
-                "proc_step": proc_step}
+                "proc_step": proc_ext}
 
     r = requests.post(url + "process_image", json=img_info)
-    status_code = r.status_code
-    print("Returned: {}".format(r.text))
-    print("Status: {}".format(status_code))
+    status['code'] = r.status_code
+    status['msg'] = r.text
 
-    return status_code
+    return status
 
 
 if __name__ == "__main__":
@@ -525,35 +516,48 @@ if __name__ == "__main__":
 
     # Uploading Examples
     puppy1 = read_img_as_b64("Pictures/Original/puppy1.jpg")
-    puppy2 = read_img_as_b64("Pictures/Original/puppy2.jpg")
-    puppy3 = read_img_as_b64("Pictures/Original/puppy3.jpg")
-    puppy4 = read_img_as_b64("Pictures/Original/puppy4.jpg")
+    puppy6 = read_img_as_b64("Pictures/Original/puppy6.jpg")
+    puppy8 = read_img_as_b64("Pictures/Original/puppy8.jpg")
     file1 = ["puppy1", puppy1, [True, True, False, False, False]]
-    file2 = ["puppy2", puppy2, [True, True, True, True, True]]
-    file3 = ["puppy3", puppy3, [True, False, False, False, False]]
-    file4 = ["puppy4", puppy4, [True, False, False, False, False]]
+    file2 = ["puppy6", puppy6, [True, True, True, True, True]]
+    file3 = ["puppy8", puppy8, [True, False, False, False, False]]
     # Example uploading multiple images
-    status = upload_images("user1", [file1, file2, file3])
+    status = upload_images("user1", [file1, file2])
+    print(status['code'])
     # Example uploading single image
-    status = upload_images("user1", [file4])
-    print(status)
+    status = upload_images("user1", [file3])
+    print(status['code'])
 
     # Downloading Examples
     file1 = ["puppy1", ".jpg", [True, True, False, False, False]]
-    file2 = ["puppy2", ".png", [True, True, True, True, True]]
-    file3 = ["puppy3", ".tiff", [True, False, False, False, False]]
+    file2 = ["puppy6", ".png", [True, True, True, True, True]]
+    file3 = ["puppy8", ".tiff", [True, False, False, False, False]]
+    file4 = ["puppy1", ".png", [True, False, False, False, False]]
+    file5 = ["puppy1", ".jpg", [True, True, True, False, False]]
     # Example download (no saving) multiple images
     img_info, status = download_images("user1", [file1, file2, file3],
                                        "none")
-    print(status)
+    print(status['code'])
+    # Example download (no saving) multiple images (some exist)
+    img_info, status = download_images("user1", [file4, file5],
+                                       "none")
+    print(status['code'])
     # Example download (no saving) single image
     img_info, status = download_images("user1", [file3], "none")
-    print(status)
+    print(status['code'])
     # Example download (saving) multiple images
     img_info, status = download_images("user1", [file1, file2, file3],
                                        "Pictures/Downloaded/")
-    print(status)
-    # Exampe download (saving) single image
+    print(status['code'])
+    # Example download (saving) multiple images (some exist)
+    img_info, status = download_images("user1", [file4, file5],
+                                       "Pictures/Downloaded/")
+    print(status['code'])
+    # Example download (saving) single image
     img_info, status = download_images("user1", [file3],
                                        "Pictures/")
-    print(status)
+    print(status['code'])
+    # Example download (saving) single image that doesn't exist
+    img_info, status = download_images("user1", [file5],
+                                       "Pictures/")
+    print(status['code'])

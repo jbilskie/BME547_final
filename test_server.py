@@ -438,7 +438,7 @@ def test_upload_image(img_info, first_image, exp_i, exp_i2, exp_a):
                           # Invalid processing step
                           ({"username": "user",
                             "filename": "file.jpg",
-                            "proc_step": "invalid",
+                            "proc_step": "wrong",
                             "image": """iVBORw0KGgoAAAANSUhEUgAAAAEAA"""
                             """AABCAAAAAA6fptVAAAACklEQVR4nGNgA"""
                             """AAAAgABSK+kcQAAAABJRU5ErkJggg=="""},
@@ -446,10 +446,21 @@ def test_upload_image(img_info, first_image, exp_i, exp_i2, exp_a):
                             "msg": "Processing method not defined"},
                            True),
 
+                          # Invalid processing step
+                          ({"username": "user",
+                            "filename": "file.jpg",
+                            "proc_step": "111111",
+                            "image": """iVBORw0KGgoAAAANSUhEUgAAAAEAA"""
+                            """AABCAAAAAA6fptVAAAACklEQVR4nGNgA"""
+                            """AAAAgABSK+kcQAAAABJRU5ErkJggg=="""},
+                           {"code": 400,
+                            "msg": "Too many processing methods defined"},
+                           True),
+
                           # Try with all processing steps
                           ({"username": "user",
                             "filename": "file.jpg",
-                            "proc_step": "Histogram Equalization",
+                            "proc_step": "01000",
                             "image": """iVBORw0KGgoAAAANSUhEUgAAAAEAA"""
                             """AABCAAAAAA6fptVAAAACklEQVR4nGNgA"""
                             """AAAAgABSK+kcQAAAABJRU5ErkJggg=="""},
@@ -459,7 +470,7 @@ def test_upload_image(img_info, first_image, exp_i, exp_i2, exp_a):
 
                           ({"username": "user",
                             "filename": "file.jpg",
-                            "proc_step": "Contrast Stretching",
+                            "proc_step": "00100",
                             "image": """iVBORw0KGgoAAAANSUhEUgAAAAEAA"""
                             """AABCAAAAAA6fptVAAAACklEQVR4nGNgA"""
                             """AAAAgABSK+kcQAAAABJRU5ErkJggg=="""},
@@ -469,7 +480,7 @@ def test_upload_image(img_info, first_image, exp_i, exp_i2, exp_a):
 
                           ({"username": "user",
                             "filename": "file.jpg",
-                            "proc_step": "Log Compression",
+                            "proc_step": "00010",
                             "image": """iVBORw0KGgoAAAANSUhEUgAAAAEAA"""
                             """AABCAAAAAA6fptVAAAACklEQVR4nGNgA"""
                             """AAAAgABSK+kcQAAAABJRU5ErkJggg=="""},
@@ -479,7 +490,7 @@ def test_upload_image(img_info, first_image, exp_i, exp_i2, exp_a):
 
                           ({"username": "user",
                             "filename": "file.jpg",
-                            "proc_step": "Reverse Video",
+                            "proc_step": "00001",
                             "image": """iVBORw0KGgoAAAANSUhEUgAAAAEAA"""
                             """AABCAAAAAA6fptVAAAACklEQVR4nGNgA"""
                             """AAAAgABSK+kcQAAAABJRU5ErkJggg=="""},
@@ -835,7 +846,7 @@ def test_upload_processed_image(img_info, exist_orig, exist_proc,
                          # Empty username
                          [({"username": "",
                             "filename": "file.jpg",
-                            "proc_step": "Original"},
+                            "proc_step": "10000"},
                            False, False, False,
                            {"code": 400,
                             "msg": "Field username cannot be empty."},
@@ -844,7 +855,7 @@ def test_upload_processed_image(img_info, exist_orig, exist_proc,
                           # Empty filename
                           ({"username": "asdf",
                             "filename": "",
-                            "proc_step": "Original"},
+                            "proc_step": "10000"},
                            False, False, False,
                            {"code": 400,
                             "msg": "Field filename cannot be empty."},
@@ -853,7 +864,7 @@ def test_upload_processed_image(img_info, exist_orig, exist_proc,
                           # User and file don't exist
                           ({"username": "asdf",
                             "filename": "file.jpg",
-                            "proc_step": "Original"},
+                            "proc_step": "10000"},
                            False, False, False,
                            {"code": 404,
                             "msg": "Username not found in database."},
@@ -862,7 +873,7 @@ def test_upload_processed_image(img_info, exist_orig, exist_proc,
                           # User exists but file doesn't
                           ({"username": "asdf",
                             "filename": "file.jpg",
-                            "proc_step": "Original"},
+                            "proc_step": "10000"},
                            True, False, False,
                            {"code": 404,
                             "msg": "Filename/Image not found in database."},
@@ -871,7 +882,7 @@ def test_upload_processed_image(img_info, exist_orig, exist_proc,
                           # User doesn't exist but file does
                           ({"username": "asdf",
                             "filename": "file.jpg",
-                            "proc_step": "Original"},
+                            "proc_step": "10000"},
                            False, True, False,
                            {"code": 404,
                             "msg": "Username not found in database."},
@@ -880,75 +891,75 @@ def test_upload_processed_image(img_info, exist_orig, exist_proc,
                           # Add original image
                           ({"username": "asdf",
                             "filename": "file.jpg",
-                            "proc_step": "Original"},
+                            "proc_step": "10000"},
                            True, True, False,
                            {"code": 200,
                             "msg": "Request was successful"},
                            {"username": "asdf",
                             "filename": "file.jpg",
-                            "proc_step": "Original"}),
+                            "proc_step": "10000"}),
 
                           # Try with different image formats
                           ({"username": "asdf",
                             "filename": "file.png",
-                            "proc_step": "Original"},
+                            "proc_step": "10000"},
                            True, True, False,
                            {"code": 200,
                             "msg": "Request was successful"},
                            {"username": "asdf",
                             "filename": "file.png",
-                            "proc_step": "Original"}),
+                            "proc_step": "10000"}),
 
                           ({"username": "asdf",
                             "filename": "file.tiff",
-                            "proc_step": "Original"},
+                            "proc_step": "10000"},
                            True, True, False,
                            {"code": 200,
                             "msg": "Request was successful"},
                            {"username": "asdf",
                             "filename": "file.tiff",
-                            "proc_step": "Original"}),
+                            "proc_step": "10000"}),
 
                           # Try with different processing steps
                           ({"username": "asdf",
                             "filename": "file.jpg",
-                            "proc_step": "Histogram Equalization"},
+                            "proc_step": "01000"},
                            True, False, True,
                            {"code": 200,
                             "msg": "Request was successful"},
                            {"username": "asdf",
                             "filename": "file.jpg",
-                            "proc_step": "Histogram Equalization"}),
+                            "proc_step": "01000"}),
 
                           ({"username": "asdf",
                             "filename": "file.jpg",
-                            "proc_step": "Contrast Stretching"},
+                            "proc_step": "00100"},
                            True, False, True,
                            {"code": 200,
                             "msg": "Request was successful"},
                            {"username": "asdf",
                             "filename": "file.jpg",
-                            "proc_step": "Contrast Stretching"}),
+                            "proc_step": "00100"}),
 
                           ({"username": "asdf",
                             "filename": "file.jpg",
-                            "proc_step": "Log Compression"},
+                            "proc_step": "00010"},
                            True, False, True,
                            {"code": 200,
                             "msg": "Request was successful"},
                            {"username": "asdf",
                             "filename": "file.jpg",
-                            "proc_step": "Log Compression"}),
+                            "proc_step": "00010"}),
 
                           ({"username": "asdf",
                             "filename": "file.jpg",
-                            "proc_step": "Reverse Video"},
+                            "proc_step": "00001"},
                            True, False, True,
                            {"code": 200,
                             "msg": "Request was successful"},
                            {"username": "asdf",
                             "filename": "file.jpg",
-                            "proc_step": "Reverse Video"}),
+                            "proc_step": "00001"}),
                           ])
 def test_process_image_download(input_img_info, add_user, add_orig, add_proc,
                                 expected_status, expected_img):
@@ -998,57 +1009,57 @@ def test_process_image_download(input_img_info, add_user, add_orig, add_proc,
                          "proc_step, expected",
                          # User and file don't exist
                          [("asdf", False, "file.jpg", False, False,
-                           "Original",
+                           "10000",
                            {"code": 404,
                             "msg": "Username not found in database."}),
 
                           # User doesn't exist but file does
                           ("asdf", False, "file.jpg", True, False,
-                           "Original",
+                           "10000",
                            {"code": 404,
                             "msg": "Username not found in database."}),
 
                           # User exists but file doesn't
                           ("asdf", True, "file.jpg", False, False,
-                           "Original",
+                           "10000",
                            {"code": 404,
                             "msg": "Filename/Image not found in database."}),
 
                           # User and file exist
                           ("asdf", True, "file.jpg", True, False,
-                           "Original",
+                           "10000",
                            {"code": 200,
                             "msg": "Request was successful"}),
 
                           # Try with all processing steps
                           ("asdf", True, "file.jpg", False, True,
-                           "Histogram Equalization",
+                           "01000",
                            {"code": 200,
                             "msg": "Request was successful"}),
 
                           ("asdf", True, "file.jpg", False, True,
-                           "Contrast Stretching",
+                           "001000",
                            {"code": 200,
                             "msg": "Request was successful"}),
 
                           ("asdf", True, "file.jpg", False, True,
-                           "Log Compression",
+                           "00010",
                            {"code": 200,
                             "msg": "Request was successful"}),
 
                           ("asdf", True, "file.jpg", False, True,
-                           "Reverse Video",
+                           "00001",
                            {"code": 200,
                             "msg": "Request was successful"}),
 
                           # Check with different file types
                           ("asdf", True, "file.png", True, False,
-                           "Original",
+                           "10000",
                            {"code": 200,
                             "msg": "Request was successful"}),
 
                           ("asdf", True, "file.tiff", True, False,
-                           "Original",
+                           "10000",
                            {"code": 200,
                             "msg": "Request was successful"}),
                           ])

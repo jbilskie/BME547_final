@@ -369,24 +369,42 @@ def process_process_image(img_info):
 
     # Decode b64
     orig_img = b64_to_image(img_info["image"])
+    img = orig_img
+
+    # Define processes
+    procs = ["Original", "Histogram Equalization", "Contrast Stretching",
+             "Log Compression", "Reverse Video"]
 
     # Process image
     t1 = time.time()
-    try:
-        proc_img = run_image_processing(orig_img, img_info["proc_step"])
-    except:
-        status = {"code": 404,
-                  "msg": "Processing method not defined"}
-        logging.warning("{} was unable to be {} processed."
-                        .format(img_info["filename"],
-                                img_info["proc_step"]))
-
-        return status
+    processes = list(img_info["proc_step"])
+    if len(processes) == 5:
+        for ind, proc in enumerate(processes):
+            if proc == '1':
+                try:
+                    logging.info(procs[ind])
+                    proc_img = run_image_processing(img, procs[ind])
+                    img = proc_img
+                except:
+                    status = {"code": 404,
+                              "msg": "Processing method not defined"}
+                    logging.warning("{} was unable to be {} processed."
+                                    .format(img_info["filename"],
+                                            procs[ind]))
+                    return status
+            elif proc == '0':
+                pass
+            else:
+                status = {"code": 404,
+                          "msg": "Processing method not defined"}
+    else:
+        status = {"code": 400,
+                  "msg": "Too many processing methods defined"}
 
     t2 = time.time()
 
     # Store processed image
-    img_info["proc_image"] = image_to_b64(proc_img)
+    img_info["proc_image"] = image_to_b64(img)
 
     # Processing time
     logging.info("Storing processing time")
@@ -423,21 +441,24 @@ def run_image_processing(orig_img, proc_step):
     from skimage.exposure import adjust_log
     from skimage.util import invert
 
-    if proc_step == "Histogram Equalization":
-        logging.info("Perfomring histogram equalization")
+    if proc_step == "Original":
+        proc_img = orig_img
+
+    elif proc_step == "Histogram Equalization":
         proc_img = equalize_histogram(orig_img)
+        logging.info("Completed histogram equalization")
 
     elif proc_step == "Contrast Stretching":
-        logging.info("Performing contrast stretching")
         proc_img = stretch_contrast(orig_img)
+        logging.info("Completed contrast stretching")
 
     elif proc_step == "Log Compression":
-        logging.info("Performing log compression processing")
         proc_img = adjust_log(orig_img)
+        logging.info("Completed log compression")
 
     elif proc_step == "Reverse Video":
-        logging.info("Performing reverse video processing")
         proc_img = invert(orig_img)
+        logging.info("Completed reverse video")
 
     return proc_img
 
@@ -639,7 +660,8 @@ def process_image_download(input_img_info):
     user = User.objects.raw({"_id": input_img_info["username"]}).first()
 
     # Find desired image
-    if input_img_info["proc_step"] == "Original":
+    logging.info(input_img_info["proc_step"])
+    if input_img_info["proc_step"] == '10000':
         for ind, img_infos in enumerate(user.orig_img):
             if img_infos["filename"] == input_img_info["filename"]:
                 img_info = user.orig_img[ind]
@@ -650,11 +672,12 @@ def process_image_download(input_img_info):
                     img_info = user.proc_img[ind]
 
     user.actions.append("Downloaded Image")
+    user.save()
 
     return status, img_info
 
 
-def exist_input(username, filename, proc_step):
+def exist_input(username, filename, proc_steps):
     """ Validate whether input exists in database
 
     This function ensures that the user enters an input username,
@@ -664,9 +687,10 @@ def exist_input(username, filename, proc_step):
     Args:
         username (str): name of input username
         filename (str): name of input filename
-        proc_step (str): name of that image is desired such as "Original",
-        "Histogram Equalization", "Contrast Stretching", "Log
-        Compression", "Reverse Video"
+        proc_steps (string): string of ones and zeros correlating
+        to processing steps desired to have been done on the image
+        - "Original" ,"Histogram Equalization", "Contrast
+        Stretching", "Log Compression", and "Reverse Video"
 
     Returns:
         status (dict): status message and status code
@@ -680,14 +704,14 @@ def exist_input(username, filename, proc_step):
 
     # Find desired image
     found = False
-    if proc_step == "Original":
+    if proc_steps == '10000':
         for img_info in user.orig_img:
             if img_info["filename"] == filename:
                 found = True
     else:
         for img_info in user.proc_img:
             if img_info["filename"] == filename:
-                if img_info["proc_step"] == proc_step:
+                if img_info["proc_step"] == proc_steps:
                     found = True
     if found is False:
         status = {"code": 404,
@@ -830,4 +854,4 @@ def delete_img(username, filename):
 
 if __name__ == '__main__':
     logging.basicConfig(filename='LOGFILE.log', level=logging.INFO)
-    app.run(host='0.0.0.0')
+    app.run()  # host='0.0.0.0')
