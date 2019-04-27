@@ -153,7 +153,6 @@ def check_file_list(file_list, direction):
     # Make sure all filenames are non-empty strings
     for file in file_list:
         if isinstance(file[0], str) is not True:
-            print(type(file[0]))
             status = {"code": 400,
                       "msg": "Filename {} is not a string."
                       .format(file[0])}
@@ -232,8 +231,10 @@ def upload_images(username, file_list):
     """
     # Make sure input is valid
     status = check_file_list(file_list, "upload")
+    """
     if status["code"] != 200:
         return status
+    """
 
     # Define Processing Options
     procs = ["Original", "Histogram Equalization", "Contrast Stretching",
@@ -241,6 +242,8 @@ def upload_images(username, file_list):
 
     # Complete all uploading tasks and append with their status codes
     status_codes = []
+    print("UPLOAD THIS MANY FILES")
+    print(len(file_list))
     for file in file_list:
         file_status = []
         for proc, do_proc in enumerate(file[2]):
@@ -300,14 +303,16 @@ def download_images(username, file_list, zip_path):
 
     # Make sure input is valid
     status = check_file_list(file_list, "download")
+    img_info = {}
     if status["code"] != 200:
-        return status
+        return img_info, status
 
     # Define Processing Options
     procs = ["Original", "Histogram Equalization", "Contrast Stretching",
              "Log Compression", "Reverse Video"]
 
     # If one photo, just download it
+    print(len(file_list))
     if len(file_list) == 1:
         if file_list[0][2].count(True) == 1:
             for proc, do_proc in enumerate(file_list[0][2]):
@@ -443,6 +448,7 @@ def download_image(username, filename, path, proc_step, type_ext=".png"):
                      filename + "/" + proc_step)
     status_code = r.status_code
     if status_code != 200:
+        print("{} FAILED HERE".format(filename))
         img_info = {}
         msg = r.text[1]
     else:
