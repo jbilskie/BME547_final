@@ -279,10 +279,10 @@ def test_validate_user(username, add_user, expected_status):
         user.delete()
 
 
-@pytest.mark.parametrize("input, exp", [("test_image/orion.jpg",
-                                         (1600, 1200)),
-                                        ("test_image/sky.jpg",
-                                         (930, 620)),
+@pytest.mark.parametrize("input, exp", [("test_image/pup.jpg",
+                                         (194, 259)),
+                                        ("test_image/pup2.tiff",
+                                         (640, 366)),
                                         ("test_image/test_1.jpg",
                                          (1, 1)),
                                         ("test_image/test_3.png",
@@ -309,14 +309,14 @@ def test_get_img_size(input, exp):
 
 @pytest.mark.parametrize("img_info, first_image, exp_i, exp_i2, exp_a",
                          [({"username": "danyt",
-                            "filename": "orion.jpg",
+                            "filename": "pup.jpg",
                             "image":
-                            read_img_as_b64("test_image/orion.jpg")},
+                            read_img_as_b64("test_image/pup.jpg")},
                            True, 2, 2, "Uploaded Image"),
                           ({"username": "danyt",
-                            "filename": "orion.jpg",
+                            "filename": "pup2.tiff",
                             "image":
-                            read_img_as_b64("test_image/orion.jpg")},
+                            read_img_as_b64("test_image/pup2.tiff")},
                            False, 1, 3, "Updated Image"),
                           ({"username": "tyrionl",
                             "filename": "blank.png",

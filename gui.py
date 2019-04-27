@@ -479,7 +479,7 @@ def display_images(run, user, img_type, img_paths, proc_steps, root,
                 if isinstance(status, dict):
                     if status["code"] != 200:
                         raise LookupError()
-                else: # status is an int
+                else:  # status is an int
                     if status != 200:
                         raise LookupError()
                 proc_img_obj = b64_to_image(img_str)
@@ -594,7 +594,7 @@ def resize_img_dim(w, h, new_w):
         w (int): current width of image
         h (int): current height of image
         new_w (int): new width of image
-        
+
     Returns:
         final_w (int): new width
         final_h (int): new height
