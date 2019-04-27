@@ -26,6 +26,7 @@ def editing_window():
         Returns:
             none
         """
+        success_label.grid_forget()
         from client import download_images
         entered_user = user.get()
         print("User: {}".format(entered_user))
@@ -40,10 +41,12 @@ def editing_window():
                                                   entered_proc_step)
 
         orig_images, filenames, success = get_img_data(img_paths)
+        print(filenames)
+        print(len(orig_images[0]))
         upload_success = upload_to_server(entered_user, orig_images,
                                           filenames, success,
                                           proc_steps)
-        success_label = ttk.Label(root, text=upload_success)
+        success_label.config(text=upload_success)
         success_label.grid(column=1, row=10, sticky=W)
         display_img = BooleanVar()
         display_check = ttk.Checkbutton(root, text='Display images',
@@ -63,13 +66,9 @@ def editing_window():
                                        req_img_type,
                                        [True, False, False,
                                         False, False])
-        print("ORIG LENGTH")
-        print(len(orig_file_list))
         file_list = get_file_list(filenames, req_img_type, proc_steps)
-        print("PROC LENGTH")
-        print(len(file_list[0]))
-        print(len(file_list))
         if upload_success:
+            print("ALL UPLOADING DONE")
             download_btn = ttk.Button(root,
                                       text='Download original image',
                                       command=lambda:
@@ -84,6 +83,10 @@ def editing_window():
                                                        file_list, ''),
                                        width=23)
             download_btn2.grid(column=0, columnspan=2, row=13, sticky=N)
+            zip_msg = ttk.Label(root,
+                                text='Multiple files saved as download.zip')
+            # if success.count(True) > 1:
+            zip_msg.grid(column=0, columnspan=2, row=14, sticky=N)
             """
             process_btn = ttk.Button(root,
                                      text='Process images again',
@@ -162,6 +165,7 @@ def editing_window():
     upload_btn = ttk.Button(root, text='Upload file', command=enter_data,
                             width=10)
     upload_btn.grid(column=1, row=9, sticky=W)
+    success_label = ttk.Label(root, text='')
     # Show GUI window
     root.mainloop()
     return
@@ -459,50 +463,41 @@ def display_images(run, user, img_type, img_paths, proc_steps, root,
                     orig_img_label.append(Label(orig_img_frame,
                                                 text='Image not found'))
                 # Load processed image
-                # try:
-                file_list = [[filenames[i], img_type, proc_steps]]
-                print("FILE TO GET IS")
-                print(file_list)
-                img_info, status = download_images(user,
-                                                   file_list,
-                                                   'none')
-                print("IMAGE INFO IS ")
-                print(img_info)
-                print("STATUS IS ")
-                print(status)
-                if isinstance(img_info, dict):
-                    print("IMAGE INFO KEYS ARE")
-                    print(img_info.keys())
-                    img_str = img_info["image"]
-                elif isinstance(img_info, list):
-                    img_str = img_info[1]["image"]
-                if isinstance(status, dict):
-                    if status["code"] != 200:
-                        raise LookupError()
-                else:  # status is an int
-                    if status != 200:
-                        raise LookupError()
-                proc_img_obj = b64_to_image(img_str)
-                proc_img_to_load = np.asarray(proc_img_obj)
-                img_to_show2 = Image.fromarray(proc_img_to_load)
-                w2 = img_to_show2.width
-                h2 = img_to_show2.height
-                final_w2, final_h2 = resize_img_dim(w2, h2, new_w)
-                img_to_show2 = img_to_show2.resize((final_w,
-                                                    final_h),
-                                                   Image.ANTIALIAS)
-                proc_images.append(ImageTk.PhotoImage(img_to_show2))
-                proc_img_label.append(Label(proc_img_frame,
-                                            image=proc_images[-1]))
-                proc_img_label[-1].img = proc_images[-1]
-                """
+                try:
+                    file_list = [[filenames[i], img_type, proc_steps]]
+                    print("FILE TO GET IS")
+                    print(file_list)
+                    img_info, status = download_images(user,
+                                                       file_list,
+                                                       'none')
+                    if isinstance(img_info, dict):
+                        img_str = img_info["image"]
+                    elif isinstance(img_info, list):
+                        img_str = img_info[1]["image"]
+                    if isinstance(status, dict):
+                        if status["code"] != 200:
+                            raise LookupError()
+                    else:  # status is an int
+                        if status != 200:
+                            raise LookupError()
+                    proc_img_obj = b64_to_image(img_str)
+                    proc_img_to_load = np.asarray(proc_img_obj)
+                    img_to_show2 = Image.fromarray(proc_img_to_load)
+                    w2 = img_to_show2.width
+                    h2 = img_to_show2.height
+                    final_w2, final_h2 = resize_img_dim(w2, h2, new_w)
+                    img_to_show2 = img_to_show2.resize((final_w,
+                                                        final_h),
+                                                       Image.ANTIALIAS)
+                    proc_images.append(ImageTk.PhotoImage(img_to_show2))
+                    proc_img_label.append(Label(proc_img_frame,
+                                                image=proc_images[-1]))
+                    proc_img_label[-1].img = proc_images[-1]
                 except:
-                    print("TRY CASE FAILED")
                     proc_images.append('')
                     proc_img_label.append(Label
                                           (proc_img_frame,
                                            text='Image not processed'))
-                """
             # Image not successfully extracted
             else:
                 tk_images.append('')

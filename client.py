@@ -242,8 +242,7 @@ def upload_images(username, file_list):
 
     # Complete all uploading tasks and append with their status codes
     status_codes = []
-    print("UPLOAD THIS MANY FILES")
-    print(len(file_list))
+    print("UPLOAD {} FILES".format(len(file_list)))
     for file in file_list:
         file_status = []
         for proc, do_proc in enumerate(file[2]):
@@ -441,6 +440,7 @@ def download_image(username, filename, path, proc_step, type_ext=".png"):
     from image import save_b64_img
     import json
     from PIL import Image
+    import re
 
     print("Asking server to download image")
 
@@ -460,7 +460,14 @@ def download_image(username, filename, path, proc_step, type_ext=".png"):
         elif path == 'nonetemp/':
             pass
         else:
-            save_b64_img(img_info["image"], path+filename+proc_step+type_ext)
+            re_obj = re.search('\.', filename)
+            if re_obj:
+                match_start = re_obj.span()[0]
+                new_filename = filename[0:match_start]
+            else:
+                new_filename = filename
+            save_path = path+new_filename+" "+proc_step+type_ext
+            save_b64_img(img_info["image"], save_path)
     print("Returned: {}".format(msg))
     print("Status: {}".format(status_code))
 
