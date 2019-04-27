@@ -47,9 +47,13 @@ def editing_window():
         for i in img_paths:
             print("\t{}".format(i))
         entered_img_type = img_type.get()
-        entered_proc_step = proc_step_var.get()
+        entered_1 = hist_eq.get()
+        entered_2 = contr_stretch.get()
+        entered_3 = log_comp.get()
+        entered_4 = rev_vid.get()
         req_img_type, proc_steps = convert_inputs(entered_img_type,
-                                                  entered_proc_step)
+                                                  entered_1, entered_2,
+                                                  entered_3, entered_4)
 
         orig_images, filenames, success = get_img_data(img_paths)
         print(filenames)
@@ -142,23 +146,27 @@ def editing_window():
     steps_label = ttk.Label(root, text="Processing steps:")
     steps_label.grid(column=0, row=5, sticky=E)
 
-    proc_step_var = StringVar(None, "A")
-
-    hist_check = ttk.Radiobutton(root, text='Histogram Equalization',
-                                 variable=proc_step_var,
-                                 value="A")
+    hist_eq = BooleanVar()
+    hist_eq.set(True)
+    contr_stretch = BooleanVar()
+    log_comp = BooleanVar()
+    rev_vid = BooleanVar()
+    
+    hist_check = ttk.Checkbutton(root, text='Histogram Equalization',
+                                 variable=hist_eq,
+                                 onvalue=True, offvalue=False)
     hist_check.grid(column=1, row=5, sticky=W)
-    contr_check = ttk.Radiobutton(root, text='Contrast Stretching',
-                                  variable=proc_step_var,
-                                  value="B")
+    contr_check = ttk.Checkbutton(root, text='Contrast Stretching',
+                                  variable=contr_stretch,
+                                  onvalue=True, offvalue=False)
     contr_check.grid(column=1, row=6, sticky=W)
-    log_check = ttk.Radiobutton(root, text='Log Compression',
-                                variable=proc_step_var,
-                                value="C")
+    log_check = ttk.Checkbutton(root, text='Log Compression',
+                                variable=log_comp,
+                                onvalue=True, offvalue=False)
     log_check.grid(column=1, row=7, sticky=W)
-    rev_check = ttk.Radiobutton(root, text='Reverse video',
-                                variable=proc_step_var,
-                                value="D")
+    rev_check = ttk.Checkbutton(root, text='Reverse video',
+                                variable=rev_vid,
+                                onvalue=True, offvalue=False)
     rev_check.grid(column=1, row=8, sticky=W)
 
     upload_btn = ttk.Button(root, text='Upload file', command=enter_data,
@@ -180,33 +188,35 @@ def editing_window():
     return
 
 
-def convert_inputs(entered_img_type, entered_proc_step):
+def convert_inputs(entered_img_type, entered_1, entered_2, entered_3,
+                   entered_4):
     """Converts GUI user input into function inputs
 
     Gets requested image type and processing steps in the desired format.
 
     Args:
         entered_img_type (str): selected image type from GUI dropdown
-        entered_proc_step (str): selected processing step from GUI
+        entered_1 (bool): histogram equalization?
+        entered_2 (bool): contrast stretching?
+        entered_3 (bool): log compression?
+        entered_4 (bool): reverse video?
 
     Returns:
         req_img_type (str): requested image type
         proc_steps (list): processing steps as a list of booleans
     """
+    four_steps = [entered_1, entered_2, entered_3, entered_4]
     if entered_img_type == 'JPEG':
         req_img_type = '.jpg'
     elif entered_img_type == 'PNG':
         req_img_type = '.png'
     elif entered_img_type == 'TIFF':
         req_img_type = '.tiff'
-    if entered_proc_step == "A":
-        proc_steps = [False, True, False, False, False]
-    elif entered_proc_step == "B":
-        proc_steps = [False, False, True, False, False]
-    elif entered_proc_step == "C":
-        proc_steps = [False, False, False, True, False]
-    elif entered_proc_step == "D":
-        proc_steps = [False, False, False, False, True]
+    if not any(four_steps):
+        proc_steps = [True, False, False, False, False]
+    else:
+        proc_steps = [False, entered_1, entered_2, entered_3,
+                      entered_4]
     return req_img_type, proc_steps
 
 
