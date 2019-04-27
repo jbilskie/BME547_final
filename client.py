@@ -231,8 +231,10 @@ def upload_images(username, file_list):
     """
     # Make sure input is valid
     status = check_file_list(file_list, "upload")
+    """
     if status["code"] != 200:
         return status
+    """
 
     # Define Processing Options
     procs = ["Original", "Histogram Equalization", "Contrast Stretching",
