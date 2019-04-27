@@ -151,7 +151,7 @@ def editing_window():
     contr_stretch = BooleanVar()
     log_comp = BooleanVar()
     rev_vid = BooleanVar()
-    
+
     hist_check = ttk.Checkbutton(root, text='Histogram Equalization',
                                  variable=hist_eq,
                                  onvalue=True, offvalue=False)
