@@ -14,6 +14,17 @@ url = "http://127.0.0.1:5000/"
 
 
 def editing_window():
+    """Editing window
+
+    Initial GUI window that lets user enter their information and
+    their requested editing steps.
+
+    Args:
+        none
+
+        Returns:
+        none
+    """
     def enter_data():
         """Collect inputted data
 
@@ -69,30 +80,18 @@ def editing_window():
         file_list = get_file_list(filenames, req_img_type, proc_steps)
         if upload_success:
             print("ALL UPLOADING DONE")
-            download_btn = ttk.Button(root,
-                                      text='Download original image',
-                                      command=lambda:
-                                      download_images(entered_user,
-                                                      orig_file_list,
-                                                      ''))
-            download_btn.grid(column=0, columnspan=2, row=12, sticky=N)
-            download_btn2 = ttk.Button(root,
-                                       text='Download processed image(s)',
-                                       command=lambda:
-                                       download_images(entered_user,
-                                                       file_list, ''),
-                                       width=23)
-            download_btn2.grid(column=0, columnspan=2, row=13, sticky=N)
+            download_btn.config(state=NORMAL)
+            download_btn.config(command=lambda:
+                                download_images(entered_user,
+                                                orig_file_list, ''))
+            download_btn2.config(state=NORMAL)
+            download_btn2.config(command=lambda:
+                                 download_images(entered_user,
+                                                 file_list, ''))
             zip_msg = ttk.Label(root,
                                 text='Multiple files saved as download.zip')
             # if success.count(True) > 1:
             zip_msg.grid(column=0, columnspan=2, row=14, sticky=N)
-            """
-            process_btn = ttk.Button(root,
-                                     text='Process images again',
-                                     command=lambda:
-                                     download_images(entered_user,
-            """
         return
 
     # Main window
@@ -164,8 +163,18 @@ def editing_window():
 
     upload_btn = ttk.Button(root, text='Upload file', command=enter_data,
                             width=10)
-    upload_btn.grid(column=1, row=9, sticky=W)
+    upload_btn.grid(column=0, row=9, columnspan=2, sticky=N)
     success_label = ttk.Label(root, text='')
+    download_btn = Button(root,
+                          text='Download original image',
+                          state=DISABLED)
+    download_btn.grid(column=0, columnspan=2, row=12, sticky=N)
+    download_btn2 = Button(root,
+                           text='Download processed image(s)',
+                           state=DISABLED)
+    download_btn2.grid(column=0, columnspan=2, row=13, sticky=N)
+    s = ttk.Style()
+    s.configure('Button', foreground=[('disabled', 'black')])
     # Show GUI window
     root.mainloop()
     return
@@ -608,6 +617,30 @@ def resize_img_dim(w, h, new_w):
 def show_next(next, images, filenames, filename_label, orig_img_label,
               proc_img_label, img_width, orig_hist_plots,
               proc_hist_plots, hist_width):
+    """Image slideshow functionality
+
+    Shows images and histograms for next or previous file on button
+    click.
+
+    Args:
+        next (str): 'next' or 'prev', depending on the button being
+        pressed
+        images (list): list of original Tk PhotoImages (empty string
+        if image could not be uploaded
+        filenames (list): list of image filenames
+        filename_label (tk Label): label showing filename
+        orig_img_label (tk Label): label showing original image
+        proc_img_label (tk Label): label showing processed image
+        img_width (int): width of image
+        orig_hist_plots (tk Label): label showing histograms for
+        original image
+        proc_hist_plots (tk Label): label showing histograms for
+        processed image
+        hist_width (int): width of histogram
+
+    Returns:
+        none
+    """
     global index
     if next == 'next':
         display_next = index < (len(orig_img_label))-1
