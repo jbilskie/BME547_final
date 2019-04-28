@@ -74,17 +74,17 @@ def delete_image(username, filename):
     return
 
 
-def check_file_list(file_list, direction):
+def check_file(file, direction):
     """ Validate a user input
 
-    This function ensures that the user enters a valid list of file lists
-    where each file containts a non-empty filename, b64 image, and a valid
+    This function ensures that the user enters a valid file list
+    where the list contains a non-empty filename, b64 image, and a valid
     processing steps array.
 
     Args:
         direction (str): either "upload" or download"
-        file_list (list): UPLOAD list of files where each item in the list
-        is a list of the file's filename, b64 image, and an array of
+        file (list): UPLOAD a file is a list where each item in the list
+        is a file's filename, b64 image, and an array of
         what processing steps should be done
             Example: file_list = [file1, file2]
                     file1 = ["image1", b64_image1,
@@ -96,8 +96,8 @@ def check_file_list(file_list, direction):
             perform contrast stretching and log compression. Likewise,
             image2 desires the original and to perform histogram
             equalization and reverse video.
-        file_list (list): DOWNLOAD list of files where each item in the
-        list is a list of the file's filename, image download type, and
+        file (list): DOWNLOAD a file is a list where each item in the
+        list is a file's filename, image download type, and
         an array of what processing steps should be downloaded
             Example: file_list = [file1, file2]
                     file1 = ["image1", ".jpg",
@@ -119,73 +119,59 @@ def check_file_list(file_list, direction):
     status = {"code": 200,
               "msg": "Request was successful"}
 
-    # Check for empty list
-    if len(file_list) == 0:
+    # Check that file has all components
+    if len(file) != 3:
         status = {"code": 400,
-                  "msg": "No files were selected."}
+                  "msg": "File {} doesn't contain the correct\
+                  amount of elements.".format(file[0])}
         return status
 
-    # Check that each file has all components
-    for file in file_list:
-        if len(file) != 3:
-            status = {"code": 400,
-                      "msg": "File {} doesn't contain the correct\
-                      amount of elements.".format(file[0])}
-            return status
-
-    # Check that images were selected
-    image_count = 0
-    for file in file_list:
-        image_count = image_count + sum(file[2])
-    if image_count == 0:
+    # Check that an image was selected
+    if True not in list(file[2]):
         status = {"code": 400,
                   "msg": "No image types were selected for given files."}
         return status
 
     # Make sure all filenames are non-empty strings
-    for file in file_list:
-        if isinstance(file[0], str) is not True:
-            status = {"code": 400,
-                      "msg": "Filename {} is not a string."
-                      .format(file[0])}
-            return status
-        if len(file[0]) == 0:
-            status = {"code": 400,
-                      "msg": "Filename {} is empty.".format(file[0])}
-            return status
+    if isinstance(file[0], str) is not True:
+        status = {"code": 400,
+                  "msg": "Filename {} is not a string."
+                  .format(file[0])}
+        return status
+    if len(file[0]) == 0:
+        status = {"code": 400,
+                  "msg": "Filename {} is empty.".format(file[0])}
+        return status
 
     # Check if b64_image is valid or image type for download is valid
     if direction == "upload":
-        for file in file_list:
-            validity = is_b64(file[1])
-            if validity is False:
-                status = {"code": 400,
-                          "msg": "Filename {} has invalid b64 image."
-                          .format(file[0])}
-                return status
-    if direction == "download":
-        img_types = [".jpg", ".tiff", ".png"]
-        for file in file_list:
-            if file[1] not in img_types:
-                status = {"code": 400,
-                          "msg": "Filename {} has invalid image type."
-                          .format(file[0])}
-                return status
-
-    # Check processing array for proper format
-    for file in file_list:
-        if len(file[2]) != 5:
+        validity = is_b64(file[1])
+        if validity is False:
             status = {"code": 400,
-                      "msg": "Processing array in file {} doesn't \
-                      contain the correct amount of elements."
+                      "msg": "Filename {} has invalid b64 image."
                       .format(file[0])}
             return status
-        for proc in file[2]:
-            if isinstance(proc, bool) is False:
-                status = {"code": 400,
-                          "msg": "Processing array contains non-Boolean \
-                          elements.".format(file[0])}
-                return status
+    if direction == "download":
+        img_types = [".jpg", ".tiff", ".png"]
+        if file[1] not in img_types:
+            status = {"code": 400,
+                      "msg": "Filename {} has invalid image type."
+                      .format(file[0])}
+            return status
+
+    # Check processing array for proper format
+    if len(file[2]) != 5:
+        status = {"code": 400,
+                  "msg": "Processing array in file {} doesn't \
+                  contain the correct amount of elements."
+                  .format(file[0])}
+        return status
+    for proc in file[2]:
+        if isinstance(proc, bool) is False:
+            status = {"code": 400,
+                      "msg": "Processing array contains non-Boolean \
+                      elements.".format(file[0])}
+            return status
 
     return status
 
@@ -216,8 +202,12 @@ def upload_images(username, file_list):
         files_status (dict of two lists): dictionary of a list of status codes
         and list of status messages for each file being uploaded
     """
-    # Make sure input is valid
-    status = check_file_list(file_list, "upload")
+
+    # Check for empty list
+    if len(file_list) == 0:
+        files_status = {"code": 400,
+                        "msg": "No file was selected."}
+        return files_status
 
     # Complete all uploading tasks and append with their status codes
     files_status = {}
@@ -225,23 +215,21 @@ def upload_images(username, file_list):
     code = []
     for file in file_list:
         file_status = []
-        # Empty b64 string means file wasn't extracted
-        # Status will be overwritten in that case
-        if file[1] != '':
+
+        # Make sure input is valid
+        file_status = check_file(file, "upload")
+
+        if file_status['code'] == 200:
             if file[2] == [True, False, False, False, False]:
                 file_status = upload_image(username, file[0], file[1])
             else:
                 file_status = process_image(username, file[0], file[1],
                                             file[2])
-            msg.append(file_status['msg'])
-            code.append(file_status['code'])
+        msg.append(file_status['msg'])
+        code.append(file_status['code'])
 
-    if status["code"] != 200:
-        files_status["code"] = [status["code"]]
-        files_status["msg"] = [status["msg"]]
-    else:
-        files_status['msg'] = msg
-        files_status['code'] = code
+    files_status['msg'] = msg
+    files_status['code'] = code
 
     return files_status
 
@@ -281,14 +269,11 @@ def download_images(username, file_list, zip_path):
     import os
     import time
 
-    # Make sure input is valid
-    status = check_file_list(file_list, "download")
-    if status["code"] != 200:
-        files_img_infos = []
-        files_status = {}
-        files_status["code"] = [status["code"]]
-        files_status["msg"] = [status["msg"]]
-        return files_img_infos, files_status
+    # Check for empty list
+    if len(file_list) == 0:
+        files_status = {"code": 400,
+                        "msg": "No file was selected."}
+        return [], files_status
 
     # Define Processing Options
     procs = ["Original", "Histogram Equalization", "Contrast Stretching",
@@ -296,6 +281,16 @@ def download_images(username, file_list, zip_path):
 
     # If one photo, just download it
     if len(file_list) == 1:
+
+        # Make sure input is valid
+        status = check_file(file_list[0], "download")
+        if status["code"] != 200:
+            files_img_infos = []
+            files_status = {}
+            files_status["code"] = [status["code"]]
+            files_status["msg"] = [status["msg"]]
+            return files_img_infos, files_status
+
         img_info, status = download_image(username, file_list[0][0],
                                           zip_path, file_list[0][2],
                                           file_list[0][1])
@@ -311,11 +306,21 @@ def download_images(username, file_list, zip_path):
     code = []
     files_img_infos = []
     cwd = os.getcwd()
+    try:
+        os.rmdir(zip_path + 'temp')
+    except:
+        pass
     os.mkdir(zip_path + 'temp')
     for file in file_list:
-        img_info, status = download_image(username, file[0],
-                                          zip_path + 'temp/',
-                                          file[2], file[1])
+
+        # Make sure input is valid
+        status = check_file(file, "download")
+        if status["code"] != 200:
+            img_info = []
+        else:
+            img_info, status = download_image(username, file[0],
+                                              zip_path + 'temp/',
+                                              file[2], file[1])
         msg.append(status['msg'])
         code.append(status['code'])
         files_img_infos.append(img_info)
@@ -374,15 +379,18 @@ def upload_image(username, filename, b64_string):
         status (dict): status message and status code
     """
     from image import save_b64_img
+    from image import is_b64
 
     print("Asking server to upload image")
     status = {}
 
-    # See if get_img_data was able to read the image
-    if b64_string == "":
-        status = {"code": 404,
-                  "msg": "Image path is not valid."}
-        return status_code
+    # See if image is b64 string
+    validity = is_b64(b64_string)
+    if validity is False:
+        status = {"code": 400,
+                  "msg": "Filename {} has invalid b64 image."
+                  .format(file[0])}
+        return status
 
     # Format into dictionary
     img_info = {"username": username,
@@ -542,45 +550,48 @@ if __name__ == "__main__":
     puppy6 = read_img_as_b64("Pictures/Original/puppy6.jpg")
     puppy8 = read_img_as_b64("Pictures/Original/puppy8.jpg")
     file1 = ["puppy1", puppy1, [True, True, False, False, False]]
-    file2 = ["puppy6", puppy6, [True, True, True, True, True]]
+    file2 = ["puppy6", '', [True, True, True, True, True]]
     file3 = ["puppy8", puppy8, [True, False, False, False, False]]
     # Example uploading multiple images
-    status = upload_images("user1", [file1, file2])
+    status = upload_images("user1", [file2, file1])
     print(status['code'])
+    print(status['msg'])
     # Example uploading single image
     status = upload_images("user1", [file3])
     print(status['code'])
+    print(status['msg'])
 
     # Downloading Examples
     file1 = ["puppy1", ".jpg", [True, True, False, False, False]]
     file2 = ["puppy6", ".png", [True, True, True, True, True]]
     file3 = ["puppy8", ".tiff", [True, False, False, False, False]]
-    file4 = ["puppy1", ".png", [True, False, False, False, False]]
+    file4 = ["", ".png", [True, False, False, False, False]]
     file5 = ["puppy1", ".jpg", [True, True, True, False, False]]
     # Example download (no saving) multiple images
-    img_info, status = download_images("user1", [file1, file2, file3],
+    img_info, status = download_images("user1", [file1, file4, file3],
                                        "none")
     print(status['code'])
-    # Example download (no saving) multiple images (some exist)
-    img_info, status = download_images("user1", [file4, file5],
-                                       "none")
-    print(status['code'])
-    # Example download (no saving) single image
-    img_info, status = download_images("user1", [file3], "none")
-    print(status['code'])
-    # Example download (saving) multiple images
-    img_info, status = download_images("user1", [file1, file2, file3],
-                                       "Pictures/Downloaded/")
-    print(status['code'])
-    # Example download (saving) multiple images (some exist)
-    img_info, status = download_images("user1", [file4, file5],
-                                       "Pictures/Downloaded/")
-    print(status['code'])
-    # Example download (saving) single image
-    img_info, status = download_images("user1", [file3],
-                                       "Pictures/")
-    print(status['code'])
-    # Example download (saving) single image that doesn't exist
-    img_info, status = download_images("user1", [file5],
-                                       "Pictures/")
-    print(status['code'])
+    print(status['msg'])
+#    # Example download (no saving) multiple images (some exist)
+#    img_info, status = download_images("user1", [file4, file5],
+#                                       "none")
+#    print(status['code'])
+#    # Example download (no saving) single image
+#    img_info, status = download_images("user1", [file3], "none")
+#    print(status['code'])
+#    # Example download (saving) multiple images
+#    img_info, status = download_images("user1", [file1, file2, file3],
+#                                       "Pictures/Downloaded/")
+#    print(status['code'])
+#    # Example download (saving) multiple images (some exist)
+#    img_info, status = download_images("user1", [file4, file5],
+#                                       "Pictures/Downloaded/")
+#    print(status['code'])
+#    # Example download (saving) single image
+#    img_info, status = download_images("user1", [file3],
+#                                       "Pictures/")
+#    print(status['code'])
+#    # Example download (saving) single image that doesn't exist
+#    img_info, status = download_images("user1", [file5],
+#                                       "Pictures/")
+#    print(status['code'])
