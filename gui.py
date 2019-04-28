@@ -42,6 +42,11 @@ def editing_window():
         entered_user = user.get()
         print("User: {}".format(entered_user))
         entered_img_paths = img_path.get()
+        upload_popup = Toplevel(root)
+        if len(entered_img_paths) == 0:
+            success_msg = 'No image paths entered'
+            popup_window(upload_popup, success_msg, screen_w, screen_h)
+            return
         img_paths = process_img_paths(entered_img_paths)
         print("Image paths:")
         for i in img_paths:
@@ -61,8 +66,6 @@ def editing_window():
         upload_success = upload_to_server(entered_user, orig_images,
                                           filenames, success,
                                           proc_steps)
-        success_label.config(text=upload_success)
-        success_label.grid(column=1, row=10, sticky=W)
         display_img = BooleanVar()
         display_check = ttk.Checkbutton(root, text='Display images',
                                         variable=display_img,
@@ -76,26 +79,25 @@ def editing_window():
                                                        root, filenames,
                                                        orig_images,
                                                        success))
-        display_check.grid(column=0, row=11, sticky=W)
+        display_check.grid(column=0, row=10, sticky=W)
         orig_file_list = get_file_list(filenames,
                                        req_img_type,
                                        [True, False, False,
                                         False, False])
         file_list = get_file_list(filenames, req_img_type, proc_steps)
-        if upload_success:
-            print("ALL UPLOADING DONE")
-            download_btn.config(state=NORMAL)
-            download_btn.config(command=lambda:
-                                download_images(entered_user,
-                                                orig_file_list, ''))
-            download_btn2.config(state=NORMAL)
-            download_btn2.config(command=lambda:
-                                 download_images(entered_user,
-                                                 file_list, ''))
-            zip_msg = ttk.Label(root,
-                                text='Multiple files saved as download.zip')
-            # if success.count(True) > 1:
-            zip_msg.grid(column=0, columnspan=2, row=14, sticky=N)
+        popup_window(upload_popup, upload_success, screen_w, screen_h)
+        download_btn.config(state=NORMAL)
+        download_btn.config(command=lambda:
+                            download_images(entered_user,
+                                            orig_file_list, ''))
+        download_btn2.config(state=NORMAL)
+        download_btn2.config(command=lambda:
+                             download_images(entered_user,
+                                             file_list, ''))
+        zip_msg = ttk.Label(root,
+                            text='Multiple files saved as download.zip')
+        # if success.count(True) > 1:
+        zip_msg.grid(column=0, columnspan=2, row=13, sticky=N)
         return
 
     # Main window
@@ -106,7 +108,7 @@ def editing_window():
     root_w = 0.3*screen_w
     root_h = 0.3*screen_h
     root.config(height=root_h, width=root_w)
-    x = 0.35*screen_w
+    x = 0.38*screen_w
     y = 0.35*screen_h
     root.geometry('+%d+%d' % (x, y))
 
@@ -176,11 +178,11 @@ def editing_window():
     download_btn = Button(root,
                           text='Download original image',
                           state=DISABLED)
-    download_btn.grid(column=0, columnspan=2, row=12, sticky=N)
+    download_btn.grid(column=0, columnspan=2, row=11, sticky=N)
     download_btn2 = Button(root,
                            text='Download processed image(s)',
                            state=DISABLED)
-    download_btn2.grid(column=0, columnspan=2, row=13, sticky=N)
+    download_btn2.grid(column=0, columnspan=2, row=12, sticky=N)
     s = ttk.Style()
     s.configure('Button', foreground=[('disabled', 'black')])
     # Show GUI window
@@ -367,6 +369,39 @@ def upload_to_server(user, images, filenames, success, proc_steps):
     return upload_success
 
 
+def popup_window(window, message, screen_w, screen_h):
+    """Popup window
+
+    Message pops up after images are uploaded or downloaded.
+
+    Args:
+        window (Toplevel): GUI popup window
+        message (str): message string to display
+
+    Returns:
+        none
+    """
+    def ok_click(window):
+        """Destroy window when OK button clicked
+
+        Args:
+            window (Toplevel): GUI popup window
+        Returns:
+            none
+        """
+        window.destroy()
+        return
+
+    msg_label = Label(window, text=message+'!')
+    msg_label.grid(column=0, row=0, sticky=N)
+    window.geometry('+%d+%d' % (0.45*screen_w, 0.48*screen_h))
+    popup_ok_btn = ttk.Button(window, text='OK',
+                              command=lambda: ok_click(window))
+    popup_ok_btn.grid(column=0, row=1, sticky=N)
+    window.title("Message")
+    return
+
+
 def display_images(run, user, img_type, img_paths, proc_steps, root,
                    filenames, orig_images, success):
     """Display images and histograms in new GUI window
@@ -484,15 +519,13 @@ def display_images(run, user, img_type, img_paths, proc_steps, root,
                 # Load processed image
                 try:
                     file_list = [[filenames[i], img_type, proc_steps]]
-                    print("FILE TO GET IS")
-                    print(file_list)
                     img_info, status = download_images(user,
                                                        file_list,
                                                        'none')
                     if isinstance(img_info, dict):
                         img_str = img_info["image"]
                     elif isinstance(img_info, list):
-                        img_str = img_info[1]["image"]
+                        img_str = img_info[0]["image"]
                     if isinstance(status, dict):
                         if status["code"] != 200:
                             raise LookupError()
