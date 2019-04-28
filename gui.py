@@ -10,7 +10,8 @@ import matplotlib
 from matplotlib import image as mpimg
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-url = "http://127.0.0.1:5000/"
+url = "http://vcm-9111.vm.duke.edu:5000/"
+# url = "http://127.0.0.1:5000/"
 
 
 def editing_window():
