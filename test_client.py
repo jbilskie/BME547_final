@@ -21,53 +21,61 @@ bad_img3 = good_img1 + "ruin"
                             ["1image2", good_img2,
                              [False, True, True, True, False]],
                             ["1image3", good_img3,
-                             [False, False, False, True, False]]], 200),
-                          ([], 400),
+                             [False, False, False, True, False]]],
+                           [200, 200, 200]),
+                          (['junk'], [400]),
                           ([[1, good_img1,
                              [False, False, True, True, False]],
                             ["2image2", good_img2,
                              [False, True, True, True, False]],
                             ["2image3", good_img3,
-                             [False, False, False, True, False]]], 400),
+                             [False, False, False, True, False]]],
+                           [400, 200, 200]),
                           ([["3image1", bad_img1,
                              [False, False, True, True, False]],
                             ["3image2", good_img2,
                              [False, True, True, True, False]],
                             ["3image3", good_img3,
-                             [False, False, False, True, False]]], 400),
+                             [False, False, False, True, False]]],
+                           [400, 200, 200]),
                           ([["4image1", good_img1,
                              [False, False, True, True, False]],
                             ["4image2", bad_img2,
                              [False, True, True, True, False]],
                             ["4image3", good_img3,
-                             [False, False, False, True, False]]], 400),
+                             [False, False, False, True, False]]],
+                           [200, 400, 200]),
                           ([["5image1", good_img1,
                              [False, False, True, True, False]],
                             ["5image2", good_img2,
                              [False, True, True, True, False]],
                             ["5image3", bad_img3,
-                             [False, False, False, True, False]]], 400),
+                             [False, False, False, True, False]]],
+                           [200, 200, 400]),
                           ([["6image1", good_img1,
                              [False, 1, True, True, False]],
                             ["6image2", good_img2,
                              [False, True, True, True, False]],
                             ["6image3", good_img3,
-                             [False, False, False, True, False]]], 400),
+                             [False, False, False, True, False]]],
+                           [400, 200, 200]),
                           ([["7image1", good_img1,
                              [False, False, True, True, True, False]],
                             ["7image2", good_img2,
                              [False, True, True, True, False]],
                             ["7image3", good_img3,
-                             [False, False, False, True, False]]], 400),
+                             [False, False, False, True, False]]],
+                           [400, 200, 200]),
                           ([["8image1", good_img1],
                             ["8image2", good_img2,
                              [False, True, True, True, False]],
                             ["8image3", good_img3,
-                             [False, False, False, True, False]]], 400),
+                             [False, False, False, True, False]]],
+                           [400, 200, 200]),
                           ([["9image1", good_img1,
-                             [False, False, False, False, False]]], 400)])
-def test_upload_check_file_list(file_list, exp_status_code):
-    """Tests check_file_list
+                             [False, False, False, False, False]]], [400])])
+def test_upload_check_file(file_list, exp_status_code):
+    """Tests check_file
 
     Tests whether a filelist contains the correct type and amount
     of elements for uploading multiple images.
@@ -91,9 +99,14 @@ def test_upload_check_file_list(file_list, exp_status_code):
     Returns:
         none
     """
-    from client import check_file_list
+    from client import check_file
 
-    status = check_file_list(file_list, "upload")
+    status = {}
+    status['code'] = []
+    for file in file_list:
+        i_status = check_file(file, "upload")
+        status['code'].append(i_status['code'])
+
     assert status['code'] == exp_status_code
 
 
@@ -103,53 +116,61 @@ def test_upload_check_file_list(file_list, exp_status_code):
                             ["1image2", ".png",
                              [False, True, True, True, False]],
                             ["1image3", ".tiff",
-                             [False, False, False, True, False]]], 200),
-                          ([], 400),
+                             [False, False, False, True, False]]],
+                           [200, 200, 200]),
+                          (['junk'], [400]),
                           ([[1, ".jpg",
                              [False, False, True, True, False]],
                             ["2image2", ".png",
                              [False, True, True, True, False]],
                             ["2image3", ".tiff",
-                             [False, False, False, True, False]]], 400),
+                             [False, False, False, True, False]]],
+                           [400, 200, 200]),
                           ([["3image1", 10,
                              [False, False, True, True, False]],
                             ["3image2", ".png",
                              [False, True, True, True, False]],
                             ["3image3", ".tiff",
-                             [False, False, False, True, False]]], 400),
+                             [False, False, False, True, False]]],
+                           [400, 200, 200]),
                           ([["4image1", ".jpg",
                              [False, False, True, True, False]],
                             ["4image2", "png",
                              [False, True, True, True, False]],
                             ["4image3", ".tiff",
-                             [False, False, False, True, False]]], 400),
+                             [False, False, False, True, False]]],
+                           [200, 400, 200]),
                           ([["5image1", ".jpg",
                              [False, False, True, True, False]],
                             ["5image2", ".png",
                              [False, True, True, True, False]],
                             ["5image3", ".gif",
-                             [False, False, False, True, False]]], 400),
+                             [False, False, False, True, False]]],
+                           [200, 200, 400]),
                           ([["6image1", ".jpg",
                              [False, 1, True, True, False]],
                             ["6image2", ".png",
                              [False, True, True, True, False]],
                             ["6image3", ".tiff",
-                             [False, False, False, True, False]]], 400),
+                             [False, False, False, True, False]]],
+                           [400, 200, 200]),
                           ([["7image1", ".jpg",
                              [False, False, True, True, True, False]],
                             ["7image2", ".png",
                              [False, True, True, True, False]],
                             ["7image3", ".tiff",
-                             [False, False, False, True, False]]], 400),
+                             [False, False, False, True, False]]],
+                           [400, 200, 200]),
                           ([["8image1", ".jpg"],
                             ["8image2", ".png",
                              [False, True, True, True, False]],
                             ["8image3", ".tiff",
-                             [False, False, False, True, False]]], 400),
+                             [False, False, False, True, False]]],
+                           [400, 200, 200]),
                           ([["9image1", ".jpg",
-                             [False, False, False, False, False]]], 400)])
-def test_download_check_file_list(file_list, exp_status_code):
-    """Tests check_file_list
+                             [False, False, False, False, False]]], [400])])
+def test_download_check_file(file_list, exp_status_code):
+    """Tests check_file
 
     Tests whether a filelist contains the correct type and amount
     of elements for downloading multiple images.
@@ -173,8 +194,12 @@ def test_download_check_file_list(file_list, exp_status_code):
     Returns:
         none
     """
-    from client import check_file_list
+    from client import check_file
 
-    status = check_file_list(file_list, "download")
-    print(status['msg'])
+    status = {}
+    status['code'] = []
+    for file in file_list:
+        i_status = check_file(file, "download")
+        status['code'].append(i_status['code'])
+
     assert status['code'] == exp_status_code
