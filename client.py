@@ -269,6 +269,10 @@ def download_images(username, file_list, zip_path):
     import os
     import time
 
+    files_img_infos = []
+    files_status = {'code': [],
+                    'msg': []}
+
     # Check for empty list
     if len(file_list) == 0:
         files_status = {"code": 400,
@@ -296,19 +300,16 @@ def download_images(username, file_list, zip_path):
         # Make sure input is valid
         status = check_file(file_list[0], "download")
         if status["code"] != 200:
-            files_img_infos = []
-            files_status = {}
-            files_status["code"] = [status["code"]]
-            files_status["msg"] = [status["msg"]]
+            files_status["code"].append(status["code"])
+            files_status["msg"].append(status["msg"])
             return files_img_infos, files_status
 
         img_info, status = download_image(username, file_list[0][0],
                                           zip_path, file_list[0][2],
                                           file_list[0][1])
         files_img_infos = [img_info]
-        files_status = {}
-        files_status["code"] = [status["code"]]
-        files_status["msg"] = [status["msg"]]
+        files_status["code"].append(status["code"])
+        files_status["msg"].append(status["msg"])
         return files_img_infos, files_status
 
     # Complete all downloading tasks and append with their status codes
@@ -456,13 +457,12 @@ def download_image(username, filename, path, proc_steps, type_ext=".png"):
 
     r = requests.get(url + "image_download/" + username + "/" +
                      filename + "/" + proc_ext)
-
+    results = json.loads(r.text)
     status_code = r.status_code
     if status_code != 200:
         img_info = {}
-        msg = r.text
+        msg = results[1]
     else:
-        results = json.loads(r.text)
         img_info = results[0]
         msg = results[1]
         if path == 'none':
@@ -585,26 +585,32 @@ if __name__ == "__main__":
                                        "Pictures/WRONG/")
     print(status['code'])
     print(status['msg'])
-#    # Example download (no saving) multiple images (some exist)
-#    img_info, status = download_images("user1", [file4, file5],
-#                                       "none")
-#    print(status['code'])
-#    # Example download (no saving) single image
-#    img_info, status = download_images("user1", [file3], "none")
-#    print(status['code'])
-#    # Example download (saving) multiple images
-#    img_info, status = download_images("user1", [file1, file2, file3],
-#                                       "Pictures/Downloaded/")
-#    print(status['code'])
-#    # Example download (saving) multiple images (some exist)
-#    img_info, status = download_images("user1", [file4, file5],
-#                                       "Pictures/Downloaded/")
-#    print(status['code'])
-#    # Example download (saving) single image
-#    img_info, status = download_images("user1", [file3],
-#                                       "Pictures/")
-#    print(status['code'])
-#    # Example download (saving) single image that doesn't exist
-#    img_info, status = download_images("user1", [file5],
-#                                       "Pictures/")
-#    print(status['code'])
+    # Example download (no saving) multiple images (some exist)
+    img_info, status = download_images("user1", [file4, file5],
+                                       "none")
+    print(status['code'])
+    print(status['msg'])
+    # Example download (no saving) single image
+    img_info, status = download_images("user1", [file3], "none")
+    print(status['code'])
+    print(status['msg'])
+    # Example download (saving) multiple images
+    img_info, status = download_images("user1", [file1, file2, file3],
+                                       "Pictures/Downloaded/")
+    print(status['code'])
+    print(status['msg'])
+    # Example download (saving) multiple images (some exist)
+    img_info, status = download_images("user1", [file4, file5],
+                                       "Pictures/Downloaded/")
+    print(status['code'])
+    print(status['msg'])
+    # Example download (saving) single image
+    img_info, status = download_images("user1", [file3],
+                                       "Pictures/")
+    print(status['code'])
+    print(status['msg'])
+    # Example download (saving) single image that doesn't exist
+    img_info, status = download_images("user1", [file5],
+                                       "Pictures/")
+    print(status['code'])
+    print(status['msg'])
