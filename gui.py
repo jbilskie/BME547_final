@@ -61,8 +61,8 @@ def editing_window():
                                                   entered_3, entered_4)
 
         orig_images, filenames, success = get_img_data(img_paths)
-        print(filenames)
-        print(len(orig_images[0]))
+        print("Filenames:")
+        print("\t{}".format(filenames))
         upload_success = upload_to_server(entered_user, orig_images,
                                           filenames, success,
                                           proc_steps)
@@ -83,17 +83,18 @@ def editing_window():
         orig_file_list = get_file_list(filenames,
                                        req_img_type,
                                        [True, False, False,
-                                        False, False])
-        file_list = get_file_list(filenames, req_img_type, proc_steps)
+                                        False, False], success)
+        file_list = get_file_list(filenames, req_img_type, proc_steps,
+                                  success)
         popup_window(upload_popup, upload_success, screen_w, screen_h)
         download_btn.config(state=NORMAL)
         download_btn.config(command=lambda:
-                            download_images(entered_user,
-                                            orig_file_list, ''))
+                            dl_images(root, entered_user, orig_file_list,
+                                      '', screen_w, screen_h))
         download_btn2.config(state=NORMAL)
         download_btn2.config(command=lambda:
-                             download_images(entered_user,
-                                             file_list, ''))
+                             dl_images(root, entered_user, file_list,
+                                       '', screen_w, screen_h))
         zip_msg = ttk.Label(root,
                             text='Multiple files saved as download.zip')
         # if success.count(True) > 1:
@@ -306,24 +307,26 @@ def get_img_data(img_paths):
     return images, filenames, success
 
 
-def get_file_list(filenames, file_ext, proc_steps):
+def get_file_list(filenames, file_ext, proc_steps, success):
     """Gets file list
 
     This function takes the inputted filenames, requested file ext,
-    and requested processing steps.
+    and requested processing steps. The output file list includes
+    information from images that were successfully uploaded.
 
     Args:
         filenames (list): list of filenames
         file_ext (str): requested file extension
         proc_steps (list): list of processing steps
-
+        success (list): list of upload success
     Returns:
         file_list (list): list of properly formatted image info
         for download_images
     """
     file_list = []
     for i in range(len(filenames)):
-        file_list.append([filenames[i], file_ext, proc_steps])
+        if success[i]:
+            file_list.append([filenames[i], file_ext, proc_steps])
     return file_list
 
 
@@ -347,25 +350,22 @@ def upload_to_server(user, images, filenames, success, proc_steps):
     list_for_upload = []
     for i in range(len(filenames)):
         list_for_upload.append([filenames[i], images[i], proc_steps])
-        print("Filename {} is {}".format(i, filenames[i]))
     add_new_user(user)
     status_codes = upload_images(user, list_for_upload)
-    print("Upload status codes:")
-    print(status_codes)
     if isinstance(status_codes, list):
-        if all([True if i == 200 else False for i in status_codes[0]]):
+        if all([True if i == 200 else False for i in
+                status_codes["code"]]):
             upload_success = "Successfully uploaded"
-        elif any([True if i == 400 else False for i in status_codes[0]]):
-            upload_success = "One or more fields missing"
         else:
-            upload_success = "Upload failed for one or more images"
+            upload_success = "Upload failed for one or more images."
+            upload_success += "\nImage display can still be opened"
     elif isinstance(status_codes, dict):
-        if status_codes["code"] == 200:
+        if all([True if i == 200 else False for i in
+                status_codes["code"]]):
             upload_success = "Successfully uploaded"
-        elif status_codes["code"] == 400:
-            upload_success = status_codes["msg"]
         else:
-            upload_success = "Upload failed for one or more images"
+            upload_success = "Upload failed for one or more images."
+            upload_success += "\nImage display can still be opened"
     return upload_success
 
 
@@ -393,13 +393,42 @@ def popup_window(window, message, screen_w, screen_h):
         return
 
     msg_label = Label(window, text=message+'!')
-    msg_label.grid(column=0, row=0, sticky=N)
-    window.geometry('+%d+%d' % (0.45*screen_w, 0.48*screen_h))
+    msg_label.grid(column=0, row=0, sticky=N, ipadx=0.01*screen_w)
+    window.geometry('+%d+%d' % (0.43*screen_w, 0.48*screen_h))
     popup_ok_btn = ttk.Button(window, text='OK',
                               command=lambda: ok_click(window))
     popup_ok_btn.grid(column=0, row=1, sticky=N)
     window.title("Message")
     return
+
+
+def dl_images(root, username, file_list, path, screen_w, screen_h):
+    """Downloads images
+
+    Calls download function and makes popup window.
+
+    Args:
+        root (Tk): main window
+        username (str): username
+        file_list (list): file list for download
+        path (str): download path
+        screen_w (int): screen width
+        screen_h (int): screen height
+
+    Returns:
+        success_msg (str): success message
+    """
+    from client import download_images
+    _, status = download_images(username, file_list, path)
+
+    success_msg = ''
+    if all([True if i == 200 else False for i in status["code"]]):
+        success_msg = "All images downloaded successfully"
+    else:
+        success_msg = "One or more requested images not\ndownloaded"
+    download_popup = Toplevel(root)
+    popup_window(download_popup, success_msg, screen_w, screen_h)
+    return success_msg
 
 
 def display_images(run, user, img_type, img_paths, proc_steps, root,
@@ -527,7 +556,8 @@ def display_images(run, user, img_type, img_paths, proc_steps, root,
                     elif isinstance(img_info, list):
                         img_str = img_info[0]["image"]
                     if isinstance(status, dict):
-                        if status["code"] != 200:
+                        if any([True if i != 200 else False for i in
+                                status["code"]]):
                             raise LookupError()
                     else:  # status is an int
                         if status != 200:
@@ -550,6 +580,7 @@ def display_images(run, user, img_type, img_paths, proc_steps, root,
                     proc_img_label.append(Label
                                           (proc_img_frame,
                                            text='Image not processed'))
+
             # Image not successfully extracted
             else:
                 tk_images.append('')
@@ -613,7 +644,7 @@ def display_images(run, user, img_type, img_paths, proc_steps, root,
                                                         proc_hist_plots,
                                                         hist_width),
                               width=4)
-        next_btn.grid(column=1, row=i_row, sticky=E)
+        next_btn.grid(column=2, row=i_row, sticky=E)
         prev_btn = ttk.Button(img_window, text='<<',
                               command=lambda: show_next('prev',
                                                         tk_images,
@@ -626,7 +657,7 @@ def display_images(run, user, img_type, img_paths, proc_steps, root,
                                                         proc_hist_plots,
                                                         hist_width),
                               width=4)
-        prev_btn.grid(column=0, row=i_row, sticky=W)
+        prev_btn.grid(column=1, row=i_row, sticky=W)
 
     else:
         for widget in root.winfo_children():
@@ -711,7 +742,7 @@ def show_next(next, images, filenames, filename_label, orig_img_label,
             next_plabel.grid(column=0, row=2, columnspan=2, sticky=W)
             next_phist.grid(column=0, row=2, columnspan=2, sticky=W)
         else:
-            f_text.set("Filename: <>")
+            f_text.set("Invalid image")
             filename_label.update()
             next_olabel.grid(column=0, row=2, columnspan=2,
                              ipadx=0.35*img_width,
