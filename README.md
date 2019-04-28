@@ -53,11 +53,11 @@ After uploading the images, the program will give the option to download and dis
 
 <img src="https://github.com/jbilskie/BME547_final/blob/master/README/10%20GUI.png" width="400">
 
-Once checked, the program opens a new window (see below figures) containing the original image(s), processed image(s), and their RGB histograms. The histogram shows the distribution of pixel intensities for red, green, and blue color channels. If you are viewing multiple images, the window is a slideshow that will allow you view one image at a time. You can switch between images by selecting the arrows at the bottom of the window.
+Once checked, the program opens a new window (see below figures). The top of the window shows the image metadata including the filename, upload time, processing time, and image size. Below the metadata are the original image(s), processed image(s), and their RGB histograms. The histogram shows the distribution of pixel intensities for red, green, and blue color channels.  If you are viewing multiple images, the window is a slideshow that will allow you view one image at a time. You can switch between images by selecting the arrows at the bottom of the window.
 
-<img src="https://github.com/jbilskie/BME547_final/blob/master/README/11%20Slideshow.png" width="600">
+<img src="https://github.com/jbilskie/BME547_final/blob/master/readme_images/11%20Slideshow.png" width="600">
 
-<img src="https://github.com/jbilskie/BME547_final/blob/master/README/12%20Slideshow.png" width="600">
+<img src="https://github.com/jbilskie/BME547_final/blob/master/readme_images/12%20Slideshow.png" width="600">
 
 ### Step 6: Downloading Images
 To download image(s), you must first define the file type. You may download the image(s) as one of three file types:
