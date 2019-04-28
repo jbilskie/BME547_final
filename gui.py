@@ -468,15 +468,42 @@ def display_images(run, user, img_type, img_paths, proc_steps, root,
         hist_width = round(0.35*screen_h)
 
         # Initialize Tk labels and frames
+        # Filename
         global f_text
         f_text = StringVar()
         f_text.set("Processing ...")
         filename_label = ttk.Label(img_window,
                                    textvariable=f_text)
-        filename_label.update()
         filename_label.grid(column=0, row=i_row, columnspan=4,
                             sticky=N)
+        # Timestamp
+        i_row += 1
+        global ts_text
+        ts_text = StringVar()
+        ts_text.set("Uploaded at ...")
+        ts_label = ttk.Label(img_window, textvariable=ts_text)
+        ts_label.grid(column=0, row=i_row, columnspan=4, sticky=N)
+        ts = []
 
+        # Processing time
+        i_row += 1
+        global pt_text
+        pt_text = StringVar()
+        pt_text.set("Processing time ...")
+        pt_label = ttk.Label(img_window, textvariable=pt_text)
+        pt_label.grid(column=0, row=i_row, columnspan=4, sticky=N)
+        pt = []
+
+        # Image size
+        i_row += 1
+        global sz_text
+        sz_text = StringVar()
+        sz_text.set("Image size ...")
+        sz_label = ttk.Label(img_window, textvariable=sz_text)
+        sz_label.grid(column=0, row=i_row, columnspan=4, sticky=N)
+        sz = []
+
+        # Image display
         i_row += 1
         orig_label = ttk.Label(img_window, text='Original Image')
         orig_label.grid(column=0, row=i_row, columnspan=2,
@@ -552,10 +579,10 @@ def display_images(run, user, img_type, img_paths, proc_steps, root,
                     img_info, status = download_images(user,
                                                        file_list,
                                                        'none')
-                    if isinstance(img_info, dict):
-                        img_str = img_info["image"]
-                    elif isinstance(img_info, list):
-                        img_str = img_info[0]["image"]
+                    img_str = img_info[0]["image"]
+                    curr_ts = img_info[0]["timestamp"]
+                    curr_pt = img_info[0]["proc_time"]
+                    curr_sz = img_info[0]["size"]
                     if isinstance(status, dict):
                         if any([True if i != 200 else False for i in
                                 status["code"]]):
@@ -576,11 +603,17 @@ def display_images(run, user, img_type, img_paths, proc_steps, root,
                     proc_img_label.append(Label(proc_img_frame,
                                                 image=proc_images[-1]))
                     proc_img_label[-1].img = proc_images[-1]
+                    ts.append(curr_ts)
+                    pt.append(curr_pt)
+                    sz.append(curr_sz)
                 except:
                     proc_images.append('')
                     proc_img_label.append(Label
                                           (proc_img_frame,
                                            text='Image not processed'))
+                    ts.append('Uploaded at ...')
+                    pt.append('Processing time ...')
+                    sz.append('Image size ...')
 
             # Image not successfully extracted
             else:
@@ -590,6 +623,9 @@ def display_images(run, user, img_type, img_paths, proc_steps, root,
                 proc_images.append('')
                 proc_img_label.append(Label(proc_img_frame,
                                             text='Image not processed'))
+                ts.append('Uploaded at ...')
+                pt.append('Processing time ...')
+                sz.append('Image size ...')
             # Compute histograms
             orig_hist_plot = plot_histograms(orig_hist_frame,
                                              image_to_load)
@@ -611,7 +647,14 @@ def display_images(run, user, img_type, img_paths, proc_steps, root,
                                         sticky=(N, S, E, W))
         else:
             f_text.set("Filename: {}".format(filenames[index]))
+            ts_text.set("Uploaded on {}".format(ts[index]))
+            pt_text.set("Processing time: {:.4f}s".format(pt[index]))
+            sz_text.set("Image size: {}x{} pixels".format(sz[index][0],
+                                                          sz[index][1]))
             filename_label.update()
+            ts_label.update()
+            pt_label.update()
+            sz_label.update()
             orig_img_label[index].grid(column=0, row=2, columnspan=2,
                                        sticky=(N, S, E, W))
             orig_hist_plots[index].grid(column=0, row=2, columnspan=2,
@@ -638,6 +681,9 @@ def display_images(run, user, img_type, img_paths, proc_steps, root,
                                                         tk_images,
                                                         filenames,
                                                         filename_label,
+                                                        ts, ts_label,
+                                                        pt, pt_label,
+                                                        sz, sz_label,
                                                         orig_img_label,
                                                         proc_img_label,
                                                         img_width,
@@ -651,6 +697,9 @@ def display_images(run, user, img_type, img_paths, proc_steps, root,
                                                         tk_images,
                                                         filenames,
                                                         filename_label,
+                                                        ts, ts_label,
+                                                        pt, pt_label,
+                                                        sz, sz_label,
                                                         orig_img_label,
                                                         proc_img_label,
                                                         img_width,
@@ -689,7 +738,8 @@ def resize_img_dim(w, h, new_w):
     return final_w, final_h
 
 
-def show_next(next, images, filenames, filename_label, orig_img_label,
+def show_next(next, images, filenames, filename_label, ts, ts_label,
+              pt, pt_label, sz, sz_label, orig_img_label,
               proc_img_label, img_width, orig_hist_plots,
               proc_hist_plots, hist_width):
     """Image slideshow functionality
@@ -704,6 +754,12 @@ def show_next(next, images, filenames, filename_label, orig_img_label,
         if image could not be uploaded
         filenames (list): list of image filenames
         filename_label (tk Label): label showing filename
+        ts (list): list of timestamps
+        ts_label (tk Label): label showing upload timestamp
+        pt (list): list of processing times
+        pt_label (tk Label): label showing processing times
+        sz (list): list of image sizes
+        sz_label (tk Label): label showing image size
         orig_img_label (tk Label): label showing original image
         proc_img_label (tk Label): label showing processed image
         img_width (int): width of image
@@ -735,9 +791,19 @@ def show_next(next, images, filenames, filename_label, orig_img_label,
         next_ohist = orig_hist_plots[index]
         next_phist = proc_hist_plots[index]
         global f_text
+        global ts_text
+        global pt_text
+        global sz_text
         if images[index] != '':
             f_text.set("Filename: {}".format(filenames[index]))
-            filename_label.update()
+            ts_text.set("Uploaded on {}".format(ts[index]))
+            ts_label.update()
+            pt_text.set("Processing time: {:.4f}s".format(pt[index]))
+            pt_label.update()
+            sz_text.set("Image size: {}x{} pixels".
+                        format(sz[index][0],
+                               sz[index][1]))
+            sz_label.update()
             next_olabel.grid(column=0, row=2, columnspan=2, sticky=E)
             next_ohist.grid(column=0, row=2, columnspan=2, sticky=E)
             next_plabel.grid(column=0, row=2, columnspan=2, sticky=W)
@@ -745,6 +811,13 @@ def show_next(next, images, filenames, filename_label, orig_img_label,
         else:
             f_text.set("Invalid image")
             filename_label.update()
+            filename_label.update()
+            ts_text.set(ts[index])
+            ts_label.update()
+            pt_text.set(pt[index])
+            pt_label.update()
+            sz_text.set(sz[index])
+            sz_label.update()
             next_olabel.grid(column=0, row=2, columnspan=2,
                              ipadx=0.35*img_width,
                              ipady=0.45*img_width, sticky=E)
