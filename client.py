@@ -5,8 +5,8 @@
 import requests
 from pymodm import connect, MongoModel, fields
 
-# url = "http://vcm-9111.vm.duke.edu:5000/"
-url = "http://127.0.0.1:5000/"
+url = "http://vcm-9111.vm.duke.edu:5000/"
+# url = "http://127.0.0.1:5000/"
 
 
 def add_new_user(username):
@@ -218,6 +218,8 @@ def upload_images(username, file_list):
     """
     # Make sure input is valid
     status = check_file_list(file_list, "upload")
+    if status["code"] != 200:
+        return status
 
     # Complete all uploading tasks and append with their status codes
     files_status = {}
@@ -225,23 +227,14 @@ def upload_images(username, file_list):
     code = []
     for file in file_list:
         file_status = []
-        # Empty b64 string means file wasn't extracted
-        # Status will be overwritten in that case
-        if file[1] != '':
-            if file[2] == [True, False, False, False, False]:
-                file_status = upload_image(username, file[0], file[1])
-            else:
-                file_status = process_image(username, file[0], file[1],
-                                            file[2])
-            msg.append(file_status['msg'])
-            code.append(file_status['code'])
-
-    if status["code"] != 200:
-        files_status["code"] = [status["code"]]
-        files_status["msg"] = [status["msg"]]
-    else:
-        files_status['msg'] = msg
-        files_status['code'] = code
+        if file[2] == [True, False, False, False, False]:
+            file_status = upload_image(username, file[0], file[1])
+        else:
+            file_status = process_image(username, file[0], file[1], file[2])
+        msg.append(file_status['msg'])
+        code.append(file_status['code'])
+    files_status['msg'] = msg
+    files_status['code'] = code
 
     return files_status
 
@@ -284,11 +277,7 @@ def download_images(username, file_list, zip_path):
     # Make sure input is valid
     status = check_file_list(file_list, "download")
     if status["code"] != 200:
-        files_img_infos = []
-        files_status = {}
-        files_status["code"] = [status["code"]]
-        files_status["msg"] = [status["msg"]]
-        return files_img_infos, files_status
+        return status['msg'], status['code']
 
     # Define Processing Options
     procs = ["Original", "Histogram Equalization", "Contrast Stretching",
@@ -296,14 +285,10 @@ def download_images(username, file_list, zip_path):
 
     # If one photo, just download it
     if len(file_list) == 1:
-        img_info, status = download_image(username, file_list[0][0],
-                                          zip_path, file_list[0][2],
-                                          file_list[0][1])
-        files_img_infos = [img_info]
-        files_status = {}
-        files_status["code"] = [status["code"]]
-        files_status["msg"] = [status["msg"]]
-        return files_img_infos, files_status
+        img_info, status_code = download_image(username, file_list[0][0],
+                                               zip_path, file_list[0][2],
+                                               file_list[0][1])
+        return img_info, status_code
 
     # Complete all downloading tasks and append with their status codes
     files_status = {}
@@ -421,7 +406,6 @@ def download_image(username, filename, path, proc_steps, type_ext=".png"):
     from image import save_b64_img
     import json
     from PIL import Image
-    import re
 
     print("Asking server to download image")
 
@@ -449,15 +433,8 @@ def download_image(username, filename, path, proc_steps, type_ext=".png"):
         elif path == 'nonetemp/':
             pass
         else:
-            re_obj = re.search('\.', filename)
-            if re_obj:
-                match_start = re_obj.span()[0]
-                new_filename = filename[0:match_start]
-            else:
-                new_filename = filename
-            save_path = path+new_filename+"_"+proc_ext+type_ext
             save_b64_img(img_info["image"],
-                         save_path)
+                         path + filename + '_' + proc_ext + type_ext)
 
     status = {'code': status_code,
               'msg': msg}
