@@ -275,6 +275,17 @@ def download_images(username, file_list, zip_path):
                         "msg": "No file was selected."}
         return [], files_status
 
+    # Make Zip Directory
+    try:
+        os.mkdir(zip_path + 'temp')
+    except FileNotFoundError:
+        files_img_infos = []
+        files_status = {'code': [400],
+                        'msg': ['Zip path not found']}
+        return files_img_infos, files_status
+    except FileExistsError:
+        pass
+
     # Define Processing Options
     procs = ["Original", "Histogram Equalization", "Contrast Stretching",
              "Log Compression", "Reverse Video"]
@@ -306,11 +317,7 @@ def download_images(username, file_list, zip_path):
     code = []
     files_img_infos = []
     cwd = os.getcwd()
-    try:
-        os.rmdir(zip_path + 'temp')
-    except:
-        pass
-    os.mkdir(zip_path + 'temp')
+
     for file in file_list:
 
         # Make sure input is valid
@@ -330,7 +337,7 @@ def download_images(username, file_list, zip_path):
     if zip_path != 'none':
         zipf = zipfile.ZipFile(zip_path + 'downloaded_' + t + '.zip',
                                'w', zipfile.ZIP_DEFLATED)
-        zipdir(zip_path + 'temp/', zipf)
+        _ = zipdir(zip_path + 'temp/', zipf)
         zipf.close()
     os.chdir(cwd)
     os.rmdir(zip_path + 'temp')
@@ -353,15 +360,21 @@ def zipdir(path, ziph):
         ziph: zipfile handle
 
     Returns:
-        none
+        success (bool)
     """
     import os
 
-    os.chdir(path)
-    for root, dirs, files in os.walk('.'):
-        for file in files:
-            ziph.write(os.path.join(root, file))
-            os.remove(file)
+    try:
+        os.chdir(path)
+        for root, dirs, files in os.walk('.'):
+            for file in files:
+                ziph.write(os.path.join(root, file))
+                os.remove(file)
+        success = True
+    except:
+        success = False
+
+    return success
 
 
 def upload_image(username, filename, b64_string):
@@ -568,8 +581,8 @@ if __name__ == "__main__":
     file4 = ["", ".png", [True, False, False, False, False]]
     file5 = ["puppy1", ".jpg", [True, True, True, False, False]]
     # Example download (no saving) multiple images
-    img_info, status = download_images("user1", [file1, file4, file3],
-                                       "none")
+    img_info, status = download_images("user1", [file1],
+                                       "Pictures/WRONG/")
     print(status['code'])
     print(status['msg'])
 #    # Example download (no saving) multiple images (some exist)
