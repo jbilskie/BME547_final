@@ -854,4 +854,4 @@ def delete_img(username, filename):
 
 if __name__ == '__main__':
     logging.basicConfig(filename='LOGFILE.log', level=logging.INFO)
-    app.run()  # host='0.0.0.0')
+    app.run(host='0.0.0.0')
