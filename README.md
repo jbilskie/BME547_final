@@ -6,6 +6,9 @@
 This repository contains programs that use a graphical user interface (GUI) to allow a user to upload images to a server, process the images, download the images, and display the images. A MongoDB database is used to store a user's information along with their uploaded images.
 
 ## Instructions
+A video demonstration is available [here](https://prodduke-my.sharepoint.com/personal/xc130_duke_edu/_layouts/15/onedrive.aspx?id=%2Fpersonal%2Fxc130_duke_edu%2FDocuments%2FAttachments%2FDemo%20-%20GUI%20window%20upload_%20display_%20download_%20zipping%2Emov&parent=%2Fpersonal%2Fxc130_duke_edu%2FDocuments%2FAttachments&cid=263e63f3-07ff-4f64-a7b3-d54b0b058831).
+
+
 The program can be started by running `python gui.py` in the current directory. This command will open a window (shown below) with options to upload, process, download, and display images. The following list outlines the main functions of the GUI.
 1. Username
 2. Define Image Paths
