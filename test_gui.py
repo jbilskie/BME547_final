@@ -78,3 +78,47 @@ def test_process_img_paths(input, exp_paths):
     paths = process_img_paths(input)
 
     assert paths == exp_paths
+
+
+@pytest.mark.parametrize("img_paths, exp_filenames, exp_success",
+                         # Test single good path
+                         [(["test_gui/test1.jpg"], ["test1.jpg"], [True]),
+                          # Test single bad path
+                          (["test_gui/test20.jpg"], [""], [False]),
+                          # Test multiple good paths
+                          (["test_gui/test1.jpg", "test_gui/test2.png",
+                            "test_gui/test3.tiff", "test_gui/test4.jpg"],
+                           ["test1.jpg", "test2.png",
+                            "test3.tiff", "test4.jpg"],
+                           [True, True, True, True]),
+                          # Test multiple paths, one bad
+                          (["test_gui/test1.jpg", "test_gui/test20.png",
+                            "test_gui/test3.tiff", "test_gui/test4.jpg"],
+                           ["test1.jpg", "", "test3.tiff", "test4.jpg"],
+                           [True, False, True, True]),
+                          # Test no paths given
+                          ([], [], []),
+                          # Test multiple bad paths
+                          (["test_gui/test12.jpg", "test_gui/test20.png",
+                            "test_gui/test32.tiff", "test_gui/test43.jpg"],
+                           ["", "", "", ""],
+                           [False, False, False, False])])
+def test_get_img_data(img_paths, exp_filenames, exp_success):
+    """Tests get_img_data
+
+    Tests whether numpy arrays of image data, filenames list, and success
+    list are correctly extracted from img_paths.
+
+    Imgage paths must be strings since they come from a text box on GUI.
+
+    Args:
+        img_paths (list): list of image paths to process
+        exp_filenames (list): list of filenames
+        exp_success (bool): expected success
+
+    Returns:
+        none
+    """
+    images, filenames, success = get_img_data(img_paths)
+
+    assert (filenames == exp_filenames) or (success == exp_success) is True
