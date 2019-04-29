@@ -1,0 +1,40 @@
+INFO:root:Asking server to delete user from database
+INFO:root:Asking server to register new user
+WARNING:root:Filename puppy6 has invalid b64 image.
+INFO:root:Asking server to process image
+INFO:root:Status Codes: [400, 200]
+INFO:root:Status Messages: ['Filename puppy6 has invalid b64 image.', 'Request was successful']
+INFO:root:Asking server to upload image
+INFO:root:Status Codes: [200]
+INFO:root:Status Messages: ['Request was successful']
+INFO:root:Status Codes: [400]
+INFO:root:Status Messages: ['Zip path not found']
+WARNING:root:Filename  is empty.
+INFO:root:Asking server to download image
+WARNING:root:Download was not successful.
+INFO:root:Status Codes: [400, 404]
+INFO:root:Status Messages: ['Filename  is empty.', 'Filename/Image not found in database.']
+INFO:root:Asking server to download image
+INFO:root:Status Codes: [200]
+INFO:root:Status Messages: ['Request was successful']
+INFO:root:Asking server to download image
+INFO:root:Saved image
+INFO:root:Asking server to download image
+WARNING:root:Download was not successful.
+INFO:root:Asking server to download image
+INFO:root:Saved image
+INFO:root:Status Codes: [200, 404, 200]
+INFO:root:Status Messages: ['Request was successful', 'Filename/Image not found in database.', 'Request was successful']
+WARNING:root:Filename  is empty.
+INFO:root:Asking server to download image
+WARNING:root:Download was not successful.
+INFO:root:Status Codes: [400, 404]
+INFO:root:Status Messages: ['Filename  is empty.', 'Filename/Image not found in database.']
+INFO:root:Asking server to download image
+INFO:root:Saved image
+INFO:root:Status Codes: [200]
+INFO:root:Status Messages: ['Request was successful']
+INFO:root:Asking server to download image
+WARNING:root:Download was not successful.
+INFO:root:Status Codes: [404]
+INFO:root:Status Messages: ['Filename/Image not found in database.']
