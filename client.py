@@ -270,8 +270,7 @@ def download_images(username, file_list, zip_path):
     import time
 
     files_img_infos = []
-    files_status = {'code': [],
-                    'msg': []}
+    files_status = {'code': [], 'msg': []}
 
     # Check for empty list
     if len(file_list) == 0:
@@ -448,12 +447,7 @@ def download_image(username, filename, path, proc_steps, type_ext=".png"):
     print("Asking server to download image")
 
     # Create Processing Steps Extension
-    proc_ext = ""
-    for ind, step in enumerate(proc_steps):
-        if step is True:
-            proc_ext = proc_ext + "1"
-        else:
-            proc_ext = proc_ext + "0"
+    proc_ext = proc_string(proc_steps)
 
     r = requests.get(url + "image_download/" + username + "/" +
                      filename + "/" + proc_ext)
@@ -484,6 +478,29 @@ def download_image(username, filename, path, proc_steps, type_ext=".png"):
               'msg': msg}
 
     return img_info, status
+
+
+def proc_string(proc_steps):
+    """ Creates processign step string from the processing steps Boolean
+    array.
+
+    Args:
+        proc_steps (list): list of 5 Boolean terms for desired processing
+        steps
+
+    Returns:
+        proc_ext (str): string of 5 1's or 0's corresponding to the True
+        or False in the Boolean list
+    """
+    # Create Processing Steps Extension
+    proc_ext = ""
+    for ind, step in enumerate(proc_steps):
+        if step is True:
+            proc_ext = proc_ext + "1"
+        else:
+            proc_ext = proc_ext + "0"
+
+    return proc_ext
 
 
 def process_image(username, filename, b64_string, proc_steps):
@@ -533,12 +550,7 @@ def process_image(username, filename, b64_string, proc_steps):
             return status
 
     # Obtain processing extension
-    proc_ext = ""
-    for ind, step in enumerate(proc_steps):
-        if step is True:
-            proc_ext = proc_ext + "1"
-        else:
-            proc_ext = proc_ext + "0"
+    proc_ext = proc_string(proc_steps)
 
     # Format into dictionary
     img_info = {"username": username,

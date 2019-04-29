@@ -205,55 +205,83 @@ def test_download_check_file(file_list, exp_status_code):
     assert status['code'] == exp_status_code
 
 
-@pytest.mark.parametrize("zip_file, zip_path, exp_success",
-                         # Example of Folder with Pictures
-                         [('test_client_cp/Example1.zip',
-                           'test_client_cp/Example1/', True),
-                          # Example of Empty Folder
-                          ('test_client_cp/Example2.zip',
-                           'test_client_cp/Example2/', True),
-                          # Example of Pictures in Folder in Provided Folder
-                          ('test_client_cp/Example3.zip',
-                           'test_client_cp/', False),
-                          # Example of Existing Zip Folder
-                          ('test_client_cp/Example4.zip',
-                           'test_client_cp/Example4/', True)])
-def test_zipdir(zip_file, zip_path, exp_success):
-    """Tests zip_dir
+# @pytest.mark.parametrize("zip_file, zip_path, exp_success",
+#                          # Example of Folder with Pictures
+#                          [('test_client_cp/Example1.zip',
+#                            'test_client_cp/Example1/', True),
+#                           # Example of Empty Folder
+#                           ('test_client_cp/Example2.zip',
+#                            'test_client_cp/Example2/', True),
+#                           # Example of Pictures in Folder in Provided Folder
+#                           ('test_client_cp/Example3.zip',
+#                            'test_client_cp/', False),
+#                           # Example of Existing Zip Folder
+#                           ('test_client_cp/Example4.zip',
+#                            'test_client_cp/Example4/', True)])
+# def test_zipdir(zip_file, zip_path, exp_success):
+#     """Tests zip_dir
+# 
+#     Tests whether this function puts all the images in an existing folder
+#     into a zipped folder.
+# 
+#     Code outside of the function already makes sure the path is valid so
+#     that isn't tested here.
+# 
+#     Test includes the code that creates the zip folder.
+# 
+#     Args:
+#         zip_file (str): name of zip folder to be created
+#         zip_path (str): location of where the pictures to be zipped are
+#         located
+#         exp_success (bool): expected success
+# 
+#     Returns:
+#         none
+#     """
+#     import zipfile
+#     import os
+#     from client import zipdir
+#     import shutil
+# 
+#     fail = False
+#     cwd = os.getcwd()
+#     try:
+#         shutil.rmtree('test_client_cp/')
+#     except:
+#         pass
+#     shutil.copytree('test_client/', 'test_client_cp/')
+#     zipf = zipfile.ZipFile(zip_file, 'w', zipfile.ZIP_DEFLATED)
+#     success = zipdir(zip_path, zipf)
+#     zipf.close()
+#     os.chdir(cwd)
+#     shutil.rmtree('test_client_cp/')
+# 
+#     assert success == exp_success
 
-    Tests whether this function puts all the images in an existing folder
-    into a zipped folder.
 
-    Code outside of the function already makes sure the path is valid so
-    that isn't tested here.
+@pytest.mark.parametrize("proc_steps, exp_str",
+                         [([True, False, True, True, False], '10110'),
+                          ([True, True, True, True, True], '11111'),
+                          ([False, False, False, True, False], '00010'),
+                          ([True, False, True, False, False], '10100'),
+                          ([False, False, False, False, False], '00000')])
+def test_proc_string(proc_steps, exp_str):
+    """Tests proc_string
 
-    Test includes the code that creates the zip folder.
+    Tests whether this function creates the correct string from an array of
+    five Boolean terms.
+
+    Code outside of the function already makes sure array is formatted
+    correctly so that isn't tested here.
 
     Args:
-        zip_file (str): name of zip folder to be created
-        zip_path (str): location of where the pictures to be zipped are
-        located
-        exp_success (bool): expected success
+        proc_steps (list): list of 5 Booleans
 
     Returns:
-        none
+        proc_ext (str): string of 1's and 0's
     """
-    import zipfile
-    import os
-    from client import zipdir
-    import shutil
+    from client import proc_string
 
-    fail = False
-    cwd = os.getcwd()
-    try:
-        shutil.rmtree('test_client_cp/')
-    except:
-        pass
-    shutil.copytree('test_client/', 'test_client_cp/')
-    zipf = zipfile.ZipFile(zip_file, 'w', zipfile.ZIP_DEFLATED)
-    success = zipdir(zip_path, zipf)
-    zipf.close()
-    os.chdir(cwd)
-    shutil.rmtree('test_client_cp/')
+    proc_ext = proc_string(proc_steps)
 
-    assert success == exp_success
+    assert proc_ext == exp_str
