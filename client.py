@@ -312,10 +312,8 @@ def download_images(username, file_list, zip_path):
         return files_img_infos, files_status
 
     # Complete all downloading tasks and append with their status codes
-    files_status = {}
     msg = []
     code = []
-    files_img_infos = []
     cwd = os.getcwd()
 
     for file in file_list:
@@ -410,6 +408,7 @@ def upload_image(username, filename, b64_string):
                 "filename": filename,
                 "image": b64_string}
 
+    # Upload image
     r = requests.post(url + "image_upload", json=img_info)
     status['code'] = r.status_code
     status['msg'] = r.text
@@ -446,13 +445,16 @@ def download_image(username, filename, path, proc_steps, type_ext=".png"):
 
     print("Asking server to download image")
 
-    # Create Processing Steps Extension
+    # Create processing steps extension
     proc_ext = proc_string(proc_steps)
 
+    # Download image
     r = requests.get(url + "image_download/" + username + "/" +
                      filename + "/" + proc_ext)
     results = json.loads(r.text)
     status_code = r.status_code
+
+    # Fromat returns and save
     if status_code != 200:
         img_info = {}
         msg = results[1]
@@ -535,19 +537,6 @@ def process_image(username, filename, b64_string, proc_steps):
                   "msg": "Filename {} has invalid b64 image."
                   .format(file[0])}
         return status
-
-    # Check processing array for proper format
-    if len(proc_steps) != 5:
-        status = {"code": 400,
-                  "msg": "Processing array doesn't contain the correct \
-                  amount of elements."}
-        return status
-    for proc in proc_steps:
-        if isinstance(proc, bool) is False:
-            status = {"code": 400,
-                      "msg": "Processing array contains non-Boolean \
-                      elements.".format(file[0])}
-            return status
 
     # Obtain processing extension
     proc_ext = proc_string(proc_steps)
