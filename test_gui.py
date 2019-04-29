@@ -96,6 +96,19 @@ def test_process_img_paths(input, exp_paths):
                             "test_gui/test3.tiff", "test_gui/test4.jpg"],
                            ["test1.jpg", "", "test3.tiff", "test4.jpg"],
                            [True, False, True, True]),
+                          # Test zip file
+                          (["test_gui/test.zip"],
+                           ["test8.png", "test9.tiff", "test10.png"],
+                           [True, True, True]),
+                          # Test zip file and an image
+                          (["test_gui/test.zip", "test_gui/test6.tiff"],
+                           ["test8.png", "test9.tiff",
+                            "test10.png", "test6.tiff"],
+                           [True, True, True, True]),
+                          # Test empty zip file
+                          (["test_gui/test_empty.zip"], [], []),
+                          # Test folder within zip file
+                          (["test_gui/test_inner.zip"], ["test5.png"], [True]),
                           # Test no paths given
                           ([], [], []),
                           # Test multiple bad paths
@@ -119,6 +132,75 @@ def test_get_img_data(img_paths, exp_filenames, exp_success):
     Returns:
         none
     """
-    images, filenames, success = get_img_data(img_paths)
+    from image import is_b64
+
+    images, filenames, _ = get_img_data(img_paths)
+
+    success = []
+    for img in images:
+        success.append(is_b64(img))
 
     assert (filenames == exp_filenames) or (success == exp_success) is True
+
+
+@pytest.mark.parametrize("filenames, file_ext, proc_steps, success, \
+                          exp_file_list",
+                         # Test one success
+                         [(['name1'], '.jpg',
+                           [True, False, False, False, False],
+                           [True],
+                           [['name1', '.jpg',
+                             [True, False, False, False, False]]]),
+                          # Test one bad
+                          (['name1'], '.jpg',
+                           [True, False, False, False, False],
+                           [False], []),
+                          # Test multiple successes
+                          (['name1', 'name2'], '.jpg',
+                           [True, False, False, False, False],
+                           [True, True],
+                           [['name1', '.jpg',
+                             [True, False, False, False, False]],
+                            ['name2', '.jpg',
+                             [True, False, False, False, False]]]),
+                          # Test multiple, some succes
+                          (['name1', 'name2'], '.jpg',
+                           [True, False, False, False, False],
+                           [False, True],
+                           [['name2', '.jpg',
+                             [True, False, False, False, False]]]),
+                          # Different file extension
+                          (['name1', 'name2'], '.tiff',
+                           [True, False, False, False, False],
+                           [False, True],
+                           [['name2', '.tiff',
+                             [True, False, False, False, False]]]),
+                          # Different processing steps
+                          (['name1', 'name2'], '.tiff',
+                           [False, True, True, True, False],
+                           [False, True],
+                           [['name2', '.tiff',
+                             [False, True, True, True, False]]])])
+def test_get_file_list(filenames, file_ext, proc_steps, success,
+                       exp_file_list):
+    """Tests get_file_list
+
+    Tests the formatting of file_list to be usedfor client functions is
+    formatted correctly given all the correct inputs.
+
+    Input types were guaranteed via GUI user inputs.
+
+    Args:
+        filenames (list): list of filenames
+        file_ext (str): requested file extension
+        proc_steps (list): list of processing steps
+        success (list): list of upload success
+        exp_file_list (list): list of properly formatted image info
+        for download_images
+
+    Returns:
+        none
+    """
+    file_list = get_file_list(filenames, file_ext, proc_steps, success)
+
+    assert file_list == exp_file_list
