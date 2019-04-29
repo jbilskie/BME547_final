@@ -1,0 +1,416 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>client module &#8212; BME547 Final v1.0.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-client">
+<span id="client-module"></span><h1>client module<a class="headerlink" href="#module-client" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="client.add_new_user">
+<code class="descclassname">client.</code><code class="descname">add_new_user</code><span class="sig-paren">(</span><em>username</em><span class="sig-paren">)</span><a class="headerlink" href="#client.add_new_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add new user to server</p>
+<p>This function takes a dictionary with a user’s information
+and registers their data to the server.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>username</strong> (<em>str</em>) – user’s identifier</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>none</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="client.check_file">
+<code class="descclassname">client.</code><code class="descname">check_file</code><span class="sig-paren">(</span><em>file</em>, <em>direction</em><span class="sig-paren">)</span><a class="headerlink" href="#client.check_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate a user input</p>
+<p>This function ensures that the user enters a valid file list
+where the list contains a non-empty filename, b64 image, and a valid
+processing steps array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>direction</strong> (<em>str</em>) – either “upload” or download”</p></li>
+<li><p><strong>file</strong> (<em>list</em>) – UPLOAD a file is a list where each item in the list</p></li>
+<li><p><strong>a file's filename</strong><strong>, </strong><strong>b64 image</strong><strong>, </strong><strong>and an array of</strong> (<em>is</em>) – </p></li>
+<li><p><strong>processing steps should be done</strong> (<em>what</em>) – <dl class="simple">
+<dt>Example: file_list = [file1, file2]</dt><dd><dl class="simple">
+<dt>file1 = [“image1”, b64_image1,</dt><dd><p>[False, False, True, True, False]]</p>
+</dd>
+<dt>file2 = [“image1”, b64_image1,</dt><dd><p>[True, True, False, False, True]]</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>Each processing steps array has a True if that process is
+desired and False if not. In this example, image1 desires to
+perform contrast stretching and log compression. Likewise,
+image2 desires the original and to perform histogram
+equalization and reverse video.</p>
+</p></li>
+<li><p><strong>file</strong> – DOWNLOAD a file is a list where each item in the</p></li>
+<li><p><strong>is a file's filename</strong><strong>, </strong><strong>image download type</strong><strong>, </strong><strong>and</strong> (<em>list</em>) – </p></li>
+<li><p><strong>array of what processing steps should be downloaded</strong> (<em>an</em>) – <dl class="simple">
+<dt>Example: file_list = [file1, file2]</dt><dd><dl class="simple">
+<dt>file1 = [“image1”, “.jpg”,</dt><dd><p>[False, False, True, True, False]]</p>
+</dd>
+<dt>file2 = [“image1”, “.tiff”,</dt><dd><p>[False, True, False, False, True]]</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>Each processing steps array has a True if that process is
+desired and False if not. In this example, image1 desires to
+perform contrast stretching and log compression. Likewise,
+image2 desires the original and to perform histogram
+equalization and reverse video.</p>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>status message and status code</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>status (dict)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="client.delete_image">
+<code class="descclassname">client.</code><code class="descname">delete_image</code><span class="sig-paren">(</span><em>username</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#client.delete_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete images under filename from the database</p>
+<p>This function takes a username and filename and searches for
+the original and processed images associated with them
+in the MongoDB database. If found, it deletes the images and
+the associated metadata.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>username</strong> (<em>str</em>) – user’s identifier</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – file’s identifier</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>none</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="client.delete_user">
+<code class="descclassname">client.</code><code class="descname">delete_user</code><span class="sig-paren">(</span><em>username</em><span class="sig-paren">)</span><a class="headerlink" href="#client.delete_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete user from the database</p>
+<p>This function takes a username and searches for it
+in the MongoDB database. If found, it deletes the user.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>username</strong> (<em>str</em>) – user’s identifier</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>none</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="client.download_image">
+<code class="descclassname">client.</code><code class="descname">download_image</code><span class="sig-paren">(</span><em>username</em>, <em>filename</em>, <em>path</em>, <em>proc_steps</em>, <em>type_ext='.png'</em><span class="sig-paren">)</span><a class="headerlink" href="#client.download_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download an image from the database</p>
+<p>This function takes an image filename, finds the image in the
+database then displays it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>username</strong> (<em>str</em>) – user identifier</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – name of file</p></li>
+<li><p><strong>path</strong> (<em>str</em>) – path to where image should be downloaded
+If path is ‘none’, image isn’t saved to a location.</p></li>
+<li><p><strong>proc_steps</strong> (<em>list</em>) – list of Booleans containing requested</p></li>
+<li><p><strong>steps such as</strong><strong> [</strong><strong>False</strong><strong>, </strong><strong>True</strong><strong>, </strong><strong>False</strong><strong>, </strong><strong>False</strong><strong>, </strong><strong>True</strong><strong>]</strong> (<em>processing</em>) – </p></li>
+<li><p><strong>&quot;Original&quot;</strong><strong> ,</strong><strong>&quot;Histogram Equalization&quot;</strong><strong>, </strong><strong>&quot;Contrast</strong> (<em>for</em>) – </p></li>
+<li><p><strong>&quot;Log Compression&quot;</strong><strong>, </strong><strong>and &quot;Reverse Video&quot;</strong> (<em>Stretching&quot;</em><em>,</em>) – </p></li>
+<li><p><strong>type_ext</strong> (<em>str</em>) – image type including “.jpg”, “.tiff”,</p></li>
+<li><p><strong>&quot;.png&quot; where &quot;png&quot; is default</strong> (<em>and</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>dictionary containing image information
+status (dict): status code and status message</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>img_info (dict)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="client.download_images">
+<code class="descclassname">client.</code><code class="descname">download_images</code><span class="sig-paren">(</span><em>username</em>, <em>file_list</em>, <em>zip_path</em><span class="sig-paren">)</span><a class="headerlink" href="#client.download_images" title="Permalink to this definition">¶</a></dt>
+<dd><p>Downloads multiple images from the database</p>
+<p>This function takes a list of images and downloads them
+from the database. If the list is larger than one image,
+the images are put into a zip_path</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>username</strong> (<em>str</em>) – user identifier</p></li>
+<li><p><strong>file_list</strong> (<em>list</em>) – list of files where each item in the list</p></li>
+<li><p><strong>a list of the file's filename</strong><strong>, </strong><strong>image type</strong><strong>, </strong><strong>and an array of</strong> (<em>is</em>) – </p></li>
+<li><p><strong>processing steps should be done</strong> (<em>what</em>) – <dl class="simple">
+<dt>Example: file_list = [file1, file2, file3]</dt><dd><dl class="simple">
+<dt>file1 = [“image1”, “.jpg”,</dt><dd><p>[False, False, True, True, False]]</p>
+</dd>
+<dt>file2 = [“image2”, “.png”,</dt><dd><p>[False, True, False, False, True]]</p>
+</dd>
+<dt>file3 = [“image3”, “.tiff”,</dt><dd><p>[True, False, False, False, False]]</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>Each processing steps array has a 1 if that process is
+desired and 0 if not. In this example, image1 desires to
+perform contrast stretching and log compression. Likewise,
+image2 desired to perform histogram equalization and reverse
+video. Image3 only desires the original image.</p>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>dictionary of status codes and
+and messages for each file being downloaded
+files_img_infos (list): list of img_info for each file being
+downloaded</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>files_status (dict of two lists)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="client.proc_string">
+<code class="descclassname">client.</code><code class="descname">proc_string</code><span class="sig-paren">(</span><em>proc_steps</em><span class="sig-paren">)</span><a class="headerlink" href="#client.proc_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates processign step string from the processing steps Boolean
+array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>proc_steps</strong> (<em>list</em>) – list of 5 Boolean terms for desired processing</p></li>
+<li><p><strong>steps</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>string of 5 1’s or 0’s corresponding to the True
+or False in the Boolean list</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>proc_ext (str)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="client.process_image">
+<code class="descclassname">client.</code><code class="descname">process_image</code><span class="sig-paren">(</span><em>username</em>, <em>filename</em>, <em>b64_string</em>, <em>proc_steps</em><span class="sig-paren">)</span><a class="headerlink" href="#client.process_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process image</p>
+<p>This function takes an image and sends it to the server as a
+string. The server then processes the image with the user-
+selected processing step.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>username</strong> (<em>str</em>) – user identifier</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – name of file</p></li>
+<li><p><strong>b64_string</strong> (<em>str</em>) – image string to process</p></li>
+<li><p><strong>proc_steps</strong> (<em>list</em>) – list of Booleans containing requested</p></li>
+<li><p><strong>steps such as</strong><strong> [</strong><strong>False</strong><strong>, </strong><strong>True</strong><strong>, </strong><strong>False</strong><strong>, </strong><strong>False</strong><strong>, </strong><strong>True</strong><strong>]</strong> (<em>processing</em>) – </p></li>
+<li><p><strong>&quot;Original&quot;</strong><strong> ,</strong><strong>&quot;Histogram Equalization&quot;</strong><strong>, </strong><strong>&quot;Contrast</strong> (<em>for</em>) – </p></li>
+<li><p><strong>&quot;Log Compression&quot;</strong><strong>, </strong><strong>and &quot;Reverse Video&quot;</strong> (<em>Stretching&quot;</em><em>,</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>status message and status code</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>status (dict)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="client.upload_image">
+<code class="descclassname">client.</code><code class="descname">upload_image</code><span class="sig-paren">(</span><em>username</em>, <em>filename</em>, <em>b64_string</em><span class="sig-paren">)</span><a class="headerlink" href="#client.upload_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Upload an image to the database</p>
+<p>This function takes an image filename, reads in the image
+and converts it into a string so it can be sent to the server.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>username</strong> (<em>str</em>) – user identifier</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – name of file</p></li>
+<li><p><strong>b64_string</strong> (<em>str</em>) – image string to upload</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>status message and status code</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>status (dict)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="client.upload_images">
+<code class="descclassname">client.</code><code class="descname">upload_images</code><span class="sig-paren">(</span><em>username</em>, <em>file_list</em><span class="sig-paren">)</span><a class="headerlink" href="#client.upload_images" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uploads multiple images to the database</p>
+<p>This function takes a list of images and uploads them
+one by one to the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>username</strong> (<em>str</em>) – user identifier</p></li>
+<li><p><strong>file_list</strong> (<em>list</em>) – list of files where each item in the list</p></li>
+<li><p><strong>a list of the file's filename</strong><strong>, </strong><strong>b64 image</strong><strong>, </strong><strong>and an array of</strong> (<em>is</em>) – </p></li>
+<li><p><strong>processing steps should be done</strong> (<em>what</em>) – <dl class="simple">
+<dt>Example: file_list = [file1, file2]</dt><dd><dl class="simple">
+<dt>file1 = [“image1”, b64_image1,</dt><dd><p>[False, False, True, True, False]]</p>
+</dd>
+<dt>file2 = [“image1”, b64_image1,</dt><dd><p>[False, True, False, False, True]]</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>Each processing steps array has a True if that process is
+desired and False if not. In this example, image1 desires to
+perform contrast stretching and log compression. Likewise,
+image2 desired to perform histogram equalization and reverse
+video.</p>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>dictionary of a list of status codes
+and list of status messages for each file being uploaded</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>files_status (dict of two lists)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="client.zipdir">
+<code class="descclassname">client.</code><code class="descname">zipdir</code><span class="sig-paren">(</span><em>path</em>, <em>ziph</em><span class="sig-paren">)</span><a class="headerlink" href="#client.zipdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function for putting everything under an existing folder into
+a zip folder.</p>
+<p>This function puts all the files in an existing folder into a zipped
+folder and then removes it from the existing folder.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>str</em>) – path to folder desired to be zipped</p></li>
+<li><p><strong>ziph</strong> – zipfile handle</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>success (bool)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">BME547 Final</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Janet Chen, Jessica Bilskie, Kevin Chu.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/client.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
