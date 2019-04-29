@@ -204,3 +204,31 @@ def test_get_file_list(filenames, file_ext, proc_steps, success,
     file_list = get_file_list(filenames, file_ext, proc_steps, success)
 
     assert file_list == exp_file_list
+
+
+@pytest.mark.parametrize("w, h, new_w, exp_w, exp_h",
+                         [(1024, 1024, 500, 500, 500),
+                          (1024, 512, 500, 500, 250),
+                          (100, 220, 1000, 455, 1000),
+                          (1, 1000, 1000, 1, 1000)])
+def test_resize_img_data(w, h, new_w, exp_w, exp_h):
+    """Tests resize_img_dim
+
+    Tests whether given a new width, the new height is calculated
+    correctly. If new width is smaller than new hegiht, the final
+    width is scaled by new width over calculated new height.
+
+    Existing width and height as well as new width are determined
+    through image and screen methods that only provide integers so
+    type is not tested here.
+
+    Args:
+        input (str): string containing image path(s)
+        exp_paths (list) : list of expected image path(s) (str)
+
+    Returns:
+        none
+    """
+    final_w, final_h = resize_img_dim(w, h, new_w)
+
+    assert (final_w == exp_w) or (final_h == exp_h) is True
