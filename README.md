@@ -22,7 +22,7 @@ In the username field, enter your desired username. You must enter in a non-empt
 <img src="https://github.com/jbilskie/BME547_final/blob/master/README/2%20Username.png" width="400">
 
 ### Step 2: Define Image Paths
-In the image paths field, enter in the file path(s) for the image(s) you wish to upload. You may upload a single image, list of images, or a zip archive of images as shown in the figures below. 
+In the image paths field, enter in the file path(s) for the image(s) you wish to upload. You may upload a single image, zip archive, or list of images and/or zip archives as shown in the figures below. 
 
 <img src="https://github.com/jbilskie/BME547_final/blob/master/README/3%20Image%20Paths.png" width="400">
 <img src="https://github.com/jbilskie/BME547_final/blob/master/README/4%20Image%20Paths.png" width="400">
@@ -35,7 +35,7 @@ After entering the image paths, you have the option of applying image processing
 * Log Compression
 * Reverse Video
 
-By default, the histogram equalization box is checked. However, you may select between 0 and all 4 of the processing steps. If you select 0 boxes, then the original image(s) will be uploaded. If you select more than 1 step, the selected processing steps will be applied sequentially. The figure below shows an example where multiple processing steps are selected.
+By default, the histogram equalization box is checked. However, you may select between 0 and all 4 of the processing steps. If you select 0 boxes, then the original image(s) will be uploaded and stored. If you select more than 1 step, the original image(s) will be uploaded and the selected processing steps will be applied sequentially. The figure below shows an example where multiple processing steps are selected.
 
 <img src="https://github.com/jbilskie/BME547_final/blob/master/README/7%20Processing%20Steps.png" width="400">
 
