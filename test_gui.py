@@ -7,6 +7,7 @@ import numpy as np
 import pytest
 from gui import *
 from user import User
+from image import b64_to_image, read_img_as_b64
 
 
 @pytest.mark.parametrize("img_typ, ent1, ent2, ent3, ent4, \
@@ -232,3 +233,48 @@ def test_resize_img_data(w, h, new_w, exp_w, exp_h):
     final_w, final_h = resize_img_dim(w, h, new_w)
 
     assert (final_w == exp_w) or (final_h == exp_h) is True
+
+
+# Good Image 1
+img_string = read_img_as_b64("test_gui/test6.tiff")
+image_obj = b64_to_image(img_string)
+image_to_load = np.asarray(image_obj)
+img_to_show1 = Image.fromarray(image_to_load)
+# Good Image 2
+img_string = read_img_as_b64("test_gui/test7.jpg")
+image_obj = b64_to_image(img_string)
+image_to_load = np.asarray(image_obj)
+img_to_show2 = Image.fromarray(image_to_load)
+# Good Image 3
+img_string = read_img_as_b64("test_gui/test2.png")
+image_obj = b64_to_image(img_string)
+image_to_load = np.asarray(image_obj)
+img_to_show3 = Image.fromarray(image_to_load)
+
+
+@pytest.mark.parametrize("img_to_show",
+                         # Test good images
+                         [(img_to_show1),
+                          (img_to_show2),
+                          (img_to_show3)])
+def test_calc_histograms(img_to_show):
+    """Tests calc_histograms
+
+    Tests whether a image is properly split into RGB components
+    for a histogram for display.
+
+    img_to_show is assumed to be a valid image based it only ever
+    runs if the image was extracted.
+
+    Args:
+        img_array (image obj): image object to use
+
+    Returns:
+        none
+    """
+    exp_r = img_to_show.getchannel('R').histogram()
+    exp_b = img_to_show.getchannel('B').histogram()
+    exp_g = img_to_show.getchannel('G').histogram()
+    r, g, b = calc_histograms(img_to_show)
+
+    assert (r == exp_r) or (g == exp_g) or (b == exp_b) is True
