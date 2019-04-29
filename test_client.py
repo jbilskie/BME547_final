@@ -7,9 +7,9 @@ import numpy as np
 import pytest
 from image import read_img_as_b64
 
-good_img1 = read_img_as_b64("test_client_images/test1.jpg")
-good_img2 = read_img_as_b64("test_client_images/test2.png")
-good_img3 = read_img_as_b64("test_client_images/test3.tiff")
+good_img1 = read_img_as_b64("test_client/test1.jpg")
+good_img2 = read_img_as_b64("test_client/test2.png")
+good_img3 = read_img_as_b64("test_client/test3.tiff")
 bad_img1 = "239fbn3rb0tbh0r2hvr0bh"
 bad_img2 = ""
 bad_img3 = good_img1 + "ruin"
@@ -203,3 +203,85 @@ def test_download_check_file(file_list, exp_status_code):
         status['code'].append(i_status['code'])
 
     assert status['code'] == exp_status_code
+
+
+# @pytest.mark.parametrize("zip_file, zip_path, exp_success",
+#                          # Example of Folder with Pictures
+#                          [('test_client_cp/Example1.zip',
+#                            'test_client_cp/Example1/', True),
+#                           # Example of Empty Folder
+#                           ('test_client_cp/Example2.zip',
+#                            'test_client_cp/Example2/', True),
+#                           # Example of Pictures in Folder in Provided Folder
+#                           ('test_client_cp/Example3.zip',
+#                            'test_client_cp/', False),
+#                           # Example of Existing Zip Folder
+#                           ('test_client_cp/Example4.zip',
+#                            'test_client_cp/Example4/', True)])
+# def test_zipdir(zip_file, zip_path, exp_success):
+#     """Tests zip_dir
+#
+#     Tests whether this function puts all the images in an existing folder
+#     into a zipped folder.
+#
+#     Code outside of the function already makes sure the path is valid so
+#     that isn't tested here.
+#
+#     Test includes the code that creates the zip folder.
+#
+#     Args:
+#         zip_file (str): name of zip folder to be created
+#         zip_path (str): location of where the pictures to be zipped are
+#         located
+#         exp_success (bool): expected success
+#
+#     Returns:
+#         none
+#     """
+#     import zipfile
+#     import os
+#     from client import zipdir
+#     import shutil
+#
+#     fail = False
+#     cwd = os.getcwd()
+#     try:
+#         shutil.rmtree('test_client_cp/')
+#     except:
+#         pass
+#     shutil.copytree('test_client/', 'test_client_cp/')
+#     zipf = zipfile.ZipFile(zip_file, 'w', zipfile.ZIP_DEFLATED)
+#     success = zipdir(zip_path, zipf)
+#     zipf.close()
+#     os.chdir(cwd)
+#     shutil.rmtree('test_client_cp/')
+#
+#     assert success == exp_success
+
+
+@pytest.mark.parametrize("proc_steps, exp_str",
+                         [([True, False, True, True, False], '10110'),
+                          ([True, True, True, True, True], '11111'),
+                          ([False, False, False, True, False], '00010'),
+                          ([True, False, True, False, False], '10100'),
+                          ([False, False, False, False, False], '00000')])
+def test_proc_string(proc_steps, exp_str):
+    """Tests proc_string
+
+    Tests whether this function creates the correct string from an array of
+    five Boolean terms.
+
+    Code outside of the function already makes sure array is formatted
+    correctly so that isn't tested here.
+
+    Args:
+        proc_steps (list): list of 5 Booleans
+
+    Returns:
+        proc_ext (str): string of 1's and 0's
+    """
+    from client import proc_string
+
+    proc_ext = proc_string(proc_steps)
+
+    assert proc_ext == exp_str

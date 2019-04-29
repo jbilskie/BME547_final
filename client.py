@@ -269,11 +269,25 @@ def download_images(username, file_list, zip_path):
     import os
     import time
 
+    files_img_infos = []
+    files_status = {'code': [], 'msg': []}
+
     # Check for empty list
     if len(file_list) == 0:
         files_status = {"code": 400,
                         "msg": "No file was selected."}
         return [], files_status
+
+    # Make Zip Directory
+    try:
+        os.mkdir(zip_path + 'temp')
+    except FileNotFoundError:
+        files_img_infos = []
+        files_status = {'code': [400],
+                        'msg': ['Zip path not found']}
+        return files_img_infos, files_status
+    except FileExistsError:
+        pass
 
     # Define Processing Options
     procs = ["Original", "Histogram Equalization", "Contrast Stretching",
@@ -285,32 +299,23 @@ def download_images(username, file_list, zip_path):
         # Make sure input is valid
         status = check_file(file_list[0], "download")
         if status["code"] != 200:
-            files_img_infos = []
-            files_status = {}
-            files_status["code"] = [status["code"]]
-            files_status["msg"] = [status["msg"]]
+            files_status["code"].append(status["code"])
+            files_status["msg"].append(status["msg"])
             return files_img_infos, files_status
 
         img_info, status = download_image(username, file_list[0][0],
                                           zip_path, file_list[0][2],
                                           file_list[0][1])
         files_img_infos = [img_info]
-        files_status = {}
-        files_status["code"] = [status["code"]]
-        files_status["msg"] = [status["msg"]]
+        files_status["code"].append(status["code"])
+        files_status["msg"].append(status["msg"])
         return files_img_infos, files_status
 
     # Complete all downloading tasks and append with their status codes
-    files_status = {}
     msg = []
     code = []
-    files_img_infos = []
     cwd = os.getcwd()
-    try:
-        os.rmdir(zip_path + 'temp')
-    except:
-        pass
-    os.mkdir(zip_path + 'temp')
+
     for file in file_list:
 
         # Make sure input is valid
@@ -330,7 +335,7 @@ def download_images(username, file_list, zip_path):
     if zip_path != 'none':
         zipf = zipfile.ZipFile(zip_path + 'downloaded_' + t + '.zip',
                                'w', zipfile.ZIP_DEFLATED)
-        zipdir(zip_path + 'temp/', zipf)
+        _ = zipdir(zip_path + 'temp/', zipf)
         zipf.close()
     os.chdir(cwd)
     os.rmdir(zip_path + 'temp')
@@ -353,15 +358,21 @@ def zipdir(path, ziph):
         ziph: zipfile handle
 
     Returns:
-        none
+        success (bool)
     """
     import os
 
-    os.chdir(path)
-    for root, dirs, files in os.walk('.'):
-        for file in files:
-            ziph.write(os.path.join(root, file))
-            os.remove(file)
+    try:
+        os.chdir(path)
+        for root, dirs, files in os.walk('.'):
+            for file in files:
+                ziph.write(os.path.join(root, file))
+                os.remove(file)
+        success = True
+    except:
+        success = False
+
+    return success
 
 
 def upload_image(username, filename, b64_string):
@@ -397,6 +408,7 @@ def upload_image(username, filename, b64_string):
                 "filename": filename,
                 "image": b64_string}
 
+    # Upload image
     r = requests.post(url + "image_upload", json=img_info)
     status['code'] = r.status_code
     status['msg'] = r.text
@@ -433,23 +445,20 @@ def download_image(username, filename, path, proc_steps, type_ext=".png"):
 
     print("Asking server to download image")
 
-    # Create Processing Steps Extension
-    proc_ext = ""
-    for ind, step in enumerate(proc_steps):
-        if step is True:
-            proc_ext = proc_ext + "1"
-        else:
-            proc_ext = proc_ext + "0"
+    # Create processing steps extension
+    proc_ext = proc_string(proc_steps)
 
+    # Download image
     r = requests.get(url + "image_download/" + username + "/" +
                      filename + "/" + proc_ext)
-
+    results = json.loads(r.text)
     status_code = r.status_code
+
+    # Fromat returns and save
     if status_code != 200:
         img_info = {}
-        msg = r.text
+        msg = results[1]
     else:
-        results = json.loads(r.text)
         img_info = results[0]
         msg = results[1]
         if path == 'none':
@@ -471,6 +480,29 @@ def download_image(username, filename, path, proc_steps, type_ext=".png"):
               'msg': msg}
 
     return img_info, status
+
+
+def proc_string(proc_steps):
+    """ Creates processign step string from the processing steps Boolean
+    array.
+
+    Args:
+        proc_steps (list): list of 5 Boolean terms for desired processing
+        steps
+
+    Returns:
+        proc_ext (str): string of 5 1's or 0's corresponding to the True
+        or False in the Boolean list
+    """
+    # Create Processing Steps Extension
+    proc_ext = ""
+    for ind, step in enumerate(proc_steps):
+        if step is True:
+            proc_ext = proc_ext + "1"
+        else:
+            proc_ext = proc_ext + "0"
+
+    return proc_ext
 
 
 def process_image(username, filename, b64_string, proc_steps):
@@ -506,26 +538,8 @@ def process_image(username, filename, b64_string, proc_steps):
                   .format(file[0])}
         return status
 
-    # Check processing array for proper format
-    if len(proc_steps) != 5:
-        status = {"code": 400,
-                  "msg": "Processing array doesn't contain the correct \
-                  amount of elements."}
-        return status
-    for proc in proc_steps:
-        if isinstance(proc, bool) is False:
-            status = {"code": 400,
-                      "msg": "Processing array contains non-Boolean \
-                      elements.".format(file[0])}
-            return status
-
     # Obtain processing extension
-    proc_ext = ""
-    for ind, step in enumerate(proc_steps):
-        if step is True:
-            proc_ext = proc_ext + "1"
-        else:
-            proc_ext = proc_ext + "0"
+    proc_ext = proc_string(proc_steps)
 
     # Format into dictionary
     img_info = {"username": username,
@@ -568,30 +582,36 @@ if __name__ == "__main__":
     file4 = ["", ".png", [True, False, False, False, False]]
     file5 = ["puppy1", ".jpg", [True, True, True, False, False]]
     # Example download (no saving) multiple images
-    img_info, status = download_images("user1", [file1, file4, file3],
+    img_info, status = download_images("user1", [file1],
+                                       "Pictures/WRONG/")
+    print(status['code'])
+    print(status['msg'])
+    # Example download (no saving) multiple images (some exist)
+    img_info, status = download_images("user1", [file4, file5],
                                        "none")
     print(status['code'])
     print(status['msg'])
-#    # Example download (no saving) multiple images (some exist)
-#    img_info, status = download_images("user1", [file4, file5],
-#                                       "none")
-#    print(status['code'])
-#    # Example download (no saving) single image
-#    img_info, status = download_images("user1", [file3], "none")
-#    print(status['code'])
-#    # Example download (saving) multiple images
-#    img_info, status = download_images("user1", [file1, file2, file3],
-#                                       "Pictures/Downloaded/")
-#    print(status['code'])
-#    # Example download (saving) multiple images (some exist)
-#    img_info, status = download_images("user1", [file4, file5],
-#                                       "Pictures/Downloaded/")
-#    print(status['code'])
-#    # Example download (saving) single image
-#    img_info, status = download_images("user1", [file3],
-#                                       "Pictures/")
-#    print(status['code'])
-#    # Example download (saving) single image that doesn't exist
-#    img_info, status = download_images("user1", [file5],
-#                                       "Pictures/")
-#    print(status['code'])
+    # Example download (no saving) single image
+    img_info, status = download_images("user1", [file3], "none")
+    print(status['code'])
+    print(status['msg'])
+    # Example download (saving) multiple images
+    img_info, status = download_images("user1", [file1, file2, file3],
+                                       "Pictures/Downloaded/")
+    print(status['code'])
+    print(status['msg'])
+    # Example download (saving) multiple images (some exist)
+    img_info, status = download_images("user1", [file4, file5],
+                                       "Pictures/Downloaded/")
+    print(status['code'])
+    print(status['msg'])
+    # Example download (saving) single image
+    img_info, status = download_images("user1", [file3],
+                                       "Pictures/")
+    print(status['code'])
+    print(status['msg'])
+    # Example download (saving) single image that doesn't exist
+    img_info, status = download_images("user1", [file5],
+                                       "Pictures/")
+    print(status['code'])
+    print(status['msg'])
