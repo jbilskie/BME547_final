@@ -1,0 +1,406 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>gui module &#8212; BME547 Final v1.0.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-gui">
+<span id="gui-module"></span><h1>gui module<a class="headerlink" href="#module-gui" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="gui.calc_histograms">
+<code class="descclassname">gui.</code><code class="descname">calc_histograms</code><span class="sig-paren">(</span><em>img_to_show</em><span class="sig-paren">)</span><a class="headerlink" href="#gui.calc_histograms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate histograms</p>
+<p>Get R, G, B histogram values from an image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>img_array</strong> (<em>image obj</em>) – image object to use</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>list of histogram values for red pixels
+g (list): list of histogram values for green pixels
+b (list): list of histogram values for blue pixels</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>r (list)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="gui.convert_inputs">
+<code class="descclassname">gui.</code><code class="descname">convert_inputs</code><span class="sig-paren">(</span><em>entered_img_type</em>, <em>entered_1</em>, <em>entered_2</em>, <em>entered_3</em>, <em>entered_4</em><span class="sig-paren">)</span><a class="headerlink" href="#gui.convert_inputs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts GUI user input into function inputs</p>
+<p>Gets requested image type and processing steps in the desired format.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>entered_img_type</strong> (<em>str</em>) – selected image type from GUI dropdown</p></li>
+<li><p><strong>entered_1</strong> (<em>bool</em>) – histogram equalization?</p></li>
+<li><p><strong>entered_2</strong> (<em>bool</em>) – contrast stretching?</p></li>
+<li><p><strong>entered_3</strong> (<em>bool</em>) – log compression?</p></li>
+<li><p><strong>entered_4</strong> (<em>bool</em>) – reverse video?</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>requested image type
+proc_steps (list): processing steps as a list of booleans</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>req_img_type (str)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="gui.display_images">
+<code class="descclassname">gui.</code><code class="descname">display_images</code><span class="sig-paren">(</span><em>run</em>, <em>user</em>, <em>img_type</em>, <em>img_paths</em>, <em>proc_steps</em>, <em>root</em>, <em>filenames</em>, <em>orig_images</em>, <em>success</em><span class="sig-paren">)</span><a class="headerlink" href="#gui.display_images" title="Permalink to this definition">¶</a></dt>
+<dd><p>Display images and histograms in new GUI window</p>
+<p>Converts image arrays to TK objects and displays them in the window.
+Also computes histogram</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>run</strong> (<em>bool</em>) – run function or close window</p></li>
+<li><p><strong>user</strong> (<em>str</em>) – username</p></li>
+<li><p><strong>img_type</strong> (<em>str</em>) – image type to show/download</p></li>
+<li><p><strong>img_paths</strong> (<em>list</em>) – list of image paths</p></li>
+<li><p><strong>proc_steps</strong> (<em>list</em>) – list of processing steps</p></li>
+<li><p><strong>root</strong> (<em>Tk window</em>) – </p></li>
+<li><p><strong>filenames</strong> (<em>list</em>) – list of filenames</p></li>
+<li><p><strong>orig_images</strong> (<em>list</em>) – list of uploaded b64 strings</p></li>
+<li><p><strong>success</strong> (<em>list</em>) – whether image extraction was successful</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>none</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="gui.dl_images">
+<code class="descclassname">gui.</code><code class="descname">dl_images</code><span class="sig-paren">(</span><em>root</em>, <em>username</em>, <em>file_list</em>, <em>path</em>, <em>screen_w</em>, <em>screen_h</em><span class="sig-paren">)</span><a class="headerlink" href="#gui.dl_images" title="Permalink to this definition">¶</a></dt>
+<dd><p>Downloads images</p>
+<p>Calls download function and makes popup window.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>root</strong> (<em>Tk</em>) – main window</p></li>
+<li><p><strong>username</strong> (<em>str</em>) – username</p></li>
+<li><p><strong>file_list</strong> (<em>list</em>) – file list for download</p></li>
+<li><p><strong>path</strong> (<em>str</em>) – download path</p></li>
+<li><p><strong>screen_w</strong> (<em>int</em>) – screen width</p></li>
+<li><p><strong>screen_h</strong> (<em>int</em>) – screen height</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>success message</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>success_msg (str)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="gui.editing_window">
+<code class="descclassname">gui.</code><code class="descname">editing_window</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#gui.editing_window" title="Permalink to this definition">¶</a></dt>
+<dd><p>Editing window</p>
+<p>Initial GUI window that lets user enter their information and
+their requested editing steps.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>none</strong> – </p></li>
+<li><p><strong>Returns</strong> – </p></li>
+<li><p><strong>none</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="gui.get_file_list">
+<code class="descclassname">gui.</code><code class="descname">get_file_list</code><span class="sig-paren">(</span><em>filenames</em>, <em>file_ext</em>, <em>proc_steps</em>, <em>success</em><span class="sig-paren">)</span><a class="headerlink" href="#gui.get_file_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets file list</p>
+<p>This function takes the inputted filenames, requested file ext,
+and requested processing steps. The output file list includes
+information from images that were successfully uploaded.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filenames</strong> (<em>list</em>) – list of filenames</p></li>
+<li><p><strong>file_ext</strong> (<em>str</em>) – requested file extension</p></li>
+<li><p><strong>proc_steps</strong> (<em>list</em>) – list of processing steps</p></li>
+<li><p><strong>success</strong> (<em>list</em>) – list of upload success</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>list of properly formatted image info
+for download_images</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>file_list (list)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="gui.get_img_data">
+<code class="descclassname">gui.</code><code class="descname">get_img_data</code><span class="sig-paren">(</span><em>img_paths</em><span class="sig-paren">)</span><a class="headerlink" href="#gui.get_img_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets image data</p>
+<p>Upload: Extracts data from image paths to upload to server as b64
+strings. Unzips images if necessary.
+Download: Unzips downloaded files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>img_paths</strong> (<em>list</em>) – list of image paths to process</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>list of numpy arrays containing image data
+filenames (list): list of filenames to use. If zip included and
+unzipping successful, this list contains the image filenames, not
+the zip filename. Otherwise, it just states the zip filename.
+success (list): list of booleans denoting successful processing for
+each of the entries in filenames</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>images (list)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="gui.plot_histograms">
+<code class="descclassname">gui.</code><code class="descname">plot_histograms</code><span class="sig-paren">(</span><em>frame</em>, <em>img_array</em><span class="sig-paren">)</span><a class="headerlink" href="#gui.plot_histograms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates histogram widget and plots it.</p>
+<p>Converts image arrays to histograms for display</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frame</strong> (<em>Tk Frame</em>) – frame to put histograms of images</p></li>
+<li><p><strong>img_array</strong> (<em>np array</em>) – np array containing image data</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>histogram widget to implement</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>hist_plots (Widget)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="gui.popup_window">
+<code class="descclassname">gui.</code><code class="descname">popup_window</code><span class="sig-paren">(</span><em>window</em>, <em>message</em>, <em>screen_w</em>, <em>screen_h</em><span class="sig-paren">)</span><a class="headerlink" href="#gui.popup_window" title="Permalink to this definition">¶</a></dt>
+<dd><p>Popup window</p>
+<p>Message pops up after images are uploaded or downloaded.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>window</strong> (<em>Toplevel</em>) – GUI popup window</p></li>
+<li><p><strong>message</strong> (<em>str</em>) – message string to display</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>none</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="gui.process_img_paths">
+<code class="descclassname">gui.</code><code class="descname">process_img_paths</code><span class="sig-paren">(</span><em>input</em><span class="sig-paren">)</span><a class="headerlink" href="#gui.process_img_paths" title="Permalink to this definition">¶</a></dt>
+<dd><p>Processes image paths
+If one path is entered, return list of length 1 containing location.
+If multiple (comma-separated) paths are entered, return list containing
+all paths.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>input</strong> (<em>str</em>) – string containing image path(s)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>list containing image path, or separated image paths</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>paths (list)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="gui.resize_img_dim">
+<code class="descclassname">gui.</code><code class="descname">resize_img_dim</code><span class="sig-paren">(</span><em>w</em>, <em>h</em>, <em>new_w</em><span class="sig-paren">)</span><a class="headerlink" href="#gui.resize_img_dim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets dimensions for resizing input image</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>w</strong> (<em>int</em>) – current width of image</p></li>
+<li><p><strong>h</strong> (<em>int</em>) – current height of image</p></li>
+<li><p><strong>new_w</strong> (<em>int</em>) – new width of image</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>new width
+final_h (int): new height</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>final_w (int)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="gui.show_next">
+<code class="descclassname">gui.</code><code class="descname">show_next</code><span class="sig-paren">(</span><em>next</em>, <em>images</em>, <em>filenames</em>, <em>filename_label</em>, <em>ts</em>, <em>ts_label</em>, <em>pt</em>, <em>pt_label</em>, <em>sz</em>, <em>sz_label</em>, <em>orig_img_label</em>, <em>proc_img_label</em>, <em>img_width</em>, <em>orig_hist_plots</em>, <em>proc_hist_plots</em>, <em>hist_width</em><span class="sig-paren">)</span><a class="headerlink" href="#gui.show_next" title="Permalink to this definition">¶</a></dt>
+<dd><p>Image slideshow functionality</p>
+<p>Shows images and histograms for next or previous file on button
+click.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>next</strong> (<em>str</em>) – ‘next’ or ‘prev’, depending on the button being</p></li>
+<li><p><strong>pressed</strong> – </p></li>
+<li><p><strong>images</strong> (<em>list</em>) – list of original Tk PhotoImages (empty string</p></li>
+<li><p><strong>image could not be uploaded</strong> (<em>if</em>) – </p></li>
+<li><p><strong>filenames</strong> (<em>list</em>) – list of image filenames</p></li>
+<li><p><strong>filename_label</strong> (<em>tk Label</em>) – label showing filename</p></li>
+<li><p><strong>ts</strong> (<em>list</em>) – list of timestamps</p></li>
+<li><p><strong>ts_label</strong> (<em>tk Label</em>) – label showing upload timestamp</p></li>
+<li><p><strong>pt</strong> (<em>list</em>) – list of processing times</p></li>
+<li><p><strong>pt_label</strong> (<em>tk Label</em>) – label showing processing times</p></li>
+<li><p><strong>sz</strong> (<em>list</em>) – list of image sizes</p></li>
+<li><p><strong>sz_label</strong> (<em>tk Label</em>) – label showing image size</p></li>
+<li><p><strong>orig_img_label</strong> (<em>tk Label</em>) – label showing original image</p></li>
+<li><p><strong>proc_img_label</strong> (<em>tk Label</em>) – label showing processed image</p></li>
+<li><p><strong>img_width</strong> (<em>int</em>) – width of image</p></li>
+<li><p><strong>orig_hist_plots</strong> (<em>tk Label</em>) – label showing histograms for</p></li>
+<li><p><strong>image</strong> (<em>processed</em>) – </p></li>
+<li><p><strong>proc_hist_plots</strong> (<em>tk Label</em>) – label showing histograms for</p></li>
+<li><p><strong>image</strong> – </p></li>
+<li><p><strong>hist_width</strong> (<em>int</em>) – width of histogram</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>none</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="gui.upload_to_server">
+<code class="descclassname">gui.</code><code class="descname">upload_to_server</code><span class="sig-paren">(</span><em>user</em>, <em>images</em>, <em>filenames</em>, <em>success</em>, <em>proc_steps</em><span class="sig-paren">)</span><a class="headerlink" href="#gui.upload_to_server" title="Permalink to this definition">¶</a></dt>
+<dd><p>Posts image to server</p>
+<p>Posts b64 strings to server</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>user</strong> (<em>str</em>) – inputted username</p></li>
+<li><p><strong>images</strong> (<em>list</em>) – list of b64 strings</p></li>
+<li><p><strong>filenames</strong> (<em>list</em>) – attached original filenames</p></li>
+<li><p><strong>success</strong> (<em>list</em>) – whether images were successfully obtained</p></li>
+<li><p><strong>proc_steps</strong> (<em>list</em>) – image processing steps to take</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>message to print below upload button</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>upload_success (str)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">BME547 Final</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Janet Chen, Jessica Bilskie, Kevin Chu.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/gui.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

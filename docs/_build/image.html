@@ -1,0 +1,218 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>image module &#8212; BME547 Final v1.0.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-image">
+<span id="image-module"></span><h1>image module<a class="headerlink" href="#module-image" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="image.b64_to_image">
+<code class="descclassname">image.</code><code class="descname">b64_to_image</code><span class="sig-paren">(</span><em>b64_string</em><span class="sig-paren">)</span><a class="headerlink" href="#image.b64_to_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert b64 string to image</p>
+<p>This function takes a b64 string and decodes it into
+a color image. The image is represented as a 3-dimensional
+np.array where each element represents the pixel intensity
+ranging from 0-255. The three dimensions represent red,
+blue, and green channels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>b64_string</strong> (<em>str</em>) – image represented as a string</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>image represented as RBG intensities</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>img (np.array)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="image.image_to_b64">
+<code class="descclassname">image.</code><code class="descname">image_to_b64</code><span class="sig-paren">(</span><em>img</em><span class="sig-paren">)</span><a class="headerlink" href="#image.image_to_b64" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert np.array image to b64 string</p>
+<p>This function uses the skimage.io.imsave function to convert
+an np.array image into a b64 string. The image is saved in
+a BytesIO buffer, which is then encoded in base 64 and then
+converted into a string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>img</strong> (<em>np.array</em>) – image represented as np.array</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>image represented as base64 string</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>b64_string (string)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="image.is_b64">
+<code class="descclassname">image.</code><code class="descname">is_b64</code><span class="sig-paren">(</span><em>b64_image</em><span class="sig-paren">)</span><a class="headerlink" href="#image.is_b64" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if the input is a b64 image</p>
+<p>This function decodes and then re-encodes a given string to check
+whether it is a valid b64 string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>b64_image</strong> (<em>str</em>) – string in question for b64 validity</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>whether the string is b64 encoded</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>truth (Boolean)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="image.read_img_as_b64">
+<code class="descclassname">image.</code><code class="descname">read_img_as_b64</code><span class="sig-paren">(</span><em>file_path</em><span class="sig-paren">)</span><a class="headerlink" href="#image.read_img_as_b64" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads in image as b64</p>
+<p>This function reads in an image and encodes it into
+a base64 string so that it can be transmitted over
+the internet.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>file_path</strong> (<em>str</em>) – file directory and name</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>image represented as a string</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>b64_string (str)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="image.save_b64_img">
+<code class="descclassname">image.</code><code class="descname">save_b64_img</code><span class="sig-paren">(</span><em>b64_string</em>, <em>file_path</em><span class="sig-paren">)</span><a class="headerlink" href="#image.save_b64_img" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves image file</p>
+<p>This function reads in a base64 string and decodes so that
+it can be saved.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>b64_string</strong> (<em>str</em>) – image represented as a string</p></li>
+<li><p><strong>file_path</strong> (<em>str</em>) – path of save file</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="image.unzip">
+<code class="descclassname">image.</code><code class="descname">unzip</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#image.unzip" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unzips file at requested path</p>
+<p>Returns unzipped file (as numpy array) and success boolean</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filename</strong> (<em>string</em>) – image path to unzip</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>list containing image data as base 64 strings
+filenames (list): list containing image filenames
+success (bool): whether zip was successfully extracted</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>imgs (list)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">BME547 Final</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Janet Chen, Jessica Bilskie, Kevin Chu.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/image.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

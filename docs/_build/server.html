@@ -1,0 +1,594 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>server module &#8212; BME547 Final v1.0.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-server">
+<span id="server-module"></span><h1>server module<a class="headerlink" href="#module-server" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="server.check_user_exists">
+<code class="descclassname">server.</code><code class="descname">check_user_exists</code><span class="sig-paren">(</span><em>username</em><span class="sig-paren">)</span><a class="headerlink" href="#server.check_user_exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check whether user with username exists</p>
+<p>This function checks whether the user with username is already
+registered to the database. The function returns a status code
+of 200 if the user does not already exist and 400 if the user
+does already exist.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>username</strong> (<em>str</em>) – username</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>status message and status code</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>status (dict)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="server.delete_img">
+<code class="descclassname">server.</code><code class="descname">delete_img</code><span class="sig-paren">(</span><em>username</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#server.delete_img" title="Permalink to this definition">¶</a></dt>
+<dd><p>Processes request to delete image under a specified user</p>
+<p>This function processes the request to delete an image under a
+specified user from the MongoDB database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>username</strong> (<em>str</em>) – username undre which the image is stored</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – filename of the image desired to be deleted</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>status message and status code</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>status (dict)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="server.delete_user">
+<code class="descclassname">server.</code><code class="descname">delete_user</code><span class="sig-paren">(</span><em>username</em><span class="sig-paren">)</span><a class="headerlink" href="#server.delete_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Processes request to delete user</p>
+<p>This function processes the request to delete a user from
+the MongoDB database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>username</strong> (<em>str</em>) – username desired to be deleted</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>status message and status code</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>status (dict)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="server.equalize_histogram">
+<code class="descclassname">server.</code><code class="descname">equalize_histogram</code><span class="sig-paren">(</span><em>orig_img</em><span class="sig-paren">)</span><a class="headerlink" href="#server.equalize_histogram" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs histogram equalization on uploaded image</p>
+<p>This function uses the skimage.exposure.equalize_hist to
+equalize the histogram of the uploaded image. The function
+then returns the processed image as an np.array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>orig_img</strong> (<em>np.array</em>) – original, raw image</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>processed image</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>proc_img (np.array)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="server.exist_input">
+<code class="descclassname">server.</code><code class="descname">exist_input</code><span class="sig-paren">(</span><em>username</em>, <em>filename</em>, <em>proc_steps</em><span class="sig-paren">)</span><a class="headerlink" href="#server.exist_input" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate whether input exists in database</p>
+<p>This function ensures that the user enters an input username,
+filename, and image exists in the database. The function then
+returns the appropriate status code and message.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>username</strong> (<em>str</em>) – name of input username</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – name of input filename</p></li>
+<li><p><strong>proc_steps</strong> (<em>string</em>) – string of ones and zeros correlating</p></li>
+<li><p><strong>processing steps desired to have been done on the image</strong> (<em>to</em>) – </p></li>
+<li><p><strong>&quot;Original&quot;</strong><strong> ,</strong><strong>&quot;Histogram Equalization&quot;</strong><strong>, </strong><strong>&quot;Contrast</strong> (<em>-</em>) – </p></li>
+<li><p><strong>&quot;Log Compression&quot;</strong><strong>, </strong><strong>and &quot;Reverse Video&quot;</strong> (<em>Stretching&quot;</em><em>,</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>status message and status code</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>status (dict)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="server.get_img_size">
+<code class="descclassname">server.</code><code class="descname">get_img_size</code><span class="sig-paren">(</span><em>b64_string</em><span class="sig-paren">)</span><a class="headerlink" href="#server.get_img_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Obtain the size of the image in pixels</p>
+<p>This function takes an image represented as a base 64 string
+and converts it into an np.array. The np.array is then used
+to determine the size of the image in pixels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>b64_string</strong> (<em>str</em>) – image represented as base 64 string</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>dimensions of image expressed as (width x height)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>sz (tuple)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="server.image_download">
+<code class="descclassname">server.</code><code class="descname">image_download</code><span class="sig-paren">(</span><em>username</em>, <em>filename</em>, <em>proc_step</em><span class="sig-paren">)</span><a class="headerlink" href="#server.image_download" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download images to database</p>
+<p>This function implements a get request that takes
+a dictionary containing a username and filename and
+downloads the file from a MongoDB database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>username</strong> (<em>str</em>) – name of input username</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – name of input filename</p></li>
+<li><p><strong>proc_step</strong> (<em>str</em>) – name of that image is desired such as “Original”,</p></li>
+<li><p><strong>Equalization&quot;</strong><strong>, </strong><strong>&quot;Contrast Stretching&quot;</strong><strong>, </strong><strong>&quot;Log</strong> (<em>&quot;Histogram</em>) – </p></li>
+<li><p><strong>&quot;Reverse Video&quot;</strong> (<em>Compression&quot;</em><em>,</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>json of image info and status message
+code (int): status code that indicates whether a request
+was successful</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="server.image_upload">
+<code class="descclassname">server.</code><code class="descname">image_upload</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#server.image_upload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Upload images to database</p>
+<p>This function implements a post request that takes
+a dictionary containing an image and its metadata and
+uploads it to a MongoDB database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>none</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>displays message regarding a request
+code (int): status code that indicates whether a request
+was successful</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>msg (str)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="server.new_user">
+<code class="descclassname">server.</code><code class="descname">new_user</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#server.new_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register new user in the server</p>
+<p>This function implements a post request that takes
+a dictionary containing user information and saves it
+in a MongoDB database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>none</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>status message and status code</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>out_data (string)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="server.process_delete_img">
+<code class="descclassname">server.</code><code class="descname">process_delete_img</code><span class="sig-paren">(</span><em>username</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#server.process_delete_img" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process to delete an image under a specified user from
+the database</p>
+<p>This implements the post request to process the deleting
+of an image under a specified user from the MongoDB database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>username</strong> (<em>str</em>) – username undre which the image is stored</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – filename of the image desired to be deleted</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>status message and status code</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>status (dict)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="server.process_delete_user">
+<code class="descclassname">server.</code><code class="descname">process_delete_user</code><span class="sig-paren">(</span><em>username</em><span class="sig-paren">)</span><a class="headerlink" href="#server.process_delete_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process to delete a user from the database</p>
+<p>This implements the post request to process the deleting
+of a user from the MongoDB database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>username</strong> (<em>str</em>) – username desired to be deleted</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>status message and status code</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>status (dict)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="server.process_image">
+<code class="descclassname">server.</code><code class="descname">process_image</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#server.process_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process and upload image to database</p>
+<p>This implements the post request to process an image and store
+the processed image on the MongoDB database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>none</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>displays message regarding a request
+code (int): status code that indicates whether a request
+was successful</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>msg (str)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="server.process_image_download">
+<code class="descclassname">server.</code><code class="descname">process_image_download</code><span class="sig-paren">(</span><em>input_img_info</em><span class="sig-paren">)</span><a class="headerlink" href="#server.process_image_download" title="Permalink to this definition">¶</a></dt>
+<dd><p>Processes request to download images</p>
+<p>This function processes the request to download images from
+the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_img_info</strong> (<em>dict</em>) – dictionary with a username, filename,</p></li>
+<li><p><strong>process</strong> (<em>image</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>status message and status code
+img_info (dict): dictionary with a username, filename,
+metadata, and image</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>status (dict)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="server.process_image_upload">
+<code class="descclassname">server.</code><code class="descname">process_image_upload</code><span class="sig-paren">(</span><em>img_info</em><span class="sig-paren">)</span><a class="headerlink" href="#server.process_image_upload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Processes request to upload images</p>
+<p>This function processes the request to upload new images to
+the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img_info</strong> (<em>dict</em>) – dictionary with image metadata including</p></li>
+<li><p><strong>username</strong><strong>, </strong><strong>filename</strong><strong>, </strong><strong>and image itself</strong> (<em>the</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>status message and status code</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>status (dict)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="server.process_new_user">
+<code class="descclassname">server.</code><code class="descname">process_new_user</code><span class="sig-paren">(</span><em>user_info</em><span class="sig-paren">)</span><a class="headerlink" href="#server.process_new_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Processes request to add new user</p>
+<p>This function processes the request to add a new user
+to the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>user_info</strong> (<em>dict</em>) – dictionary with user info</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>status message and status code</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>status (dict)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="server.process_process_image">
+<code class="descclassname">server.</code><code class="descname">process_process_image</code><span class="sig-paren">(</span><em>img_info</em><span class="sig-paren">)</span><a class="headerlink" href="#server.process_process_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Processes request to process image</p>
+<p>This function processes the request to process an image. The
+function returns a status code and message to indicate
+whether the request was successful.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img_info</strong> (<em>dict</em>) – dictionary with image metadata including</p></li>
+<li><p><strong>username</strong><strong>, </strong><strong>filename</strong><strong>, </strong><strong>image</strong><strong>, </strong><strong>and processing steps to run</strong> (<em>the</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>status message and status code</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>status (dict)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="server.register_new_user">
+<code class="descclassname">server.</code><code class="descname">register_new_user</code><span class="sig-paren">(</span><em>username</em><span class="sig-paren">)</span><a class="headerlink" href="#server.register_new_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register new user to database</p>
+<p>This function takes a user’s username and registers them
+to the MongoDB database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>username</strong> (<em>str</em>) – user identifier</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>none</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="server.run_image_processing">
+<code class="descclassname">server.</code><code class="descname">run_image_processing</code><span class="sig-paren">(</span><em>orig_img</em>, <em>proc_step</em><span class="sig-paren">)</span><a class="headerlink" href="#server.run_image_processing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs processing on uploaded image</p>
+<p>This function takes an image and performs processing.
+The image can be processed using histogram equalization,
+contrast stretching, log compression, or reverse video.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>orig_img</strong> (<em>np.array</em>) – unprocessed image as RGB intensities</p></li>
+<li><p><strong>proc_step</strong> (<em>str</em>) – type of processing to apply to image</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>processed image as RGB intensities</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>proc_img (np.array)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="server.stretch_contrast">
+<code class="descclassname">server.</code><code class="descname">stretch_contrast</code><span class="sig-paren">(</span><em>orig_img</em><span class="sig-paren">)</span><a class="headerlink" href="#server.stretch_contrast" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs contrast stretching on uploaded image</p>
+<p>This function uses the skimage.exposure.rescale_intensity
+function to stretch the contrast of the uploaded image. The
+function then returns the processed image an an np.array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>orig_img</strong> (<em>np.array</em>) – original, raw image</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>processed image</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>proc_img (np.array)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="server.upload_image">
+<code class="descclassname">server.</code><code class="descname">upload_image</code><span class="sig-paren">(</span><em>img_info</em><span class="sig-paren">)</span><a class="headerlink" href="#server.upload_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uploads image to database</p>
+<p>This function takes an image and its metadata and uploads
+it to the MongoDB database. The image is linked to the user
+that uploaded it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img_info</strong> (<em>dict</em>) – dictionary with image metadata including</p></li>
+<li><p><strong>username</strong><strong>, </strong><strong>filename</strong><strong>, </strong><strong>size</strong><strong>, </strong><strong>time stamp</strong><strong>, </strong><strong>and image itself</strong> (<em>the</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>none</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="server.upload_processed_image">
+<code class="descclassname">server.</code><code class="descname">upload_processed_image</code><span class="sig-paren">(</span><em>img_info</em><span class="sig-paren">)</span><a class="headerlink" href="#server.upload_processed_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uploads image to database</p>
+<p>This function takes a processed image and its metadata and uploads
+it to the MongoDB database. The image is linked to the user
+that uploaded it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img_info</strong> (<em>dict</em>) – dictionary with image metadata including</p></li>
+<li><p><strong>username</strong><strong>, </strong><strong>filename</strong><strong>, </strong><strong>size of original image</strong><strong>, </strong><strong>size of</strong> (<em>the</em>) – </p></li>
+<li><p><strong>image</strong><strong>, </strong><strong>time stamp</strong><strong>, </strong><strong>processing time</strong><strong>,</strong> (<em>processed</em>) – </p></li>
+<li><p><strong>step</strong><strong>, </strong><strong>original image</strong><strong>, </strong><strong>and processed image itself</strong> (<em>processing</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>none</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="server.validate_input">
+<code class="descclassname">server.</code><code class="descname">validate_input</code><span class="sig-paren">(</span><em>key</em>, <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#server.validate_input" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate a user input</p>
+<p>This function ensures that the user enters a valid input
+(could be username or filename). Here, the inputs are valid
+if they are non-empty. The function then returns the appropriate
+status code and message.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>str</em>) – name of input to validate (e.g. username, filename)</p></li>
+<li><p><strong>value</strong> (<em>str</em>) – value of input to validate (e.g. user1, file.png)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>status message and status code</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>status (dict)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="server.validate_user">
+<code class="descclassname">server.</code><code class="descname">validate_user</code><span class="sig-paren">(</span><em>username</em><span class="sig-paren">)</span><a class="headerlink" href="#server.validate_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if user exists</p>
+<p>This function checks whether a specified user exists in the database.
+If found, the function returns a status code of 200. If not found, the
+function returns a status code of 404.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>username</strong> (<em>str</em>) – username</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>returns User object if successful request
+and NoneType if user was not found
+status (dict): status message and status code</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>user (<a class="reference internal" href="user.html#user.User" title="user.User">User</a> or NoneType)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">BME547 Final</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Janet Chen, Jessica Bilskie, Kevin Chu.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/server.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
