@@ -4,6 +4,7 @@
 
 import requests
 from pymodm import connect, MongoModel, fields
+import logging
 
 url = "http://vcm-9111.vm.duke.edu:5000/"
 # url = "http://127.0.0.1:5000/"
@@ -25,6 +26,7 @@ def add_new_user(username):
     user = {"username": username}
 
     print("Asking server to register new user")
+    logging.info("Asking server to register new user")
 
     r = requests.post(url + "new_user", json=user)
 
@@ -45,6 +47,7 @@ def delete_user(username):
     """
 
     print("Asking server to delete user from database")
+    logging.info("Asking server to delete user from database")
 
     r = requests.post(url + "delete/" + username)
 
@@ -68,6 +71,7 @@ def delete_image(username, filename):
     """
 
     print("Asking server to delete image from database")
+    logging.info("Asking server to delete image from database")
 
     r = requests.post(url + "delete/" + username + '/' + filename)
 
@@ -124,12 +128,15 @@ def check_file(file, direction):
         status = {"code": 400,
                   "msg": "File {} doesn't contain the correct\
                   amount of elements.".format(file[0])}
+        logging.warning("File {} doesn't contain the correct\
+                         amount of elements.".format(file[0]))
         return status
 
     # Check that an image was selected
     if True not in list(file[2]):
         status = {"code": 400,
                   "msg": "No image types were selected for given files."}
+        logging.warning("No image types were selected for given files.")
         return status
 
     # Make sure all filenames are non-empty strings
@@ -137,10 +144,12 @@ def check_file(file, direction):
         status = {"code": 400,
                   "msg": "Filename {} is not a string."
                   .format(file[0])}
+        logging.warning("Filename {} is not a string.".format(file[0]))
         return status
     if len(file[0]) == 0:
         status = {"code": 400,
                   "msg": "Filename {} is empty.".format(file[0])}
+        logging.warning("Filename {} is empty.".format(file[0]))
         return status
 
     # Check if b64_image is valid or image type for download is valid
@@ -150,6 +159,8 @@ def check_file(file, direction):
             status = {"code": 400,
                       "msg": "Filename {} has invalid b64 image."
                       .format(file[0])}
+            logging.warning("Filename {} has invalid b64 image."
+                            .format(file[0]))
             return status
     if direction == "download":
         img_types = [".jpg", ".tiff", ".png"]
@@ -157,6 +168,8 @@ def check_file(file, direction):
             status = {"code": 400,
                       "msg": "Filename {} has invalid image type."
                       .format(file[0])}
+            logging.warning("Filename {} has invalid image type."
+                            .format(file[0]))
             return status
 
     # Check processing array for proper format
@@ -165,12 +178,16 @@ def check_file(file, direction):
                   "msg": "Processing array in file {} doesn't \
                   contain the correct amount of elements."
                   .format(file[0])}
+        logging.warning("Processing array in file {} doesn't contain \
+                         the correct amount of elements.".format(file[0]))
         return status
     for proc in file[2]:
         if isinstance(proc, bool) is False:
             status = {"code": 400,
                       "msg": "Processing array contains non-Boolean \
                       elements.".format(file[0])}
+            logging.warning("Processing array contains non-Boolean \
+                             elements.".format(file[0]))
             return status
 
     return status
@@ -207,6 +224,7 @@ def upload_images(username, file_list):
     if len(file_list) == 0:
         files_status = {"code": 400,
                         "msg": "No file was selected."}
+        logging.warning("No file was selected.")
         return files_status
 
     # Complete all uploading tasks and append with their status codes
@@ -276,6 +294,7 @@ def download_images(username, file_list, zip_path):
     if len(file_list) == 0:
         files_status = {"code": 400,
                         "msg": "No file was selected."}
+        logging.warning("No file was selected.")
         return [], files_status
 
     # Make Zip Directory
@@ -393,6 +412,7 @@ def upload_image(username, filename, b64_string):
     from image import is_b64
 
     print("Asking server to upload image")
+    logging.info("Asking server to upload image")
     status = {}
 
     # See if image is b64 string
@@ -401,6 +421,7 @@ def upload_image(username, filename, b64_string):
         status = {"code": 400,
                   "msg": "Filename {} has invalid b64 image."
                   .format(file[0])}
+        logging.warning("Filename {} has invalid b64 image.".format(file[0]))
         return status
 
     # Format into dictionary
@@ -410,6 +431,9 @@ def upload_image(username, filename, b64_string):
 
     # Upload image
     r = requests.post(url + "image_upload", json=img_info)
+    if r.status_code != 200:
+        logging.warning("Upload was not successful.")
+
     status['code'] = r.status_code
     status['msg'] = r.text
 
@@ -444,6 +468,7 @@ def download_image(username, filename, path, proc_steps, type_ext=".png"):
     import re
 
     print("Asking server to download image")
+    logging.info("Asking server to download image")
 
     # Create processing steps extension
     proc_ext = proc_string(proc_steps)
@@ -458,6 +483,7 @@ def download_image(username, filename, path, proc_steps, type_ext=".png"):
     if status_code != 200:
         img_info = {}
         msg = results[1]
+        logging.warning("Download was not successful.")
     else:
         img_info = results[0]
         msg = results[1]
@@ -472,9 +498,9 @@ def download_image(username, filename, path, proc_steps, type_ext=".png"):
                 new_filename = filename[0:match_start]
             else:
                 new_filename = filename
-            save_path = path+new_filename+"_"+proc_ext+type_ext
-            save_b64_img(img_info["image"],
-                         save_path)
+            save_path = path + new_filename + "_" + proc_ext + type_ext
+            save_b64_img(img_info["image"], save_path)
+            logging.info("Saved image")
 
     status = {'code': status_code,
               'msg': msg}
@@ -528,6 +554,7 @@ def process_image(username, filename, b64_string, proc_steps):
     from image import is_b64
 
     print("Asking server to process image")
+    logging.info("Asking server to process image")
     status = {}
 
     # See if image is b64 string
@@ -536,6 +563,7 @@ def process_image(username, filename, b64_string, proc_steps):
         status = {"code": 400,
                   "msg": "Filename {} has invalid b64 image."
                   .format(file[0])}
+        logging.warning("Filename {} has invalid b64 image.".format(file[0]))
         return status
 
     # Obtain processing extension
@@ -548,6 +576,9 @@ def process_image(username, filename, b64_string, proc_steps):
                 "proc_step": proc_ext}
 
     r = requests.post(url + "process_image", json=img_info)
+    if r.status_code != 200:
+        logging.warning("Upload was not successful.")
+
     status['code'] = r.status_code
     status['msg'] = r.text
 
@@ -555,6 +586,7 @@ def process_image(username, filename, b64_string, proc_steps):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(filename='LOGFILE_CLIENT.log', level=logging.INFO)
     from image import read_img_as_b64
     delete_user("user1")
     add_new_user("user1")
@@ -569,11 +601,15 @@ if __name__ == "__main__":
     # Example uploading multiple images
     status = upload_images("user1", [file2, file1])
     print(status['code'])
+    logging.info("Status Codes: {}".format(status['code']))
     print(status['msg'])
+    logging.info("Status Messages: {}".format(status['msg']))
     # Example uploading single image
     status = upload_images("user1", [file3])
     print(status['code'])
+    logging.info("Status Codes: {}".format(status['code']))
     print(status['msg'])
+    logging.info("Status Messages: {}".format(status['msg']))
 
     # Downloading Examples
     file1 = ["puppy1", ".jpg", [True, True, False, False, False]]
@@ -585,33 +621,47 @@ if __name__ == "__main__":
     img_info, status = download_images("user1", [file1],
                                        "Pictures/WRONG/")
     print(status['code'])
+    logging.info("Status Codes: {}".format(status['code']))
     print(status['msg'])
+    logging.info("Status Messages: {}".format(status['msg']))
     # Example download (no saving) multiple images (some exist)
     img_info, status = download_images("user1", [file4, file5],
                                        "none")
     print(status['code'])
+    logging.info("Status Codes: {}".format(status['code']))
     print(status['msg'])
+    logging.info("Status Messages: {}".format(status['msg']))
     # Example download (no saving) single image
     img_info, status = download_images("user1", [file3], "none")
     print(status['code'])
+    logging.info("Status Codes: {}".format(status['code']))
     print(status['msg'])
+    logging.info("Status Messages: {}".format(status['msg']))
     # Example download (saving) multiple images
     img_info, status = download_images("user1", [file1, file2, file3],
                                        "Pictures/Downloaded/")
     print(status['code'])
+    logging.info("Status Codes: {}".format(status['code']))
     print(status['msg'])
+    logging.info("Status Messages: {}".format(status['msg']))
     # Example download (saving) multiple images (some exist)
     img_info, status = download_images("user1", [file4, file5],
                                        "Pictures/Downloaded/")
     print(status['code'])
+    logging.info("Status Codes: {}".format(status['code']))
     print(status['msg'])
+    logging.info("Status Messages: {}".format(status['msg']))
     # Example download (saving) single image
     img_info, status = download_images("user1", [file3],
                                        "Pictures/")
     print(status['code'])
+    logging.info("Status Codes: {}".format(status['code']))
     print(status['msg'])
+    logging.info("Status Messages: {}".format(status['msg']))
     # Example download (saving) single image that doesn't exist
     img_info, status = download_images("user1", [file5],
                                        "Pictures/")
     print(status['code'])
+    logging.info("Status Codes: {}".format(status['code']))
     print(status['msg'])
+    logging.info("Status Messages: {}".format(status['msg']))
